@@ -88,6 +88,7 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - Önceki Mailcow servis/controller dosyaları korunarak, öğretmen odaklı uçtan uca demo akışı portal ekranına taşındı.
 
 ## Yeni Başlangıç Ekranı (index.html)
+- `index.html` (repo kökü) dinamik karşılama tasarımı eklendi; domain kökünden direkt açılır.
 - `alfabe-portal/index.html` dinamik karşılama tasarımı eklendi.
 - Kayıp penguen animasyonu kapıdan içeri girer şekilde kurgulandı.
 - Merkezde animasyonlu Öğrenci Girişi kartı, çevresinde Yönetim/Öğretmen/Veli giriş kutuları yerleştirildi.
