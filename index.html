@@ -451,27 +451,27 @@
           <article class="card admin">
             <h2>🏫 Yönetim Girişi</h2>
             <p>Okul yönetimi ve organizasyon.</p>
-            <button onclick="go('#')">Yönetici Girişi</button>
+            <button onclick="go('portal/yonetici.html')">Yönetici Girişi</button>
           </article>
 
           <article class="card teacher">
             <h2>🧑‍🏫 Öğretmen Girişi</h2>
             <p>Öğrenci ve süreç yönetimi.</p>
-            <button onclick="go('#')">Öğretmen Girişi</button>
+            <button onclick="go('portal/ogretmen.html')">Öğretmen Girişi</button>
           </article>
         </div>
 
         <article class="card student">
           <h2>🎒 Öğrenci Girişi</h2>
           <p>Karekod ile hızlı ve eğlenceli erişim.</p>
-          <button onclick="go('#')">Öğrenci Girişi Yap</button>
+          <button onclick="go('portal/ogrenci.html')">Öğrenci Girişi Yap</button>
         </article>
 
         <div class="right-col">
           <article class="card parent">
             <h2>👨‍👩‍👧 Veli Girişi</h2>
             <p>Gelişim ve etkinlik raporları.</p>
-            <button onclick="go('#')">Veli Girişi</button>
+            <button onclick="go('portal/veli.html')">Veli Girişi</button>
           </article>
 
           <article class="card">
@@ -502,7 +502,9 @@
       }
 
       function go(path) {
-        console.log("Yönlendiriliyor: " + path);
+        if (path && path !== '#') {
+          window.location.href = path;
+        }
       }
     </script>
   </body>
