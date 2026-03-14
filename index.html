@@ -315,6 +315,9 @@
 
       @media (max-width: 920px) {
         .grid { grid-template-columns: 1fr; }
+        .grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -332,6 +335,9 @@
         <div class="head"></div>
         <div class="eye"></div>
         <div class="eye right"></div>
+      <div class="door" title="Portal Giriş Kapısı"></div>
+      <div class="penguin" id="penguin">
+        <div class="head"></div>
         <div class="beak"></div>
         <div class="body"></div>
         <div class="belly"></div>
@@ -353,32 +359,33 @@
           <article class="card admin">
             <h2>🏫 Yönetim Girişi</h2>
             <p>Okul yönetimi, sınıf ve öğretmen organizasyonu.</p>
-            <button onclick="go('portal/yonetici.html')">Yönetici Olarak Giriş</button>
+            <button onclick="go('alfabe-portal/yonetici.html')">Yönetici Olarak Giriş</button>
           </article>
 
           <article class="card teacher">
             <h2>🧑‍🏫 Öğretmen Girişi</h2>
             <p>Öğrenci kaydı, kart basımı ve süreç yönetimi.</p>
-            <button onclick="go('portal/ogretmen.html')">Öğretmen Olarak Giriş</button>
+            <button onclick="go('alfabe-portal/ogretmen.html')">Öğretmen Olarak Giriş</button>
           </article>
         </div>
 
         <article class="card student">
           <h2>🎒 Öğrenci Girişi</h2>
           <p>Merkez giriş. Karekod ile hızlı ve eğlenceli erişim.</p>
-          <button onclick="go('portal/ogrenci.html')">Öğrenci Girişi Yap</button>
+          <button onclick="go('alfabe-portal/ogrenci.html')">Öğrenci Girişi Yap</button>
         </article>
 
         <div class="right-col">
           <article class="card parent">
             <h2>👨‍👩‍👧 Veli Girişi</h2>
             <p>Öğrenci gelişimi ve etkinlik özet raporları.</p>
-            <button onclick="go('portal/veli.html')">Veli Olarak Giriş</button>
+            <button onclick="go('alfabe-portal/veli.html')">Veli Olarak Giriş</button>
           </article>
 
           <article class="card">
             <h2>✨ Portal Bilgisi</h2>
             <p>Kapı açılır, penguen içeri girer ve öğrenme yolculuğu başlar.</p>
+            <p>Kapıdan giren penguen gibi doğru yere geldin; aşağıdan rolünü seçebilirsin.</p>
             <button onclick="restartPenguin()">Pengueni Tekrar Yürüt</button>
           </article>
         </div>
@@ -401,6 +408,16 @@
       function restartPenguin() {
         restartAnimation(penguin, 'penguin-walk 9s linear infinite');
         restartAnimation(doorLeaf, 'door-open 9s ease-in-out infinite');
+      }
+
+
+      function restartPenguin() {
+        penguin.style.animation = 'none';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            penguin.style.animation = 'penguin-walk 9s ease-in-out infinite';
+          });
+        });
       }
 
       function go(path) {
