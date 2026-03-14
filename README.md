@@ -90,7 +90,7 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 ## Yeni Başlangıç Ekranı (index.html)
 - `index.html` (repo kökü) dinamik karşılama tasarımı eklendi; domain kökünden direkt açılır.
 - Kayıp penguen animasyonu kapıdan içeri girer şekilde kurgulandı.
-- Penguen tasarımı sadeleştirildi: yalnızca elinde tek bir mail zarfı taşır; kapıya yaklaşınca kapı açılır, penguen içeri girer ve kapı üzerinde `alfabe.co` yazısı görünür.
+- Penguen görseli logo stiline yakın şekilde canlandırıldı; kapıya yaklaşınca kapı açılır ve penguen içeri geçer.
 - Merkezde animasyonlu Öğrenci Girişi kartı, çevresinde Yönetim/Öğretmen/Veli giriş kutuları yerleştirildi.
 - Tasarım pastel renk paleti ve modern kart sistemiyle hazırlandı.
 
