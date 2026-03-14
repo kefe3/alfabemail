@@ -35,7 +35,6 @@
         width: min(1200px, 96vw);
         margin: 28px auto 0;
         height: 230px;
-        height: 220px;
       }
 
       .ice-ground {
@@ -44,7 +43,6 @@
         right: 2%;
         bottom: 10px;
         height: 30px;
-        height: 28px;
         border-radius: 99px;
         background: linear-gradient(90deg, #d8ebff, #c4ffe7);
       }
@@ -85,29 +83,6 @@
         top: 76px;
         width: 12px;
         height: 12px;
-        bottom: 40px;
-        width: 128px;
-        height: 160px;
-        border-radius: 16px 16px 4px 4px;
-        background: linear-gradient(180deg, #8faeff, #6f8fe8);
-        box-shadow: var(--shadow);
-      }
-
-      .door::before {
-        content: '';
-        position: absolute;
-        inset: 14px;
-        border-radius: 12px 12px 2px 2px;
-        border: 2px dashed rgba(255, 255, 255, 0.75);
-      }
-
-      .door::after {
-        content: '';
-        position: absolute;
-        right: 24px;
-        top: 72px;
-        width: 11px;
-        height: 11px;
         border-radius: 50%;
         background: #ffe8ad;
       }
@@ -127,13 +102,6 @@
         width: 130px;
         height: 160px;
         animation: penguin-walk 9s linear infinite;
-      .penguin {
-        position: absolute;
-        bottom: 35px;
-        left: -120px;
-        width: 90px;
-        height: 122px;
-        animation: penguin-walk 9s ease-in-out infinite;
       }
 
       .penguin .body {
@@ -145,9 +113,6 @@
         border-radius: 45px;
         background: #2e2529;
         border: 4px solid #4b3d42;
-        inset: 18px 12px 8px;
-        border-radius: 45px;
-        background: #1f2f48;
       }
 
       .penguin .belly {
@@ -158,12 +123,6 @@
         height: 82px;
         border-radius: 31px;
         background: #f2f3f7;
-        left: 24px;
-        top: 34px;
-        width: 42px;
-        height: 58px;
-        border-radius: 24px;
-        background: #f8fbff;
       }
 
       .penguin .head {
@@ -234,36 +193,6 @@
         right: 8px;
         top: 52px;
         transform: rotate(24deg);
-        left: 18px;
-        top: 0;
-        width: 54px;
-        height: 50px;
-        border-radius: 50%;
-        background: #243854;
-      }
-
-      .penguin .head::before,
-      .penguin .head::after {
-        content: '';
-        position: absolute;
-        top: 18px;
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #fff;
-      }
-
-      .penguin .head::before { left: 16px; }
-      .penguin .head::after { right: 16px; }
-
-      .penguin .beak {
-        position: absolute;
-        left: 37px;
-        top: 26px;
-        width: 16px;
-        height: 10px;
-        border-radius: 0 0 10px 10px;
-        background: #ffbf66;
       }
 
       .penguin .foot,
@@ -286,22 +215,6 @@
         bottom: -8px;
         width: 62px;
         height: 11px;
-        width: 21px;
-        height: 12px;
-        border-radius: 10px;
-        background: #ffbf66;
-        animation: step .7s ease-in-out infinite;
-      }
-
-      .penguin .foot { left: 24px; }
-      .penguin .foot.right { right: 24px; animation-delay: .35s; }
-
-      .penguin .shadow {
-        position: absolute;
-        left: 22px;
-        bottom: -6px;
-        width: 46px;
-        height: 10px;
         border-radius: 50%;
         background: rgba(27, 43, 68, 0.22);
       }
@@ -327,15 +240,6 @@
 
       h1 { margin: 0; font-size: clamp(24px, 4vw, 42px); }
       .sub { margin: 8px 0 22px; color: var(--muted); }
-      h1 {
-        margin: 0;
-        font-size: clamp(24px, 4vw, 42px);
-      }
-
-      .sub {
-        margin: 8px 0 22px;
-        color: var(--muted);
-      }
 
       .grid {
         display: grid;
@@ -365,17 +269,6 @@
 
       .card h2 { margin: 0 0 8px; position: relative; }
       .card p { margin: 0 0 14px; color: var(--muted); position: relative; }
-      .card h2 {
-        margin: 0 0 8px;
-        position: relative;
-      }
-
-      .card p {
-        margin: 0 0 14px;
-        color: var(--muted);
-        position: relative;
-      }
-
       .card button {
         border: none;
         border-radius: 999px;
@@ -386,12 +279,6 @@
       }
 
       .student { background: linear-gradient(150deg, var(--student), #cde4ff); transform: scale(1.02); animation-delay: .2s; }
-      .student {
-        background: linear-gradient(150deg, var(--student), #cde4ff);
-        transform: scale(1.02);
-        animation-delay: .2s;
-      }
-
       .student button { background: #5e8df7; color: #fff; }
       .admin { background: linear-gradient(150deg, var(--admin), #e6fff0); }
       .admin button { background: #55b88f; color: #fff; }
@@ -419,22 +306,6 @@
       @keyframes wave {
         0%, 100% { transform: rotate(-30deg); }
         50% { transform: rotate(-54deg); }
-      .left-col, .right-col {
-        display: grid;
-        gap: 16px;
-      }
-
-      @keyframes penguin-walk {
-        0% { left: -120px; transform: translateY(0); opacity: 1; }
-        55% { left: calc(88% - 180px); transform: translateY(-1px); opacity: 1; }
-        74% { left: calc(88% - 82px); opacity: 1; }
-        85% { left: calc(88% - 45px); opacity: .35; }
-        100% { left: calc(88% - 45px); opacity: 0; }
-      }
-
-      @keyframes step {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-3px); }
       }
 
       @keyframes floaty {

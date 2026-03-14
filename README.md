@@ -91,25 +91,23 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - `index.html` (repo kökü) dinamik karşılama tasarımı eklendi; domain kökünden direkt açılır.
 - Kayıp penguen animasyonu kapıdan içeri girer şekilde kurgulandı.
 - Penguen görseli logo stiline yakın şekilde canlandırıldı; kapıya yaklaşınca kapı açılır ve penguen içeri geçer.
-- `alfabe-portal/index.html` dinamik karşılama tasarımı eklendi.
-- Kayıp penguen animasyonu kapıdan içeri girer şekilde kurgulandı.
 - Merkezde animasyonlu Öğrenci Girişi kartı, çevresinde Yönetim/Öğretmen/Veli giriş kutuları yerleştirildi.
 - Tasarım pastel renk paleti ve modern kart sistemiyle hazırlandı.
 
 ## Öğrenci Sayfası (Tek Dosya)
-- `alfabe-portal/ogrenci.html` eklendi.
+- `portal/ogrenci.html` eklendi.
 - Sol tarafta e-posta/şifre giriş formu, sağ tarafta html5-qrcode ile kamera tabanlı karekod giriş alanı vardır.
 - Başarılı giriş sonrası öğrenci mail paneli görünür; gelen kutusu ve mail gönderme (simülasyon) akışı bulunur.
 - Öğrenci oturumu `sessionStorage` ile tutulur, sayfa yenilendiğinde tekrar giriş istenmez.
 
 ## Öğretmen Paneli - Toplu Öğrenci Yükleme
-- `alfabe-portal/ogretmen.html` içinde drag&drop destekli `.csv/.xlsx` dosya yükleme alanı eklendi.
+- `portal/ogretmen.html` içinde drag&drop destekli `.csv/.xlsx` dosya yükleme alanı eklendi.
 - Dosya satırları `xlsx.full.min.js` ile okunur; her öğrenci için otomatik `ad.soyad@alfabe.co` önerisi ve 10 karakter karmaşık şifre üretilir.
 - Önizleme tablosunda satır bazlı `Düzenle` (nick/mail alanı güncelleme) ve `Sil` aksiyonları bulunur.
 - `Hesapları Oluştur` butonu listeleri Mailcow API gönderimine hazır payload formatına dönüştürüp `console.log` çıktısı üretir.
 
 ## Veli Sayfası (Dashboard)
-- `alfabe-portal/veli.html` eklendi.
+- `portal/veli.html` eklendi.
 - Üst bilgi alanında Veli ve Öğrenci bilgileri gösterilir.
 - İstatistik kartları: haftalık toplam mail, en çok iletişim kurulan kişi, konu filtreli tamamlanan ödev sayısı.
 - `Chart.js` ile haftalık mail trafiği bar grafik olarak sunulur.
@@ -117,14 +115,14 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - Grafik veya analiz düşüşlerinde velinin tek tıkla öğretmene e-posta atabilmesi için `Öğretmenle İletişim` butonu eklendi.
 
 ## Yönetici Sayfası (yonetici.html)
-- `alfabe-portal/yonetici.html` eklendi.
+- `portal/yonetici.html` eklendi.
 - Sidebar sekmeleri: Okul Özeti, Öğretmen Yönetimi, Sistem Ayarları.
 - Öğretmen ekleme formu: ad, soyad, şahsi mail, sınıf/branş.
 - Öğretmen listesi tablo görünümü ve satır bazlı `Hesabı Askıya Al` + `Şifre Linki Gönder` aksiyonları.
 - Veriler `localStorage` içinde `ogretmenler` anahtarında saklanır.
 
 ## Bayi Aktivasyon Sayfası (bayi.html)
-- `alfabe-portal/bayi.html` eklendi.
+- `portal/bayi.html` eklendi.
 - JavaScript başında sabit Süper Admin tanımı vardır:
   - `const SUPER_ADMIN_EMAIL = "info@ismailcimen.com.tr";`
 - İki yüzlü panel yapısı:
