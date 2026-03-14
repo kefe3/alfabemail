@@ -113,103 +113,99 @@
         opacity: .8;
       }
 
-      /* YENİ VE BELİRGİN PENGUEN TASARIMI - GÜNCELLENMİŞ AYAK VE KOL HAREKETLERİ */
+      /* Kayıp Penguen – daha sevimli, postaları taşıyan karakter */
       .penguin {
         position: absolute;
-        bottom: 23px;
-        left: -150px;
-        width: 100px;
-        height: 140px;
-        /* Penguen 1 kez yürüyecek ve duracak */
-        animation: penguin-walk 7s linear forwards;
+        bottom: 24px;
+        left: -160px;
+        width: 110px;
+        height: 150px;
+        animation: penguin-walk 7s ease-in-out forwards;
         z-index: 3;
       }
 
-      /* Penguen Gövdesi - Siyah kısımlar */
       .penguin .body-black {
         position: absolute;
         width: 100%;
         height: 100%;
         background: #222;
-        border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+        border-radius: 55% 55% 45% 45% / 65% 65% 40% 40%;
         border: 2px solid #000;
         overflow: hidden;
       }
 
-      /* Penguen Karnı - Beyaz kısım */
       .penguin .body-white {
         position: absolute;
         width: 70%;
-        height: 80%;
+        height: 82%;
         background: #fff;
-        border-radius: 50% / 60% 60% 40% 40%;
+        border-radius: 50% / 60% 60% 45% 45%;
         left: 15%;
-        bottom: 10%;
-        border: 1px solid #ccc;
+        bottom: 8%;
+        border: 1px solid #d0d0d0;
       }
 
-      /* Penguen Kafası - Siyah kısım */
       .penguin .head-black {
         position: absolute;
-        width: 70px;
-        height: 70px;
+        width: 78px;
+        height: 78px;
         background: #222;
         border-radius: 50%;
-        top: -15px;
-        left: 15px;
+        top: -20px;
+        left: 16px;
         border: 2px solid #000;
         z-index: 2;
+        transform: rotate(-4deg);
       }
 
-      /* Penguen Yüzü - Beyaz maske kısmı */
       .penguin .face-white {
         position: absolute;
-        width: 50px;
-        height: 50px;
+        width: 56px;
+        height: 56px;
         background: #fff;
         border-radius: 50%;
-        top: 0;
+        top: 6px;
         left: 10px;
         z-index: 3;
       }
 
-      /* Penguen Gözleri */
       .penguin .eye {
         position: absolute;
-        width: 14px;
-        height: 18px;
+        width: 16px;
+        height: 20px;
         background: #fff;
         border-radius: 50%;
         border: 1px solid #000;
-        top: 15px;
+        top: 16px;
         z-index: 4;
       }
-      .penguin .eye.left { left: 8px; }
-      .penguin .eye.right { left: 28px; }
-      
+      .penguin .eye.left { left: 6px; }
+      .penguin .eye.right { left: 30px; }
+
       .penguin .eye::after {
         content: '';
         position: absolute;
-        width: 7px; height: 7px;
+        width: 8px;
+        height: 8px;
         background: #000;
         border-radius: 50%;
-        top: 6px; left: 3px;
+        top: 7px;
+        left: 4px;
+        animation: penguin-blink 4s infinite;
       }
 
-      /* Penguen Gagası */
       .penguin .beak {
         position: absolute;
-        width: 18px;
-        height: 15px;
+        width: 20px;
+        height: 16px;
         background: #ff9800;
         border-radius: 0 0 10px 10px;
         border: 1px solid #e65100;
-        top: 35px;
-        left: 16px;
+        top: 36px;
+        left: 18px;
         z-index: 4;
       }
 
-      /* Penguen Kanatları - Siyah - GÜNCELLENMİŞ HAREKET */
       .penguin .wing {
         position: absolute;
         width: 30px;
@@ -217,25 +213,24 @@
         background: #222;
         border-radius: 30px 30px 10px 10px;
         border: 1px solid #000;
-        top: 30px;
+        top: 32px;
         z-index: 1;
       }
       .penguin .wing.left {
-        left: -15px;
+        left: -10px;
         transform-origin: top right;
-        animation: wing-wave-left .6s ease-in-out infinite;
+        animation: wing-wave-left 0.7s ease-in-out infinite;
       }
       .penguin .wing.right {
-        right: -15px;
+        right: -10px;
         transform-origin: top left;
-        animation: wing-wave-right .6s ease-in-out infinite;
+        animation: wing-wave-right 0.9s ease-in-out infinite;
       }
 
-      /* Penguen Ayakları - GÜNCELLENMİŞ HAREKET */
       .penguin .foot {
         position: absolute;
         width: 40px;
-        height: 25px;
+        height: 24px;
         background: #ff9800;
         border-radius: 20px 20px 5px 5px;
         border: 1px solid #e65100;
@@ -245,82 +240,122 @@
       .penguin .foot.left {
         left: 10px;
         transform-origin: top left;
-        animation: foot-leg-left .6s ease-in-out infinite;
+        animation: foot-leg-left 0.55s ease-in-out infinite;
       }
       .penguin .foot.right {
         right: 10px;
         transform-origin: top right;
-        animation: foot-leg-right .6s ease-in-out infinite .3s; /* Sağ ayak hafif gecikmeli başlar */
+        animation: foot-leg-right 0.55s ease-in-out infinite 0.25s;
       }
 
-      /* Mektup/Posta Stilleri */
-      .mail {
-        position: absolute;
-        width: 32px;
-        height: 22px;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-        z-index: 6;
-      }
-      .mail::after {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, transparent 48%, #eee 50%, transparent 52%);
-      }
-      .mail.one { left: 10px; top: 50px; transform: rotate(-15deg); }
-      .mail.two { left: 20px; top: 65px; transform: rotate(10deg); }
-      .mail.three { left: 15px; top: 80px; transform: rotate(-5deg); }
-
-      /* Penguen Gölgesi */
       .penguin .shadow {
         position: absolute;
-        left: 15px; bottom: -12px;
-        width: 70px; height: 15px;
+        left: 18px;
+        bottom: -12px;
+        width: 74px;
+        height: 15px;
         border-radius: 50%;
         background: rgba(27, 43, 68, 0.22);
         z-index: -1;
       }
 
+      /* Penguenin taşıdığı mektuplar */
+      .mail {
+        position: absolute;
+        width: 34px;
+        height: 24px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.12);
+        z-index: 6;
+        overflow: hidden;
+        animation: mail-bounce 0.6s ease-in-out infinite alternate;
+      }
+      .mail::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, transparent 48%, #eee 50%, transparent 52%);
+      }
+      .mail.one { left: 30px; top: 58px; }
+      .mail.two { left: 34px; top: 64px; }
+      .mail.three { left: 38px; top: 70px; }
+
       /* Animasyonlar */
       @keyframes penguin-walk {
-        0% { left: -150px; opacity: 1; transform: scale(1); }
-        70% { left: calc(88% - 110px); opacity: 1; transform: scale(1); }
-        85% { left: calc(88% - 80px); opacity: 0.8; transform: scale(0.9); }
-        100% { left: calc(88% - 70px); opacity: 0; transform: scale(0.8); }
+        0% {
+          left: -160px;
+          transform: scale(0.9) translateY(0);
+          opacity: 1;
+        }
+        20% {
+          left: calc(25% - 70px);
+          transform: scale(1) translateY(-4px);
+        }
+        40% {
+          left: calc(50% - 70px);
+          transform: scale(1) translateY(0);
+        }
+        60% {
+          left: calc(72% - 70px);
+          transform: scale(1) translateY(-4px);
+        }
+        75% {
+          left: calc(88% - 90px);
+          transform: scale(0.98) translateY(0);
+        }
+        90% {
+          left: calc(88% - 80px);
+          transform: scale(0.95) translateY(6px);
+          opacity: 0.5;
+        }
+        100% {
+          left: calc(88% - 70px);
+          transform: scale(0.9) translateY(10px);
+          opacity: 0;
+          pointer-events: none;
+        }
       }
 
-      /* Kapı penguen girince kapansın */
+      /* Kapı penguen girince kapansın – zamanlama korunuyor */
       @keyframes door-open-close {
         0%, 55% { transform: perspective(500px) rotateY(0deg); }
         65%, 85% { transform: perspective(500px) rotateY(-85deg); }
         95%, 100% { transform: perspective(500px) rotateY(0deg); }
       }
 
-      /* Sol kanat sallanma */
       @keyframes wing-wave-left {
-        0%, 100% { transform: rotate(-15deg); }
-        50% { transform: rotate(-35deg); }
+        0%, 100% { transform: rotate(-8deg); }
+        50% { transform: rotate(-26deg); }
       }
 
-      /* Sağ kanat sallanma (hafifletilmiş) */
       @keyframes wing-wave-right {
-        0%, 100% { transform: rotate(15deg); }
-        50% { transform: rotate(25deg); }
-      }
-
-      /* Sol ayak sallanma */
-      @keyframes foot-leg-left {
-        0%, 100% { transform: rotate(-10deg); }
-        50% { transform: rotate(-25deg) translateY(-2px); }
-      }
-
-      /* Sağ ayak sallanma */
-      @keyframes foot-leg-right {
         0%, 100% { transform: rotate(10deg); }
-        50% { transform: rotate(25deg) translateY(-2px); }
+        50% { transform: rotate(22deg); }
+      }
+
+      @keyframes foot-leg-left {
+        0%, 100% { transform: rotate(-8deg) translateY(0); }
+        50% { transform: rotate(-22deg) translateY(-2px); }
+      }
+
+      @keyframes foot-leg-right {
+        0%, 100% { transform: rotate(8deg) translateY(0); }
+        50% { transform: rotate(22deg) translateY(-2px); }
+      }
+
+      @keyframes penguin-blink {
+        0%, 92%, 100% { transform: scaleY(1); }
+        95% { transform: scaleY(0.1); }
+      }
+
+      @keyframes mail-bounce {
+        0% { transform: translateY(0) rotate(-8deg); }
+        100% { transform: translateY(-4px) rotate(4deg); }
       }
 
       /* Sayfa Düzeni */
