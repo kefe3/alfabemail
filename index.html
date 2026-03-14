@@ -51,8 +51,8 @@
         position: absolute;
         right: 12%;
         bottom: 36px;
-        width: 148px;
-        height: 174px;
+        width: 144px;
+        height: 170px;
         border-radius: 18px 18px 5px 5px;
         background: linear-gradient(180deg, #8faeff, #6f8fe8);
         box-shadow: var(--shadow);
@@ -91,21 +91,8 @@
         position: absolute;
         inset: 12px;
         border-radius: 10px;
-        background: radial-gradient(circle at 55% 35%, #8fc2ff, #274780 72%);
-        opacity: .82;
-      }
-
-      .door-brand {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 18px;
-        z-index: 3;
-        text-align: center;
-        font-weight: 800;
-        letter-spacing: .5px;
-        color: rgba(255, 255, 255, 0.92);
-        text-shadow: 0 1px 0 rgba(0,0,0,0.15);
+        background: radial-gradient(circle at 60% 35%, #7bb4ff, #294a83 70%);
+        opacity: .8;
       }
 
       .penguin {
@@ -232,6 +219,19 @@
         background: rgba(27, 43, 68, 0.22);
       }
 
+      .penguin .mail {
+        position: absolute;
+        width: 26px;
+        height: 18px;
+        border-radius: 4px;
+        background: #fff;
+        border: 2px solid #1e1f24;
+      }
+
+      .penguin .mail.one { left: 2px; top: 24px; transform: rotate(-12deg); }
+      .penguin .mail.two { right: -2px; top: 88px; transform: rotate(10deg); }
+      .penguin .mail.three { right: 16px; bottom: 34px; transform: rotate(-8deg); }
+
       .entry {
         width: min(1200px, 96vw);
         margin: 14px auto 38px;
@@ -291,15 +291,16 @@
 
       @keyframes penguin-walk {
         0% { left: -140px; transform: translateY(0) scale(1); opacity: 1; }
-        58% { left: calc(88% - 220px); transform: translateY(-2px) scale(1); opacity: 1; }
-        74% { left: calc(88% - 130px); transform: translateY(-1px) scale(0.98); opacity: 1; }
-        86% { left: calc(88% - 78px); transform: translateY(-2px) scale(0.82); opacity: .9; }
-        100% { left: calc(88% - 74px); transform: translateY(-2px) scale(0.68); opacity: 0; }
+        55% { left: calc(88% - 220px); transform: translateY(-2px) scale(1); opacity: 1; }
+        72% { left: calc(88% - 120px); transform: translateY(-1px) scale(0.98); opacity: 1; }
+        82% { left: calc(88% - 74px); opacity: .65; }
+        100% { left: calc(88% - 70px); opacity: 0; }
       }
 
       @keyframes door-open {
-        0%, 60% { transform: perspective(500px) rotateY(0deg); }
-        72%, 100% { transform: perspective(500px) rotateY(-78deg); }
+        0%, 57% { transform: perspective(500px) rotateY(0deg); }
+        68%, 88% { transform: perspective(500px) rotateY(-72deg); }
+        100% { transform: perspective(500px) rotateY(-72deg); }
       }
 
       @keyframes wave {
@@ -314,6 +315,9 @@
 
       @media (max-width: 920px) {
         .grid { grid-template-columns: 1fr; }
+        .grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -322,7 +326,6 @@
       <div class="ice-ground"></div>
       <div class="door" title="Portal Giriş Kapısı">
         <div class="door-inside"></div>
-        <div class="door-brand">alfabe.co</div>
         <div class="door-frame"></div>
         <div class="door-leaf" id="doorLeaf"><div class="door-knob"></div></div>
       </div>
@@ -332,11 +335,17 @@
         <div class="head"></div>
         <div class="eye"></div>
         <div class="eye right"></div>
+      <div class="door" title="Portal Giriş Kapısı"></div>
+      <div class="penguin" id="penguin">
+        <div class="head"></div>
         <div class="beak"></div>
         <div class="body"></div>
         <div class="belly"></div>
         <div class="foot"></div>
         <div class="foot right"></div>
+        <div class="mail one"></div>
+        <div class="mail two"></div>
+        <div class="mail three"></div>
         <div class="shadow"></div>
       </div>
     </section>
@@ -350,32 +359,33 @@
           <article class="card admin">
             <h2>🏫 Yönetim Girişi</h2>
             <p>Okul yönetimi, sınıf ve öğretmen organizasyonu.</p>
-            <button onclick="go('portal/yonetici.html')">Yönetici Olarak Giriş</button>
+            <button onclick="go('alfabe-portal/yonetici.html')">Yönetici Olarak Giriş</button>
           </article>
 
           <article class="card teacher">
             <h2>🧑‍🏫 Öğretmen Girişi</h2>
             <p>Öğrenci kaydı, kart basımı ve süreç yönetimi.</p>
-            <button onclick="go('portal/ogretmen.html')">Öğretmen Olarak Giriş</button>
+            <button onclick="go('alfabe-portal/ogretmen.html')">Öğretmen Olarak Giriş</button>
           </article>
         </div>
 
         <article class="card student">
           <h2>🎒 Öğrenci Girişi</h2>
           <p>Merkez giriş. Karekod ile hızlı ve eğlenceli erişim.</p>
-          <button onclick="go('portal/ogrenci.html')">Öğrenci Girişi Yap</button>
+          <button onclick="go('alfabe-portal/ogrenci.html')">Öğrenci Girişi Yap</button>
         </article>
 
         <div class="right-col">
           <article class="card parent">
             <h2>👨‍👩‍👧 Veli Girişi</h2>
             <p>Öğrenci gelişimi ve etkinlik özet raporları.</p>
-            <button onclick="go('portal/veli.html')">Veli Olarak Giriş</button>
+            <button onclick="go('alfabe-portal/veli.html')">Veli Olarak Giriş</button>
           </article>
 
           <article class="card">
             <h2>✨ Portal Bilgisi</h2>
             <p>Kapı açılır, penguen içeri girer ve öğrenme yolculuğu başlar.</p>
+            <p>Kapıdan giren penguen gibi doğru yere geldin; aşağıdan rolünü seçebilirsin.</p>
             <button onclick="restartPenguin()">Pengueni Tekrar Yürüt</button>
           </article>
         </div>
@@ -398,6 +408,16 @@
       function restartPenguin() {
         restartAnimation(penguin, 'penguin-walk 9s linear infinite');
         restartAnimation(doorLeaf, 'door-open 9s ease-in-out infinite');
+      }
+
+
+      function restartPenguin() {
+        penguin.style.animation = 'none';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            penguin.style.animation = 'penguin-walk 9s ease-in-out infinite';
+          });
+        });
       }
 
       function go(path) {
