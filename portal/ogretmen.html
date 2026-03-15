@@ -249,6 +249,33 @@
         cursor: pointer;
       }
 
+      .login-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .login-wrap.hidden { display: none; }
+      .login-card {
+        width: 100%;
+        max-width: 400px;
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 28px;
+        border: 2px solid #dae7ff;
+      }
+      .login-card h1 { margin: 0 0 8px; font-size: 22px; color: var(--ink); }
+      .login-card .sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+      .login-card label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--muted); }
+      .login-card input { margin-bottom: 14px; }
+      .login-card .btn { width: 100%; padding: 12px; margin-top: 6px; }
+      .login-card .login-status { margin-top: 12px; font-size: 13px; color: var(--muted); }
+      .login-card .login-status.error { color: #b71c1c; }
+      .login-card .login-status.success { color: #1f5143; }
+      .panel-wrap.hidden { display: none !important; }
+
       @media (max-width: 920px) {
         .layout { grid-template-columns: 1fr; }
         .sidebar { border-right: none; border-bottom: 1px solid #d7e3fa; }
@@ -271,6 +298,22 @@
     </style>
   </head>
   <body>
+    <div id="loginWrap" class="login-wrap">
+      <div class="login-card">
+        <h1>🧑‍🏫 Öğretmen Girişi</h1>
+        <p class="sub">Şahsi e-posta ve aktivasyon linkiyle oluşturduğunuz şifre ile giriş yapın.</p>
+        <form id="loginForm">
+          <label for="loginEmail">E-posta</label>
+          <input id="loginEmail" type="email" placeholder="ogretmen@mail.com" required />
+          <label for="loginPassword">Şifre</label>
+          <input id="loginPassword" type="password" placeholder="Şifre" required />
+          <button type="submit" class="btn primary">Giriş Yap</button>
+        </form>
+        <div id="loginStatus" class="login-status"></div>
+      </div>
+    </div>
+
+    <div id="panelWrap" class="panel-wrap hidden">
     <div class="layout">
       <aside class="sidebar">
         <h2 class="logo">🎓 Öğretmen Paneli</h2>
@@ -278,6 +321,7 @@
           <button class="tab-btn active" data-tab="kayit">Öğrenci Kaydı</button>
           <button class="tab-btn" data-tab="sinif">Sınıf Listesi</button>
           <button class="tab-btn" data-tab="kart">Yaka Kartı Yazdır</button>
+          <button class="btn secondary" id="logoutBtn" style="margin-top:14px;width:100%;">Çıkış Yap</button>
         </div>
       </aside>
 
@@ -391,12 +435,76 @@
         </section>
       </main>
     </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
+      const OGRETMEN_SESSION_KEY = 'alfabe_ogretmen_session';
+      const OGRETMENLER_KEY = 'ogretmenler';
       const STORAGE_KEY = 'alfabePortalStudents';
+
+      function getOgretmenSession() {
+        try {
+          return JSON.parse(sessionStorage.getItem(OGRETMEN_SESSION_KEY) || 'null');
+        } catch (_) { return null; }
+      }
+      function setOgretmenSession(teacher) {
+        sessionStorage.setItem(OGRETMEN_SESSION_KEY, JSON.stringify({ email: teacher.personalEmail, firstName: teacher.firstName, lastName: teacher.lastName }));
+      }
+      function clearOgretmenSession() {
+        sessionStorage.removeItem(OGRETMEN_SESSION_KEY);
+      }
+
+      const loginWrap = document.getElementById('loginWrap');
+      const panelWrap = document.getElementById('panelWrap');
+      const loginForm = document.getElementById('loginForm');
+      const loginStatus = document.getElementById('loginStatus');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPassword = document.getElementById('loginPassword');
+
+      function showPanel() {
+        loginWrap.classList.add('hidden');
+        panelWrap.classList.remove('hidden');
+      }
+      function showLogin() {
+        panelWrap.classList.add('hidden');
+        loginWrap.classList.remove('hidden');
+        loginStatus.textContent = '';
+      }
+
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const email = loginEmail.value.trim().toLowerCase();
+        const password = loginPassword.value;
+        let teachers = JSON.parse(localStorage.getItem(OGRETMENLER_KEY) || '[]');
+        if (!teachers.some(t => (t.personalEmail || '').toLowerCase() === 'ogretmen@alfabe.co')) {
+          teachers = [...teachers, { firstName: 'Demo', lastName: 'Öğretmen', personalEmail: 'ogretmen@alfabe.co', password: 'alfabe123', classBranch: 'Demo', status: 'aktif' }];
+          localStorage.setItem(OGRETMENLER_KEY, JSON.stringify(teachers));
+        }
+        const teacher = teachers.find(t => t.personalEmail && t.personalEmail.toLowerCase() === email);
+        const pwd = teacher ? (teacher.password || 'alfabe123') : '';
+        if (teacher && pwd === password && teacher.status !== 'askida') {
+          setOgretmenSession(teacher);
+          loginStatus.className = 'login-status success';
+          showPanel();
+        } else {
+          loginStatus.textContent = teacher && teacher.status === 'askida' ? 'Hesabınız askıya alındı.' : 'E-posta veya şifre hatalı.';
+          loginStatus.className = 'login-status error';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        clearOgretmenSession();
+        showLogin();
+      });
+
+      if (getOgretmenSession()) {
+        showPanel();
+      } else {
+        showLogin();
+      }
 
       const dom = {
         tabs: document.querySelectorAll('.tab-btn'),
@@ -586,7 +694,7 @@
         }
       }
 
-      function prepareAccountsForMailcow() {
+      function prepareAccountsForMailApi() {
         if (!state.bulkStudents.length) {
           setBulkStatus('Önce dosya yükle.');
           return;
@@ -601,7 +709,7 @@
           password: student.password,
         }));
 
-        console.log('Mailcow API gönderimine hazır payload:', payload);
+        console.log('Mail API gönderimine hazır payload:', payload);
         setBulkStatus(`Hazır: ${payload.length} hesap console.log ile gösterildi.`);
       }
 
@@ -649,7 +757,7 @@
         }
 
         dom.saveBtn.disabled = true;
-        setStatus('Mailcow API simülasyonu çalışıyor...');
+        setStatus('Mail API simülasyonu çalışıyor...');
         await new Promise(resolve => setTimeout(resolve, 700));
 
         const student = {
@@ -683,7 +791,7 @@
       dom.goPrintBtn.addEventListener('click', () => switchTab('kart'));
       dom.printBtn.addEventListener('click', () => window.print());
       dom.bulkPreviewBody.addEventListener('click', handleBulkTableActions);
-      dom.createAccountsBtn.addEventListener('click', prepareAccountsForMailcow);
+      dom.createAccountsBtn.addEventListener('click', prepareAccountsForMailApi);
       dom.bulkFileInput.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
         if (file) parseBulkFile(file);
