@@ -13,7 +13,7 @@ class StudentMailService {
     this.quota = quota;
 
     if (!this.apiBaseUrl || !this.apiKey) {
-      throw new Error('Mailcow API ayarları eksik. MAILCOW_API_BASE_URL ve MAILCOW_API_KEY tanımlı olmalı.');
+      throw new Error('Mail API ayarları eksik. MAILCOW_API_BASE_URL ve MAILCOW_API_KEY tanımlı olmalı.');
     }
   }
 
@@ -52,7 +52,7 @@ class StudentMailService {
     const payload = await response.json();
 
     if (!response.ok) {
-      const message = payload?.msg || payload?.message || 'Mailcow API hatası';
+      const message = payload?.msg || payload?.message || 'Mail API hatası';
       throw new Error(message);
     }
 

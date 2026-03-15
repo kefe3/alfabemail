@@ -61,6 +61,19 @@
       .mail-preview { white-space: pre-wrap; margin-top: 10px; border: 1px dashed #d7dfef; border-radius: 10px; background: #fbfdff; padding: 10px; max-height: 220px; overflow: auto; font-size: 13px; }
       .hidden { display: none !important; }
 
+      .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+      .login-wrap.hidden { display: none; }
+      .login-card { width: 100%; max-width: 400px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; border: 2px solid var(--line); }
+      .login-card h1 { margin: 0 0 8px; font-size: 22px; color: var(--ink); }
+      .login-card .sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+      .login-card label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--muted); }
+      .login-card input { margin-bottom: 14px; }
+      .login-card .btn { width: 100%; padding: 12px; margin-top: 6px; }
+      .login-card .login-status { margin-top: 12px; font-size: 13px; color: var(--muted); }
+      .login-card .login-status.error { color: #b71c1c; }
+      .login-card .login-status.success { color: #236245; }
+      .panel-wrap.hidden { display: none !important; }
+
       @media (max-width: 980px) {
         .cards { grid-template-columns: 1fr 1fr; }
         .grid { grid-template-columns: 1fr; }
@@ -68,13 +81,32 @@
     </style>
   </head>
   <body>
+    <div id="loginWrap" class="login-wrap">
+      <div class="login-card">
+        <h1>🏢 Bayi Girişi</h1>
+        <p class="sub">E-posta ve şifrenizle giriş yapın (Süper Admin veya il temsilcisi).</p>
+        <form id="loginForm">
+          <label for="loginEmail">E-posta</label>
+          <input id="loginEmail" type="email" placeholder="bayi@alfabe.co" required />
+          <label for="loginPassword">Şifre</label>
+          <input id="loginPassword" type="password" placeholder="Şifre" required />
+          <button type="submit" class="btn primary">Giriş Yap</button>
+        </form>
+        <div id="loginStatus" class="login-status"></div>
+      </div>
+    </div>
+
+    <div id="panelWrap" class="panel-wrap hidden">
     <div class="container">
       <header class="header">
         <div>
           <h1>🏢 Bayi Aktivasyon Dashboard</h1>
           <p>Süper Admin tüm bayileri yönetir; bayi sadece kendi ilini görür.</p>
         </div>
-        <div class="pill" id="currentRolePill"></div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div class="pill" id="currentRolePill"></div>
+          <button type="button" class="btn soft" id="logoutBtn">Çıkış Yap</button>
+        </div>
       </header>
 
       <section class="cards">
@@ -101,6 +133,40 @@
         <table style="margin-top:10px;">
           <thead><tr><th>#</th><th>Bayi</th><th>Mail</th><th>Bölge</th><th>Kota</th><th>Kullanılan</th><th>İşlem</th></tr></thead>
           <tbody id="dealerTableBody"></tbody>
+        </table>
+      </section>
+
+      <section id="adminMgmtSection" class="block" style="margin-top:12px;">
+        <h2>Admin Yönetimi (Müdür Hesapları)</h2>
+        <p class="desc">Sadece Süper Admin ve izinli standart adminler müdür (yönetici) hesaplarını oluşturabilir.</p>
+
+        <div class="form-grid">
+          <div><label for="mudurEmail">Müdür Mail</label><input id="mudurEmail" type="email" placeholder="yonetici@alfabe.co" /></div>
+          <div><label for="mudurPassword">Şifre</label><input id="mudurPassword" type="text" placeholder="alfabe123" /></div>
+        </div>
+        <div class="actions"><button class="btn primary" id="createMudurBtn">Müdür Admin Ekle</button></div>
+        <div class="status" id="mudurStatus">Müdür admin oluşturma hazır.</div>
+
+        <table style="margin-top:10px;">
+          <thead><tr><th>#</th><th>Mail</th><th>İşlem</th></tr></thead>
+          <tbody id="mudurTableBody"></tbody>
+        </table>
+      </section>
+
+      <section id="standardAdminSection" class="block" style="margin-top:12px;">
+        <h2>Standart Adminler (Bayi Panel Yetkisi)</h2>
+        <p class="desc">Süper Admin, bayi paneline giriş yapabilen standart adminleri tanımlar. Bu kullanıcılar müdür admin ekleyebilir.</p>
+
+        <div class="form-grid">
+          <div><label for="stdAdminEmail">Admin Mail</label><input id="stdAdminEmail" type="email" placeholder="admin2@mail.com" /></div>
+          <div><label for="stdAdminPassword">Şifre</label><input id="stdAdminPassword" type="text" placeholder="alfabe123" /></div>
+        </div>
+        <div class="actions"><button class="btn gold" id="createStdAdminBtn">Standart Admin Ekle</button></div>
+        <div class="status" id="stdAdminStatus">Standart admin ekleme hazır.</div>
+
+        <table style="margin-top:10px;">
+          <thead><tr><th>#</th><th>Mail</th><th>İşlem</th></tr></thead>
+          <tbody id="stdAdminTableBody"></tbody>
         </table>
       </section>
 
@@ -133,12 +199,57 @@
         </article>
       </section>
     </div>
+    </div>
 
     <script>
+      const BAYI_SESSION_KEY = 'alfabe_bayi_session';
       const SUPER_ADMIN_EMAIL = "info@ismailcimen.com.tr";
+      const SUPER_ADMIN_PASSWORD = "alfabe123";
+      const BAYI_STANDARD_ADMINS_KEY = 'alfabe_bayi_standard_admins';
+      const MUDURLER_KEY = 'alfabe_mudurlar';
       const SCHOOL_KEY = 'bayiOkullari';
       const DEALER_KEY = 'bayiler';
       const cities = ['Konya','Ankara','İstanbul','İzmir','Bursa','Antalya'];
+
+      function getBayiSession() {
+        try {
+          return JSON.parse(sessionStorage.getItem(BAYI_SESSION_KEY) || 'null');
+        } catch (_) { return null; }
+      }
+      function setBayiSession(email) {
+        sessionStorage.setItem(BAYI_SESSION_KEY, JSON.stringify({ email: email.toLowerCase() }));
+      }
+      function clearBayiSession() {
+        sessionStorage.removeItem(BAYI_SESSION_KEY);
+      }
+
+      function seedStandardAdmins() {
+        if (localStorage.getItem(BAYI_STANDARD_ADMINS_KEY)) return;
+        localStorage.setItem(BAYI_STANDARD_ADMINS_KEY, JSON.stringify([]));
+      }
+      function seedMudurlar() {
+        if (localStorage.getItem(MUDURLER_KEY)) return;
+        localStorage.setItem(MUDURLER_KEY, JSON.stringify([{ email: 'yonetici@alfabe.co', password: 'alfabe123' }]));
+      }
+      seedStandardAdmins();
+      seedMudurlar();
+
+      const loginWrap = document.getElementById('loginWrap');
+      const panelWrap = document.getElementById('panelWrap');
+      const loginForm = document.getElementById('loginForm');
+      const loginStatus = document.getElementById('loginStatus');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPassword = document.getElementById('loginPassword');
+
+      function showPanel() {
+        loginWrap.classList.add('hidden');
+        panelWrap.classList.remove('hidden');
+      }
+      function showLogin() {
+        panelWrap.classList.add('hidden');
+        loginWrap.classList.remove('hidden');
+        loginStatus.textContent = '';
+      }
 
       const dom = {
         currentRolePill: document.getElementById('currentRolePill'),
@@ -147,6 +258,8 @@
         pendingSchools: document.getElementById('pendingSchools'),
         dealerCount: document.getElementById('dealerCount'),
         superAdminSection: document.getElementById('superAdminSection'),
+        adminMgmtSection: document.getElementById('adminMgmtSection'),
+        standardAdminSection: document.getElementById('standardAdminSection'),
 
         operatorEmail: document.getElementById('operatorEmail'),
         dealerName: document.getElementById('dealerName'),
@@ -170,12 +283,37 @@
         dealerStatus: document.getElementById('dealerStatus'),
         dealerInvitePreview: document.getElementById('dealerInvitePreview'),
         dealerTableBody: document.getElementById('dealerTableBody'),
+
+        mudurEmail: document.getElementById('mudurEmail'),
+        mudurPassword: document.getElementById('mudurPassword'),
+        createMudurBtn: document.getElementById('createMudurBtn'),
+        mudurStatus: document.getElementById('mudurStatus'),
+        mudurTableBody: document.getElementById('mudurTableBody'),
+
+        stdAdminEmail: document.getElementById('stdAdminEmail'),
+        stdAdminPassword: document.getElementById('stdAdminPassword'),
+        createStdAdminBtn: document.getElementById('createStdAdminBtn'),
+        stdAdminStatus: document.getElementById('stdAdminStatus'),
+        stdAdminTableBody: document.getElementById('stdAdminTableBody'),
       };
 
       const state = {
         schools: JSON.parse(localStorage.getItem(SCHOOL_KEY) || '[]'),
         dealers: JSON.parse(localStorage.getItem(DEALER_KEY) || '[]'),
       };
+
+      function getStandardAdmins() {
+        return JSON.parse(localStorage.getItem(BAYI_STANDARD_ADMINS_KEY) || '[]');
+      }
+      function setStandardAdmins(list) {
+        localStorage.setItem(BAYI_STANDARD_ADMINS_KEY, JSON.stringify(list));
+      }
+      function getMudurlar() {
+        return JSON.parse(localStorage.getItem(MUDURLER_KEY) || '[]');
+      }
+      function setMudurlar(list) {
+        localStorage.setItem(MUDURLER_KEY, JSON.stringify(list));
+      }
 
       function persist() {
         localStorage.setItem(SCHOOL_KEY, JSON.stringify(state.schools));
@@ -185,6 +323,11 @@
       function currentEmail() { return dom.operatorEmail.value.trim().toLowerCase(); }
       function isSuperAdmin() { return currentEmail() === SUPER_ADMIN_EMAIL.toLowerCase(); }
       function dealerByEmail(email) { return state.dealers.find(d => d.email.toLowerCase() === email.toLowerCase()); }
+      function isStandardAdminEmail(email) { return getStandardAdmins().some(a => (a.email || '').toLowerCase() === (email || '').toLowerCase()); }
+      function canManageMudurlar() {
+        const email = currentEmail();
+        return email === SUPER_ADMIN_EMAIL.toLowerCase() || isStandardAdminEmail(email);
+      }
 
       function fillCities() { dom.city.innerHTML = cities.map(c => `<option value="${c}">${c}</option>`).join(''); }
 
@@ -213,22 +356,121 @@
         if (isSuperAdmin()) {
           dom.currentRolePill.textContent = `Süper Admin: ${SUPER_ADMIN_EMAIL}`;
           dom.superAdminSection.classList.remove('hidden');
+          dom.standardAdminSection.classList.remove('hidden');
           dom.dealerName.disabled = false;
           dom.city.disabled = false;
+          dom.adminMgmtSection.classList.remove('hidden');
+          return;
+        }
+        if (isStandardAdminEmail(currentEmail())) {
+          dom.currentRolePill.textContent = `Standart Admin: ${currentEmail()}`;
+          dom.superAdminSection.classList.add('hidden');
+          dom.standardAdminSection.classList.add('hidden');
+          dom.dealerName.disabled = false;
+          dom.city.disabled = false;
+          dom.adminMgmtSection.classList.remove('hidden');
           return;
         }
         const dealer = dealerByEmail(currentEmail());
         if (dealer) {
           dom.currentRolePill.textContent = `İl Temsilcisi: ${dealer.firstName} ${dealer.lastName} (${dealer.region})`;
           dom.superAdminSection.classList.add('hidden');
+          dom.standardAdminSection.classList.add('hidden');
           dom.dealerName.value = `${dealer.region} Temsilcisi`;
           dom.dealerName.disabled = true;
           dom.city.value = dealer.region;
           dom.city.disabled = true;
+          dom.adminMgmtSection.classList.add('hidden');
         } else {
           dom.currentRolePill.textContent = `İl Temsilcisi: ${currentEmail() || 'Tanımsız'}`;
           dom.superAdminSection.classList.add('hidden');
+          dom.standardAdminSection.classList.add('hidden');
+          dom.adminMgmtSection.classList.add('hidden');
         }
+      }
+
+      function renderMudurlar() {
+        const list = getMudurlar();
+        dom.mudurTableBody.innerHTML = list.length
+          ? list.map((m, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${m.email}</td>
+                <td><button class="btn warn" data-action="delete-mudur" data-index="${i}" ${canManageMudurlar() ? '' : 'disabled'}>Sil</button></td>
+              </tr>
+            `).join('')
+          : '<tr><td colspan="3">Henüz müdür admin yok.</td></tr>';
+
+        const enabled = canManageMudurlar();
+        dom.createMudurBtn.disabled = !enabled;
+        dom.mudurEmail.disabled = !enabled;
+        dom.mudurPassword.disabled = !enabled;
+        dom.mudurStatus.textContent = enabled ? 'Müdür admin oluşturma hazır.' : 'Bu kullanıcı müdür admin yönetemez.';
+      }
+
+      function createMudur() {
+        if (!canManageMudurlar()) return;
+        const email = dom.mudurEmail.value.trim().toLowerCase();
+        const password = dom.mudurPassword.value.trim() || 'alfabe123';
+        if (!email) {
+          dom.mudurStatus.textContent = 'Lütfen müdür mail girin.';
+          return;
+        }
+        const list = getMudurlar();
+        if (list.some(m => (m.email || '').toLowerCase() === email)) {
+          dom.mudurStatus.textContent = 'Bu mail ile müdür admin zaten mevcut.';
+          return;
+        }
+        list.push({ email, password, createdAt: new Date().toISOString() });
+        setMudurlar(list);
+        dom.mudurEmail.value = '';
+        dom.mudurPassword.value = '';
+        dom.mudurStatus.textContent = `Müdür admin eklendi: ${email}`;
+        renderMudurlar();
+      }
+
+      function renderStandardAdmins() {
+        const list = getStandardAdmins();
+        dom.stdAdminTableBody.innerHTML = list.length
+          ? list.map((a, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${a.email}</td>
+                <td><button class="btn warn" data-action="delete-std-admin" data-index="${i}" ${isSuperAdmin() ? '' : 'disabled'}>Sil</button></td>
+              </tr>
+            `).join('')
+          : '<tr><td colspan="3">Henüz standart admin yok.</td></tr>';
+        dom.createStdAdminBtn.disabled = !isSuperAdmin();
+        dom.stdAdminEmail.disabled = !isSuperAdmin();
+        dom.stdAdminPassword.disabled = !isSuperAdmin();
+        dom.stdAdminStatus.textContent = isSuperAdmin()
+          ? 'Standart admin ekleme hazır.'
+          : 'Sadece Süper Admin standart admin tanımlayabilir.';
+      }
+
+      function createStandardAdmin() {
+        if (!isSuperAdmin()) return;
+        const email = dom.stdAdminEmail.value.trim().toLowerCase();
+        const password = dom.stdAdminPassword.value.trim() || 'alfabe123';
+        if (!email) {
+          dom.stdAdminStatus.textContent = 'Lütfen admin mail girin.';
+          return;
+        }
+        if (email === SUPER_ADMIN_EMAIL.toLowerCase()) {
+          dom.stdAdminStatus.textContent = 'Süper Admin bu listede tutulmaz.';
+          return;
+        }
+        const list = getStandardAdmins();
+        if (list.some(a => (a.email || '').toLowerCase() === email)) {
+          dom.stdAdminStatus.textContent = 'Bu mail ile standart admin zaten mevcut.';
+          return;
+        }
+        list.push({ email, password, createdAt: new Date().toISOString() });
+        setStandardAdmins(list);
+        dom.stdAdminEmail.value = '';
+        dom.stdAdminPassword.value = '';
+        dom.stdAdminStatus.textContent = `Standart admin eklendi: ${email}`;
+        renderStandardAdmins();
       }
 
       function renderStats() {
@@ -304,7 +546,7 @@
           return;
         }
         const invite = buildInviteEmail('dealer', { firstName, lastName, region, quota });
-        state.dealers.push({ firstName, lastName, email, region, quota, token: invite.token, createdAt: new Date().toISOString() });
+        state.dealers.push({ firstName, lastName, email, region, quota, password: 'alfabe123', token: invite.token, createdAt: new Date().toISOString() });
         persist();
         renderDealerTable();
         renderStats();
@@ -372,6 +614,30 @@
         const index = Number(e.target.dataset.index);
         if (!action || Number.isNaN(index)) return;
 
+        if (action === 'delete-mudur') {
+          if (!canManageMudurlar()) return;
+          const list = getMudurlar();
+          const target = list[index];
+          if (!target) return;
+          list.splice(index, 1);
+          setMudurlar(list);
+          dom.mudurStatus.textContent = 'Müdür admin silindi.';
+          renderMudurlar();
+          return;
+        }
+
+        if (action === 'delete-std-admin') {
+          if (!isSuperAdmin()) return;
+          const list = getStandardAdmins();
+          const target = list[index];
+          if (!target) return;
+          list.splice(index, 1);
+          setStandardAdmins(list);
+          dom.stdAdminStatus.textContent = 'Standart admin silindi.';
+          renderStandardAdmins();
+          return;
+        }
+
         if (action === 'delete-dealer') {
           const dealer = state.dealers[index];
           if (!dealer) return;
@@ -411,16 +677,81 @@
       dom.operatorEmail.addEventListener('input', () => {
         setRoleUI();
         renderSchoolTable();
+        renderMudurlar();
+        renderStandardAdmins();
       });
       dom.createDealerBtn.addEventListener('click', createDealer);
       dom.activateBtn.addEventListener('click', activateSchool);
       dom.dealerTableBody.addEventListener('click', handleActions);
       dom.schoolTableBody.addEventListener('click', handleActions);
+      dom.mudurTableBody.addEventListener('click', handleActions);
+      dom.stdAdminTableBody.addEventListener('click', handleActions);
+      dom.createMudurBtn.addEventListener('click', createMudur);
+      dom.createStdAdminBtn.addEventListener('click', createStandardAdmin);
+
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const email = loginEmail.value.trim().toLowerCase();
+        const password = loginPassword.value;
+        if (email === SUPER_ADMIN_EMAIL.toLowerCase() && password === SUPER_ADMIN_PASSWORD) {
+          setBayiSession(email);
+          showPanel();
+          dom.operatorEmail.value = email;
+          dom.operatorEmail.readOnly = true;
+          setRoleUI();
+          renderSchoolTable();
+          return;
+        }
+        const standardAdmins = JSON.parse(localStorage.getItem(BAYI_STANDARD_ADMINS_KEY) || '[]');
+        const std = standardAdmins.find(a => (a.email || '').toLowerCase() === email);
+        const stdPwd = std ? (std.password || 'alfabe123') : '';
+        if (std && stdPwd === password) {
+          setBayiSession(email);
+          showPanel();
+          dom.operatorEmail.value = email;
+          dom.operatorEmail.readOnly = true;
+          setRoleUI();
+          renderSchoolTable();
+          renderMudurlar();
+          renderStandardAdmins();
+          return;
+        }
+        const dealers = JSON.parse(localStorage.getItem(DEALER_KEY) || '[]');
+        const dealer = dealers.find(d => (d.email || '').toLowerCase() === email);
+        const pwd = dealer ? (dealer.password || 'alfabe123') : '';
+        if (dealer && pwd === password) {
+          setBayiSession(email);
+          showPanel();
+          dom.operatorEmail.value = dealer.email;
+          dom.operatorEmail.readOnly = true;
+          setRoleUI();
+          renderSchoolTable();
+        } else {
+          loginStatus.textContent = 'E-posta veya şifre hatalı.';
+          loginStatus.className = 'login-status error';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        clearBayiSession();
+        dom.operatorEmail.readOnly = false;
+        showLogin();
+      });
 
       fillCities();
-      setRoleUI();
-      renderDealerTable();
-      renderSchoolTable();
+      if (getBayiSession()) {
+        const sess = getBayiSession();
+        dom.operatorEmail.value = sess.email;
+        dom.operatorEmail.readOnly = true;
+        showPanel();
+        setRoleUI();
+        renderDealerTable();
+        renderSchoolTable();
+        renderMudurlar();
+        renderStandardAdmins();
+      } else {
+        showLogin();
+      }
     </script>
   </body>
 </html>
