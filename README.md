@@ -21,7 +21,7 @@ Yetki: Öğretmenleri (branş ve sınıflara dayalı) sistem ekleme.
 Giriş: Aktivasyon bağlantısı ve şifre oluşturma süreciyle.
 Görev: Eğitim planlama, zenginleştirme ve öğrenci rehberliği.
 Yetki: * Sınıf açma ve öğrenci listesi (CSV/Excel) yükleniyor.
-Öğrencisi için otomatik @alfabe.co maili oluşturma (Mail API).
+Öğrencisi için otomatik @alfabe.co maili oluşturma (Mailcow API).
 Öğrenci mail adresleri varsayılan olarak ad.soyad uzantıları mümkündür.
 Öğretmen, oluşturma aşamasında öğrencinin isteğine göre bu adrese (nick/rumuz) manuel olarak düzenleyebilir.
 Mevcut bir öğrencinin kullanıcı adı, veri bütünlüğünü bozmadan öğretmen paneli üzerinden güncellenebilir veya ek takma reklam (takma ad) yapılabilir.
@@ -51,8 +51,8 @@ Veli panelinde yaşanan maillerin içeriği okunmaz; Sadece etkinlik analizi (AI
 
 ## İlk Aşama - Kodlanan Modüller
 
-- `src/controllers/auth_controller.js`: Mail API bağlantısı için auth controller ve öğrenci oluşturma endpoint handler'ı.
-- `src/services/student_mail_service.js`: Öğrenci bilgilerini alıp Mail API üzerinden otomatik mailbox açma ve güçlü şifre üretimi.
+- `src/controllers/auth_controller.js`: Mailcow API bağlantısı için auth controller ve öğrenci oluşturma endpoint handler'ı.
+- `src/services/student_mail_service.js`: Öğrenci bilgilerini alıp Mailcow üzerinde otomatik mailbox açma ve güçlü şifre üretimi.
 - `src/views/teacher-printable-badge.html` + `src/views/teacher-printable-badge.css`: Öğrenci maili, karekodu ve kesikli şifre alanı içeren yazdırılabilir yaka kartı şablonu.
 
 ## Portal Modülleri - Güncel Uygulama Kapsamı
@@ -69,7 +69,7 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - Öğrenci adı, soyadı ve veli maili giriş alanları
 - Ad + soyad girildiği anda `ad.soyad@alfabe.co` formatında otomatik kullanıcı adı önerisi
 - Öğretmenin kullanıcı adı alanını manuel düzenleyebilmesi (nick/rumuz)
-- `Öğrenciyi Kaydet` ile Mail API sürecinin simülasyonu
+- `Öğrenciyi Kaydet` ile Mailcow API sürecinin simülasyonu
 - Simülasyon sonrası otomatik şifre üretimi
 - Karekodlu, kesikli çizgili yaka kartı önizlemesi
 - Kayıttan sonra aktifleşen `Yaka Kartını Yazdır` butonu
@@ -107,10 +107,14 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - `portal/admin.html` eklendi (super admin altı yönetim seviyesi).
 - `portal/bayi.html` ile aşağı akışa devam eder; ardından `portal/yonetici.html`, `portal/ogretmen.html`, `portal/veli.html`, `portal/ogrenci.html` gelir.
 
-
-- Penguen görseli logo stiline yakın şekilde canlandırıldı; kapıya yaklaşınca kapı açılır ve penguen içeri geçer.
-- Merkezde animasyonlu Öğrenci Girişi kartı, çevresinde Yönetim/Öğretmen/Veli giriş kutuları yerleştirildi.
-- Tasarım pastel renk paleti ve modern kart sistemiyle hazırlandı.
+## Demo Giriş Bilgileri (Geçici)
+- super_admin: `info@ismailcimen.com.tr / Demo123!`
+- admin: `admin@alfabe.co / Demo123!`
+- bayi: `bayi@alfabe.co / Demo123!`
+- yonetici: `yonetici@alfabe.co / Demo123!`
+- ogretmen: `ogretmen@alfabe.co / Demo123!`
+- veli: `veli@alfabe.co / Demo123!`
+- ogrenci: `ogrenci@alfabe.co / Demo123!`
 
 ## Öğrenci Sayfası (Tek Dosya)
 - `portal/ogrenci.html` eklendi.
@@ -122,7 +126,7 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - `portal/ogretmen.html` içinde drag&drop destekli `.csv/.xlsx` dosya yükleme alanı eklendi.
 - Dosya satırları `xlsx.full.min.js` ile okunur; her öğrenci için otomatik `ad.soyad@alfabe.co` önerisi ve 10 karakter karmaşık şifre üretilir.
 - Önizleme tablosunda satır bazlı `Düzenle` (nick/mail alanı güncelleme) ve `Sil` aksiyonları bulunur.
-- `Hesapları Oluştur` butonu listeleri Mail API gönderimine hazır payload formatına dönüştürüp `console.log` çıktısı üretir.
+- `Hesapları Oluştur` butonu listeleri Mailcow API gönderimine hazır payload formatına dönüştürüp `console.log` çıktısı üretir.
 
 ## Veli Sayfası (Dashboard)
 - `portal/veli.html` eklendi.
@@ -151,20 +155,3 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - Okul aktivasyonunda müdüre `Alfabe Portal'a Davetlisiniz` başlıklı tokenlı davet şablonu üretilir.
 - Takip tablosunda bayi bazlı okul kayıtları ve aktivasyon durumları (Aktif/Beklemede) izlenir.
 - Güvenlik kuralı: Süper Admin e-postasına bağlı kayıtlar silinemez (Sil butonundan muaf).
-
-## Demo Giriş Bilgileri (Standart)
-
-- **Süper Admin (Ana panel)**: `info@ismailcimen.com.tr` / `alfabe123`
-- **Admin (Admin paneli)**: `admin@alfabe.co` / `alfabe123`
-- **Bayi (Bayi paneli)**: `bayi@alfabe.co` / `alfabe123`
-- **Yönetici (Okul Müdürü paneli)**: `yonetici@alfabe.co` / `alfabe123`
-- **Öğretmen**: `ogretmen@alfabe.co` / `alfabe123`
-- **Veli**: `veli@alfabe.co` / `alfabe123`
-- **Öğrenci**: `ogrenci@alfabe.co` / `alfabe123`
-
-## Admin Oluşturma Yetkisi (Güncel Kural)
-
-- **Okul Müdürü/Yönetici paneli** (`portal/yonetici.html`) yeni admin oluşturamaz. Bu panel okul müdürleri içindir.
-- Yeni **müdür admin** hesapları ve bayi paneline giriş yapabilen **standart adminler**, yalnızca **Bayi panelinden** (`portal/bayi.html`) yönetilir:
-  - **Süper Admin** (`info@ismailcimen.com.tr`) her zaman yetkilidir.
-  - **Süper Admin’in izin verdiği standart adminler** bayi paneline giriş yapabilir ve müdür admin ekleyebilir.
