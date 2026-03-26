@@ -152,6 +152,33 @@
 
       .timeline small { color: var(--muted); display: block; margin-top: 3px; }
 
+      .login-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .login-wrap.hidden { display: none; }
+      .login-card {
+        width: 100%;
+        max-width: 400px;
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 28px;
+        border: 2px solid #e7e9ef;
+      }
+      .login-card h1 { margin: 0 0 8px; font-size: 22px; color: var(--navy); }
+      .login-card .sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+      .login-card label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--muted); }
+      .login-card input { margin-bottom: 14px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; width: 100%; }
+      .login-card .btn { width: 100%; padding: 12px; margin-top: 6px; border: none; border-radius: 999px; font-weight: 700; background: var(--navy); color: #fff; cursor: pointer; }
+      .login-card .login-status { margin-top: 12px; font-size: 13px; color: var(--muted); }
+      .login-card .login-status.error { color: #b71c1c; }
+      .login-card .login-status.success { color: #236245; }
+      .panel-wrap.hidden { display: none !important; }
+
       @media (max-width: 920px) {
         .cards { grid-template-columns: 1fr; }
         .content-grid { grid-template-columns: 1fr; }
@@ -159,6 +186,22 @@
     </style>
   </head>
   <body>
+    <div id="loginWrap" class="login-wrap">
+      <div class="login-card">
+        <h1>👨‍👩‍👧 Veli Girişi</h1>
+        <p class="sub">Şahsi e-postanıza gelen link ile oluşturduğunuz şifre ile giriş yapın.</p>
+        <form id="loginForm">
+          <label for="loginEmail">E-posta</label>
+          <input id="loginEmail" type="email" placeholder="veli@alfabe.co" required />
+          <label for="loginPassword">Şifre</label>
+          <input id="loginPassword" type="password" placeholder="Şifre" required />
+          <button type="submit" class="btn">Giriş Yap</button>
+        </form>
+        <div id="loginStatus" class="login-status"></div>
+      </div>
+    </div>
+
+    <div id="panelWrap" class="panel-wrap hidden">
     <div class="container">
       <header class="header">
         <div>
@@ -169,6 +212,7 @@
         <div style="display:grid; gap:8px; justify-items:end;">
           <div class="badge">Pastel Güvenli Görünüm</div>
           <button class="contact-btn" id="contactTeacherBtn">Öğretmenle İletişim</button>
+          <button class="contact-btn" id="logoutBtn" style="background:#fff;color:var(--navy);border:1px solid rgba(255,255,255,0.5);">Çıkış Yap</button>
         </div>
       </header>
 
@@ -204,11 +248,85 @@
         </article>
       </section>
     </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      const parent = { name: 'Ayşe Yılmaz', studentName: 'Ela Kaya' };
+      const VELI_SESSION_KEY = 'alfabe_veli_session';
+      const VELILER_STORAGE_KEY = 'alfabe_veliler';
+
+      function seedVeliler() {
+        if (localStorage.getItem(VELILER_STORAGE_KEY)) return;
+        const list = [
+          { email: 'veli@alfabe.co', password: 'alfabe123', name: 'Demo Veli', studentName: 'Demo Öğrenci' },
+        ];
+        localStorage.setItem(VELILER_STORAGE_KEY, JSON.stringify(list));
+      }
+      seedVeliler();
+
+      function getVeliSession() {
+        try {
+          return JSON.parse(sessionStorage.getItem(VELI_SESSION_KEY) || 'null');
+        } catch (_) { return null; }
+      }
+      function setVeliSession(veli) {
+        sessionStorage.setItem(VELI_SESSION_KEY, JSON.stringify(veli));
+      }
+      function clearVeliSession() {
+        sessionStorage.removeItem(VELI_SESSION_KEY);
+      }
+
+      const loginWrap = document.getElementById('loginWrap');
+      const panelWrap = document.getElementById('panelWrap');
+      const loginForm = document.getElementById('loginForm');
+      const loginStatus = document.getElementById('loginStatus');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPassword = document.getElementById('loginPassword');
+
+      function showPanel() {
+        loginWrap.classList.add('hidden');
+        panelWrap.classList.remove('hidden');
+      }
+      function showLogin() {
+        panelWrap.classList.add('hidden');
+        loginWrap.classList.remove('hidden');
+        loginStatus.textContent = '';
+      }
+
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const email = loginEmail.value.trim().toLowerCase();
+        const password = loginPassword.value;
+        const list = JSON.parse(localStorage.getItem(VELILER_STORAGE_KEY) || '[]');
+        const veli = list.find(v => v.email && v.email.toLowerCase() === email && v.password === password);
+        if (veli) {
+          setVeliSession(veli);
+          parent.name = veli.name;
+          parent.studentName = veli.studentName;
+          loginStatus.className = 'login-status success';
+          showPanel();
+          initDashboard();
+        } else {
+          loginStatus.textContent = 'E-posta veya şifre hatalı.';
+          loginStatus.className = 'login-status error';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        clearVeliSession();
+        showLogin();
+      });
+
+      let parent = { name: 'Demo Veli', studentName: 'Demo Öğrenci' };
       const teacherEmail = 'ogretmen@alfabe.co';
+
+      if (getVeliSession()) {
+        const s = getVeliSession();
+        parent = { name: s.name || parent.name, studentName: s.studentName || parent.studentName };
+        showPanel();
+      } else {
+        showLogin();
+      }
 
       const weeklyTraffic = [
         { day: 'Pzt', count: 4 },
@@ -345,12 +463,18 @@ Teşekkürler.`);
       dom.topicFilter.addEventListener('change', renderHomeworkCount);
       dom.contactTeacherBtn.addEventListener('click', contactTeacher);
 
-      renderHeader();
-      renderStats();
-      renderTopicFilter();
-      renderHomeworkCount();
-      renderTimeline();
-      renderChart();
+      function initDashboard() {
+        renderHeader();
+        renderStats();
+        renderTopicFilter();
+        renderHomeworkCount();
+        renderTimeline();
+        renderChart();
+      }
+
+      if (panelWrap && !panelWrap.classList.contains('hidden')) {
+        initDashboard();
+      }
     </script>
   </body>
 </html>

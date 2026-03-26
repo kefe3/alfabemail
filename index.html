@@ -34,7 +34,7 @@
         position: relative;
         width: min(1200px, 96vw);
         margin: 28px auto 0;
-        height: 230px;
+        height: 250px;
       }
 
       .ice-ground {
@@ -45,19 +45,36 @@
         height: 30px;
         border-radius: 99px;
         background: linear-gradient(90deg, #d8ebff, #c4ffe7);
+        z-index: 1;
       }
 
-      .door {
+      /* Kapı ve Yazı Alanı */
+      .door-container {
         position: absolute;
         right: 12%;
         bottom: 36px;
-        width: 148px;
-        height: 174px;
+        width: 144px;
+        z-index: 2;
+        text-align: center;
+      }
+
+      .portal-header {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+      }
+
+      .door {
+        width: 100%;
+        height: 170px;
         border-radius: 18px 18px 5px 5px;
         background: linear-gradient(180deg, #8faeff, #6f8fe8);
         box-shadow: var(--shadow);
         overflow: hidden;
         isolation: isolate;
+        position: relative;
       }
 
       .door-frame {
@@ -73,7 +90,8 @@
         border-radius: 11px;
         background: linear-gradient(180deg, #7396f1, #597ed8);
         transform-origin: left center;
-        animation: door-open 9s ease-in-out infinite;
+        /* Penguen girince kapansın */
+        animation: door-open-close 7s ease-in-out forwards;
         z-index: 2;
       }
 
@@ -91,153 +109,257 @@
         position: absolute;
         inset: 12px;
         border-radius: 10px;
-        background: radial-gradient(circle at 55% 35%, #8fc2ff, #274780 72%);
-        opacity: .82;
+        background: radial-gradient(circle at 60% 35%, #7bb4ff, #294a83 70%);
+        opacity: .8;
       }
 
-      .door-brand {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 18px;
-        z-index: 3;
-        text-align: center;
-        font-weight: 800;
-        letter-spacing: .5px;
-        color: rgba(255, 255, 255, 0.92);
-        text-shadow: 0 1px 0 rgba(0,0,0,0.15);
-      }
-
+      /* Kayıp Penguen – daha sevimli, postaları taşıyan karakter */
       .penguin {
         position: absolute;
-        bottom: 23px;
-        left: -140px;
-        width: 130px;
-        height: 160px;
-        animation: penguin-walk 9s linear infinite;
+        bottom: 24px;
+        left: -160px;
+        width: 110px;
+        height: 150px;
+        animation: penguin-walk 7s ease-in-out forwards;
+        z-index: 3;
       }
 
-      .penguin .body {
+      .penguin .body-black {
         position: absolute;
-        left: 22px;
-        top: 32px;
-        width: 86px;
-        height: 106px;
-        border-radius: 45px;
-        background: #2e2529;
-        border: 4px solid #4b3d42;
+        width: 100%;
+        height: 100%;
+        background: #222;
+        border-radius: 55% 55% 45% 45% / 65% 65% 40% 40%;
+        border: 2px solid #000;
+        overflow: hidden;
       }
 
-      .penguin .belly {
+      .penguin .body-white {
         position: absolute;
-        left: 36px;
-        top: 50px;
-        width: 58px;
-        height: 82px;
-        border-radius: 31px;
-        background: #f2f3f7;
-      }
-
-      .penguin .head {
-        position: absolute;
-        left: 29px;
-        top: 12px;
-        width: 72px;
-        height: 60px;
-        border-radius: 50%;
-        background: #2e2529;
-        border: 4px solid #4b3d42;
-      }
-
-      .penguin .eye,
-      .penguin .eye.right {
-        position: absolute;
-        top: 24px;
-        left: 44px;
-        width: 18px;
-        height: 23px;
-        border-radius: 45%;
+        width: 70%;
+        height: 82%;
         background: #fff;
+        border-radius: 50% / 60% 60% 45% 45%;
+        left: 15%;
+        bottom: 8%;
+        border: 1px solid #d0d0d0;
       }
 
-      .penguin .eye.right { left: 70px; }
-      .penguin .eye::after,
-      .penguin .eye.right::after {
+      .penguin .head-black {
+        position: absolute;
+        width: 78px;
+        height: 78px;
+        background: #222;
+        border-radius: 50%;
+        top: -20px;
+        left: 16px;
+        border: 2px solid #000;
+        z-index: 2;
+        transform: rotate(-4deg);
+      }
+
+      .penguin .face-white {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        background: #fff;
+        border-radius: 50%;
+        top: 6px;
+        left: 10px;
+        z-index: 3;
+      }
+
+      .penguin .eye {
+        position: absolute;
+        width: 16px;
+        height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        border: 1px solid #000;
+        top: 16px;
+        z-index: 4;
+      }
+      .penguin .eye.left { left: 6px; }
+      .penguin .eye.right { left: 30px; }
+
+      .penguin .eye::after {
         content: '';
         position: absolute;
         width: 8px;
         height: 8px;
+        background: #000;
         border-radius: 50%;
-        background: #111;
-        top: 8px;
-        left: 6px;
+        top: 7px;
+        left: 4px;
+        animation: penguin-blink 4s infinite;
       }
 
       .penguin .beak {
         position: absolute;
-        left: 61px;
-        top: 48px;
-        width: 16px;
-        height: 14px;
-        background: #ecd923;
+        width: 20px;
+        height: 16px;
+        background: #ff9800;
         border-radius: 0 0 10px 10px;
-        border: 2px solid #27210f;
+        border: 1px solid #e65100;
+        top: 36px;
+        left: 18px;
+        z-index: 4;
       }
 
-      .penguin .wing-left,
-      .penguin .wing-right {
+      .penguin .wing {
         position: absolute;
-        width: 28px;
-        height: 58px;
-        border-radius: 20px;
-        background: #2e2529;
-        border: 3px solid #4b3d42;
-      }
-
-      .penguin .wing-left {
-        left: 8px;
+        width: 30px;
+        height: 80px;
+        background: #222;
+        border-radius: 30px 30px 10px 10px;
+        border: 1px solid #000;
         top: 32px;
-        transform-origin: bottom center;
-        transform: rotate(-30deg);
-        animation: wave .9s ease-in-out infinite;
+        z-index: 1;
+      }
+      .penguin .wing.left {
+        left: -10px;
+        transform-origin: top right;
+        animation: wing-wave-left 0.7s ease-in-out infinite;
+      }
+      .penguin .wing.right {
+        right: -10px;
+        transform-origin: top left;
+        animation: wing-wave-right 0.9s ease-in-out infinite;
       }
 
-      .penguin .wing-right {
-        right: 8px;
-        top: 52px;
-        transform: rotate(24deg);
-      }
-
-      .penguin .foot,
-      .penguin .foot.right {
+      .penguin .foot {
         position: absolute;
-        bottom: 0;
-        width: 37px;
-        height: 22px;
-        border-radius: 50%;
-        background: #eee024;
-        transform: rotate(-18deg);
+        width: 40px;
+        height: 24px;
+        background: #ff9800;
+        border-radius: 20px 20px 5px 5px;
+        border: 1px solid #e65100;
+        bottom: -5px;
+        z-index: 0;
       }
-
-      .penguin .foot { left: 28px; }
-      .penguin .foot.right { right: 28px; transform: rotate(12deg); }
+      .penguin .foot.left {
+        left: 10px;
+        transform-origin: top left;
+        animation: foot-leg-left 0.55s ease-in-out infinite;
+      }
+      .penguin .foot.right {
+        right: 10px;
+        transform-origin: top right;
+        animation: foot-leg-right 0.55s ease-in-out infinite 0.25s;
+      }
 
       .penguin .shadow {
         position: absolute;
-        left: 35px;
-        bottom: -8px;
-        width: 62px;
-        height: 11px;
+        left: 18px;
+        bottom: -12px;
+        width: 74px;
+        height: 15px;
         border-radius: 50%;
         background: rgba(27, 43, 68, 0.22);
+        z-index: -1;
       }
 
-      .entry {
-        width: min(1200px, 96vw);
-        margin: 14px auto 38px;
-        text-align: center;
+      /* Penguenin taşıdığı mektuplar */
+      .mail {
+        position: absolute;
+        width: 34px;
+        height: 24px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.12);
+        z-index: 6;
+        overflow: hidden;
+        animation: mail-bounce 0.6s ease-in-out infinite alternate;
+      }
+      .mail::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, transparent 48%, #eee 50%, transparent 52%);
+      }
+      .mail.one { left: 30px; top: 58px; }
+      .mail.two { left: 34px; top: 64px; }
+      .mail.three { left: 38px; top: 70px; }
+
+      /* Animasyonlar */
+      @keyframes penguin-walk {
+        0% {
+          left: -160px;
+          transform: scale(0.9) translateY(0);
+          opacity: 1;
+        }
+        20% {
+          left: calc(25% - 70px);
+          transform: scale(1) translateY(-4px);
+        }
+        40% {
+          left: calc(50% - 70px);
+          transform: scale(1) translateY(0);
+        }
+        60% {
+          left: calc(72% - 70px);
+          transform: scale(1) translateY(-4px);
+        }
+        75% {
+          left: calc(88% - 90px);
+          transform: scale(0.98) translateY(0);
+        }
+        90% {
+          left: calc(88% - 80px);
+          transform: scale(0.95) translateY(6px);
+          opacity: 0.5;
+        }
+        100% {
+          left: calc(88% - 70px);
+          transform: scale(0.9) translateY(10px);
+          opacity: 0;
+          pointer-events: none;
+        }
       }
 
+      /* Kapı penguen girince kapansın – zamanlama korunuyor */
+      @keyframes door-open-close {
+        0%, 55% { transform: perspective(500px) rotateY(0deg); }
+        65%, 85% { transform: perspective(500px) rotateY(-85deg); }
+        95%, 100% { transform: perspective(500px) rotateY(0deg); }
+      }
+
+      @keyframes wing-wave-left {
+        0%, 100% { transform: rotate(-8deg); }
+        50% { transform: rotate(-26deg); }
+      }
+
+      @keyframes wing-wave-right {
+        0%, 100% { transform: rotate(10deg); }
+        50% { transform: rotate(22deg); }
+      }
+
+      @keyframes foot-leg-left {
+        0%, 100% { transform: rotate(-8deg) translateY(0); }
+        50% { transform: rotate(-22deg) translateY(-2px); }
+      }
+
+      @keyframes foot-leg-right {
+        0%, 100% { transform: rotate(8deg) translateY(0); }
+        50% { transform: rotate(22deg) translateY(-2px); }
+      }
+
+      @keyframes penguin-blink {
+        0%, 92%, 100% { transform: scaleY(1); }
+        95% { transform: scaleY(0.1); }
+      }
+
+      @keyframes mail-bounce {
+        0% { transform: translateY(0) rotate(-8deg); }
+        100% { transform: translateY(-4px) rotate(4deg); }
+      }
+
+      /* Sayfa Düzeni */
+      .entry { width: min(1200px, 96vw); margin: 14px auto 38px; text-align: center; }
       h1 { margin: 0; font-size: clamp(24px, 4vw, 42px); }
       .sub { margin: 8px 0 22px; color: var(--muted); }
 
@@ -245,7 +367,6 @@
         display: grid;
         grid-template-columns: 1fr minmax(300px, 1.2fr) 1fr;
         gap: 16px;
-        align-items: stretch;
       }
 
       .card {
@@ -255,62 +376,26 @@
         padding: 18px;
         position: relative;
         overflow: hidden;
-        animation: floaty 3s ease-in-out infinite;
       }
 
-      .card::before {
-        content: '';
-        position: absolute;
-        inset: -70% auto auto -30%;
-        width: 180%;
-        height: 180%;
-        background: radial-gradient(circle, rgba(255,255,255,0.36), transparent 63%);
-      }
-
-      .card h2 { margin: 0 0 8px; position: relative; }
-      .card p { margin: 0 0 14px; color: var(--muted); position: relative; }
+      .card h2 { margin: 0 0 8px; }
+      .card p { margin: 0 0 14px; color: var(--muted); }
       .card button {
-        border: none;
-        border-radius: 999px;
-        padding: 10px 16px;
-        font-weight: 700;
+        border: none; border-radius: 999px;
+        padding: 10px 16px; font-weight: 700;
         cursor: pointer;
-        position: relative;
       }
 
-      .student { background: linear-gradient(150deg, var(--student), #cde4ff); transform: scale(1.02); animation-delay: .2s; }
+      .student { background: linear-gradient(150deg, var(--student), #cde4ff); }
       .student button { background: #5e8df7; color: #fff; }
       .admin { background: linear-gradient(150deg, var(--admin), #e6fff0); }
       .admin button { background: #55b88f; color: #fff; }
-      .teacher { background: linear-gradient(150deg, var(--teacher), #ffeede); animation-delay: .4s; }
+      .teacher { background: linear-gradient(150deg, var(--teacher), #ffeede); }
       .teacher button { background: #d98856; color: #fff; }
-      .parent { background: linear-gradient(150deg, var(--parent), #f2e9ff); animation-delay: .6s; }
+      .parent { background: linear-gradient(150deg, var(--parent), #f2e9ff); }
       .parent button { background: #8860cf; color: #fff; }
 
       .left-col, .right-col { display: grid; gap: 16px; }
-
-      @keyframes penguin-walk {
-        0% { left: -140px; transform: translateY(0) scale(1); opacity: 1; }
-        58% { left: calc(88% - 220px); transform: translateY(-2px) scale(1); opacity: 1; }
-        74% { left: calc(88% - 130px); transform: translateY(-1px) scale(0.98); opacity: 1; }
-        86% { left: calc(88% - 78px); transform: translateY(-2px) scale(0.82); opacity: .9; }
-        100% { left: calc(88% - 74px); transform: translateY(-2px) scale(0.68); opacity: 0; }
-      }
-
-      @keyframes door-open {
-        0%, 60% { transform: perspective(500px) rotateY(0deg); }
-        72%, 100% { transform: perspective(500px) rotateY(-78deg); }
-      }
-
-      @keyframes wave {
-        0%, 100% { transform: rotate(-30deg); }
-        50% { transform: rotate(-54deg); }
-      }
-
-      @keyframes floaty {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-6px); }
-      }
 
       @media (max-width: 920px) {
         .grid { grid-template-columns: 1fr; }
@@ -318,82 +403,80 @@
     </style>
   </head>
   <body>
-    <section class="scene" aria-label="Kayıp penguen animasyonu">
+    <section class="scene">
       <div class="ice-ground"></div>
-      <div class="door" title="Portal Giriş Kapısı">
-        <div class="door-inside"></div>
-        <div class="door-brand">alfabe.co</div>
-        <div class="door-frame"></div>
-        <div class="door-leaf" id="doorLeaf"><div class="door-knob"></div></div>
+      
+      <div class="door-container">
+        <div class="portal-header">alfabe.co</div>
+        <div class="door">
+          <div class="door-inside"></div>
+          <div class="door-frame"></div>
+          <div class="door-leaf" id="doorLeaf">
+              <div class="door-knob"></div>
+          </div>
+        </div>
       </div>
+
       <div class="penguin" id="penguin">
-        <div class="wing-left"></div>
-        <div class="wing-right"></div>
-        <div class="head"></div>
-        <div class="eye"></div>
-        <div class="eye right"></div>
-        <div class="beak"></div>
-        <div class="body"></div>
-        <div class="belly"></div>
-        <div class="foot"></div>
-        <div class="foot right"></div>
         <div class="shadow"></div>
+        <div class="wing left"></div>
+        <div class="mail one"></div>
+        <div class="mail two"></div>
+        <div class="mail three"></div>
+        
+        <div class="body-black">
+          <div class="body-white"></div>
+        </div>
+        
+        <div class="head-black">
+          <div class="face-white">
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="beak"></div>
+          </div>
+        </div>
+        
+        <div class="wing right"></div>
+        <div class="foot left"></div>
+        <div class="foot right"></div>
       </div>
     </section>
 
     <main class="entry">
-      <h1>🐧 Kayıp Penguen ALFABE Portalı Buldu!</h1>
-      <p class="sub">Rol hiyerarşisi: Super Admin → Admin → Bayi → Yönetici → Öğretmen / Veli / Öğrenci</p>
+      <h1>🐧 Kayıp Penguen Postaları Getirdi!</h1>
+      <p class="sub">Rolünü seç ve eğitim portalına giriş yap.</p>
 
       <div class="grid">
         <div class="left-col">
           <article class="card admin">
-            <h2>👑 Super Admin</h2>
-            <p>Sistemin en üst seviyesi: tenant, lisans ve global yönetim.</p>
-            <button onclick="go('portal/super_admin.html')">Super Admin Olarak Giriş</button>
-          </article>
-
-          <article class="card admin">
-            <h2>🛡️ Admin</h2>
-            <p>Bayi ve kurum yönetim akışını organize eden merkezi panel.</p>
-            <button onclick="go('portal/admin.html')">Admin Olarak Giriş</button>
-          </article>
-
-          <article class="card admin">
-            <h2>🤝 Bayi</h2>
-            <p>Okul aktivasyonları ve kurum onboarding süreçleri.</p>
-            <button onclick="go('portal/bayi.html')">Bayi Olarak Giriş</button>
-          </article>
-
-          <article class="card admin">
-            <h2>🏫 Yönetici</h2>
-            <p>Okul yönetimi, sınıf ve öğretmen organizasyonu.</p>
-            <button onclick="go('portal/yonetici.html')">Yönetici Olarak Giriş</button>
+            <h2>🏫 Yönetim Girişi</h2>
+            <p>Okul yönetimi ve organizasyon.</p>
+            <button onclick="go('portal/yonetici.html')">Yönetici Girişi</button>
           </article>
 
           <article class="card teacher">
             <h2>🧑‍🏫 Öğretmen Girişi</h2>
-            <p>Öğrenci kaydı, kart basımı ve süreç yönetimi.</p>
-            <button onclick="go('portal/ogretmen.html')">Öğretmen Olarak Giriş</button>
+            <p>Öğrenci ve süreç yönetimi.</p>
+            <button onclick="go('portal/ogretmen.html')">Öğretmen Girişi</button>
           </article>
         </div>
 
         <article class="card student">
           <h2>🎒 Öğrenci Girişi</h2>
-          <p>Merkez giriş. Karekod ile hızlı ve eğlenceli erişim.</p>
+          <p>Karekod ile hızlı ve eğlenceli erişim.</p>
           <button onclick="go('portal/ogrenci.html')">Öğrenci Girişi Yap</button>
         </article>
 
         <div class="right-col">
           <article class="card parent">
             <h2>👨‍👩‍👧 Veli Girişi</h2>
-            <p>Öğrenci gelişimi ve etkinlik özet raporları.</p>
-            <button onclick="go('portal/veli.html')">Veli Olarak Giriş</button>
+            <p>Gelişim ve etkinlik raporları.</p>
+            <button onclick="go('portal/veli.html')">Veli Girişi</button>
           </article>
 
           <article class="card">
-            <h2>✨ Portal Bilgisi</h2>
-            <p>Kapı açılır, penguen içeri girer ve öğrenme yolculuğu başlar.</p>
+            <h2>✨ Portal Kontrol</h2>
+            <p>Penguen kapıdan içeri girdi mi? Tekrar kontrol et.</p>
             <button onclick="restartPenguin()">Pengueni Tekrar Yürüt</button>
           </article>
         </div>
@@ -404,23 +487,26 @@
       const penguin = document.getElementById('penguin');
       const doorLeaf = document.getElementById('doorLeaf');
 
-      function restartAnimation(el, animation) {
-        el.style.animation = 'none';
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            el.style.animation = animation;
-          });
-        });
-      }
-
       function restartPenguin() {
-        restartAnimation(penguin, 'penguin-walk 9s linear infinite');
-        restartAnimation(doorLeaf, 'door-open 9s ease-in-out infinite');
+        // Animasyonları sıfırla
+        penguin.style.animation = 'none';
+        doorLeaf.style.animation = 'none';
+        
+        // Reflow tetikle (animasyonun baştan başlaması için)
+        void penguin.offsetWidth;
+        void doorLeaf.offsetWidth;
+
+        // Animasyonları geri yükle
+        penguin.style.animation = 'penguin-walk 7s linear forwards';
+        doorLeaf.style.animation = 'door-open-close 7s ease-in-out forwards';
       }
 
       function go(path) {
-        window.location.href = path;
+        if (path && path !== '#') {
+          window.location.href = path;
+        }
       }
     </script>
+   <center><script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="proacademy" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Bize kahve ısmarla :)" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script></center> 
   </body>
 </html>
