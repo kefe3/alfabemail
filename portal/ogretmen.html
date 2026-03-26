@@ -249,6 +249,33 @@
         cursor: pointer;
       }
 
+      .login-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .login-wrap.hidden { display: none; }
+      .login-card {
+        width: 100%;
+        max-width: 400px;
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 28px;
+        border: 2px solid #dae7ff;
+      }
+      .login-card h1 { margin: 0 0 8px; font-size: 22px; color: var(--ink); }
+      .login-card .sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+      .login-card label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--muted); }
+      .login-card input { margin-bottom: 14px; }
+      .login-card .btn { width: 100%; padding: 12px; margin-top: 6px; }
+      .login-card .login-status { margin-top: 12px; font-size: 13px; color: var(--muted); }
+      .login-card .login-status.error { color: #b71c1c; }
+      .login-card .login-status.success { color: #1f5143; }
+      .panel-wrap.hidden { display: none !important; }
+
       @media (max-width: 920px) {
         .layout { grid-template-columns: 1fr; }
         .sidebar { border-right: none; border-bottom: 1px solid #d7e3fa; }
@@ -270,7 +297,23 @@
       }
     </style>
   </head>
-  <body data-role="ogretmen">
+  <body>
+    <div id="loginWrap" class="login-wrap">
+      <div class="login-card">
+        <h1>🧑‍🏫 Öğretmen Girişi</h1>
+        <p class="sub">Şahsi e-posta ve aktivasyon linkiyle oluşturduğunuz şifre ile giriş yapın.</p>
+        <form id="loginForm">
+          <label for="loginEmail">E-posta</label>
+          <input id="loginEmail" type="email" placeholder="ogretmen@mail.com" required />
+          <label for="loginPassword">Şifre</label>
+          <input id="loginPassword" type="password" placeholder="Şifre" required />
+          <button type="submit" class="btn primary">Giriş Yap</button>
+        </form>
+        <div id="loginStatus" class="login-status"></div>
+      </div>
+    </div>
+
+    <div id="panelWrap" class="panel-wrap hidden">
     <div class="layout">
       <aside class="sidebar">
         <h2 class="logo">🎓 Öğretmen Paneli</h2>
@@ -278,13 +321,14 @@
           <button class="tab-btn active" data-tab="kayit">Öğrenci Kaydı</button>
           <button class="tab-btn" data-tab="sinif">Sınıf Listesi</button>
           <button class="tab-btn" data-tab="kart">Yaka Kartı Yazdır</button>
+          <button class="btn secondary" id="logoutBtn" style="margin-top:14px;width:100%;">Çıkış Yap</button>
         </div>
       </aside>
 
       <main class="content">
         <section class="panel active" id="kayitPanel">
           <article class="card">
-            <h1>Öğrenci Giriş Modülü</h1>
+            <h1>Veri Giriş Modülü</h1>
             <p class="desc">Ad, Soyad ve Veli E-posta girildiğinde @alfabe.co önerisi oluşturulur. İstersen nick ile değiştirebilirsin.</p>
 
             <div class="form-grid">
@@ -351,7 +395,7 @@
 
         <section class="panel" id="sinifPanel">
           <article class="card">
-            <h1>Sınıf Listesi</h1>
+            <h1>Sınıf Listesi (localStorage)</h1>
             <p class="desc">Sayfa yenilense de kayıtlar kalır.</p>
             <table>
               <thead>
@@ -369,11 +413,10 @@
 
         <section class="panel" id="kartPanel">
           <article class="card">
-            <h1>Yaka Kartı Yazdırma Modülü</h1>
+            <h1>Yazdırma Modülü (Yaka Kartı)</h1>
             <p class="desc">Yazdırma sırasında sadece kart alanı görünür.</p>
             <div class="actions">
-              <button class="btn accent" id="printSingleBtn" disabled>Tek Yazdır</button>
-              <button class="btn accent" id="printBulkBtn" disabled>Toplu Yazdır (A4/6)</button>
+              <button class="btn accent" id="printBtn" disabled>Yazdır</button>
             </div>
 
             <div class="badge-wrap" id="printArea">
@@ -392,12 +435,76 @@
         </section>
       </main>
     </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
+      const OGRETMEN_SESSION_KEY = 'alfabe_ogretmen_session';
+      const OGRETMENLER_KEY = 'ogretmenler';
       const STORAGE_KEY = 'alfabePortalStudents';
+
+      function getOgretmenSession() {
+        try {
+          return JSON.parse(sessionStorage.getItem(OGRETMEN_SESSION_KEY) || 'null');
+        } catch (_) { return null; }
+      }
+      function setOgretmenSession(teacher) {
+        sessionStorage.setItem(OGRETMEN_SESSION_KEY, JSON.stringify({ email: teacher.personalEmail, firstName: teacher.firstName, lastName: teacher.lastName }));
+      }
+      function clearOgretmenSession() {
+        sessionStorage.removeItem(OGRETMEN_SESSION_KEY);
+      }
+
+      const loginWrap = document.getElementById('loginWrap');
+      const panelWrap = document.getElementById('panelWrap');
+      const loginForm = document.getElementById('loginForm');
+      const loginStatus = document.getElementById('loginStatus');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPassword = document.getElementById('loginPassword');
+
+      function showPanel() {
+        loginWrap.classList.add('hidden');
+        panelWrap.classList.remove('hidden');
+      }
+      function showLogin() {
+        panelWrap.classList.add('hidden');
+        loginWrap.classList.remove('hidden');
+        loginStatus.textContent = '';
+      }
+
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const email = loginEmail.value.trim().toLowerCase();
+        const password = loginPassword.value;
+        let teachers = JSON.parse(localStorage.getItem(OGRETMENLER_KEY) || '[]');
+        if (!teachers.some(t => (t.personalEmail || '').toLowerCase() === 'ogretmen@alfabe.co')) {
+          teachers = [...teachers, { firstName: 'Demo', lastName: 'Öğretmen', personalEmail: 'ogretmen@alfabe.co', password: 'alfabe123', classBranch: 'Demo', status: 'aktif' }];
+          localStorage.setItem(OGRETMENLER_KEY, JSON.stringify(teachers));
+        }
+        const teacher = teachers.find(t => t.personalEmail && t.personalEmail.toLowerCase() === email);
+        const pwd = teacher ? (teacher.password || 'alfabe123') : '';
+        if (teacher && pwd === password && teacher.status !== 'askida') {
+          setOgretmenSession(teacher);
+          loginStatus.className = 'login-status success';
+          showPanel();
+        } else {
+          loginStatus.textContent = teacher && teacher.status === 'askida' ? 'Hesabınız askıya alındı.' : 'E-posta veya şifre hatalı.';
+          loginStatus.className = 'login-status error';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        clearOgretmenSession();
+        showLogin();
+      });
+
+      if (getOgretmenSession()) {
+        showPanel();
+      } else {
+        showLogin();
+      }
 
       const dom = {
         tabs: document.querySelectorAll('.tab-btn'),
@@ -412,8 +519,7 @@
         username: document.getElementById('username'),
         saveBtn: document.getElementById('saveBtn'),
         goPrintBtn: document.getElementById('goPrintBtn'),
-        printSingleBtn: document.getElementById('printSingleBtn'),
-        printBulkBtn: document.getElementById('printBulkBtn'),
+        printBtn: document.getElementById('printBtn'),
         statusBox: document.getElementById('statusBox'),
         studentTableBody: document.getElementById('studentTableBody'),
         badgeWrap: document.getElementById('printArea'),
@@ -449,23 +555,8 @@
         const lastName = dom.lastName.value.trim();
         if (!firstName || !lastName) return;
 
-        const suggestion = `${buildUniqueEmail(`${firstName}.${lastName}`)}@alfabe.co`;
+        const suggestion = `${slugify(`${firstName}.${lastName}`)}@alfabe.co`;
         if (!dom.username.dataset.edited) dom.username.value = suggestion;
-      }
-
-      function buildUniqueEmail(baseName) {
-        const slug = slugify(baseName);
-        const taken = new Set([
-          ...state.students.map(s => s.email.toLowerCase()),
-          ...state.bulkStudents.map(s => s.email.toLowerCase()),
-        ]);
-        let candidate = slug;
-        let counter = 1;
-        while (taken.has(`${candidate}@alfabe.co`)) {
-          counter += 1;
-          candidate = `${slug}${counter}`;
-        }
-        return candidate;
       }
 
       function generatePassword(length = 12) {
@@ -521,7 +612,7 @@
 
         if (!firstName || !lastName) return null;
 
-        const email = `${buildUniqueEmail(`${firstName}.${lastName}`)}@alfabe.co`;
+        const email = `${slugify(`${firstName}.${lastName}`)}@alfabe.co`;
 
         return {
           fullName: `${firstName} ${lastName}`,
@@ -603,7 +694,7 @@
         }
       }
 
-      function prepareAccountsForMailcow() {
+      function prepareAccountsForMailApi() {
         if (!state.bulkStudents.length) {
           setBulkStatus('Önce dosya yükle.');
           return;
@@ -618,7 +709,7 @@
           password: student.password,
         }));
 
-        console.log('Mailcow API gönderimine hazır payload:', payload);
+        console.log('Mail API gönderimine hazır payload:', payload);
         setBulkStatus(`Hazır: ${payload.length} hesap console.log ile gösterildi.`);
       }
 
@@ -646,23 +737,7 @@
         dom.badgePassword.textContent = student.password;
         renderQrCode(student);
         dom.badgeWrap.classList.add('visible');
-        dom.printSingleBtn.disabled = false;
-        dom.printBulkBtn.disabled = state.students.length === 0;
-      }
-
-      function renderBulkPrintLayout() {
-        const cards = state.students.map(student => {
-          const payload = encodeURIComponent(JSON.stringify({ email: student.email, password: student.password }));
-          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${payload}`;
-          return `<article class="badge-card" style="width:31%;margin:1%;display:inline-block;vertical-align:top;page-break-inside:avoid;">
-            <div class="badge-header"><div class="badge-logo">alfabe.co</div><h3 class="badge-name">${student.fullName}</h3></div>
-            <img src="${qrUrl}" alt="${student.fullName} QR" style="width:160px;height:160px;display:block;margin:0 auto;" />
-            <div class="cut-line"></div>
-            <p class="small"><strong>Mail:</strong> ${student.email}</p>
-            <p class="password"><strong>Şifre:</strong> ${student.password}</p>
-          </article>`;
-        }).join('');
-        dom.badgeWrap.innerHTML = cards || '<p>Kayıtlı öğrenci yok.</p>';
+        dom.printBtn.disabled = false;
       }
 
       function switchTab(tab) {
@@ -674,7 +749,7 @@
         const firstName = dom.firstName.value.trim();
         const lastName = dom.lastName.value.trim();
         const parentEmail = dom.parentEmail.value.trim();
-        const email = dom.username.value.trim().toLowerCase();
+        const email = dom.username.value.trim();
 
         if (!firstName || !lastName || !parentEmail || !email) {
           setStatus('Lütfen ad, soyad, veli e-posta ve önerilen mail alanlarını doldurun.');
@@ -682,7 +757,7 @@
         }
 
         dom.saveBtn.disabled = true;
-        setStatus('Mailcow API simülasyonu çalışıyor...');
+        setStatus('Mail API simülasyonu çalışıyor...');
         await new Promise(resolve => setTimeout(resolve, 700));
 
         const student = {
@@ -694,12 +769,6 @@
           password: generatePassword(),
           createdAt: new Date().toISOString(),
         };
-
-        if (state.students.some(s => s.email.toLowerCase() === email)) {
-          setStatus('Bu e-posta zaten kullanılıyor. Sistem otomatik çakışmayı engeller.');
-          dom.saveBtn.disabled = false;
-          return;
-        }
 
         state.students.push(student);
         saveLocalStorage();
@@ -720,18 +789,9 @@
       dom.username.addEventListener('input', () => { dom.username.dataset.edited = '1'; });
       dom.saveBtn.addEventListener('click', saveStudent);
       dom.goPrintBtn.addEventListener('click', () => switchTab('kart'));
-      dom.printSingleBtn.addEventListener('click', () => {
-        const latest = state.students[state.students.length - 1];
-        if (latest) renderBadge(latest);
-        window.print();
-      });
-      dom.printBulkBtn.addEventListener('click', () => {
-        renderBulkPrintLayout();
-        window.print();
-        loadLatestStudent();
-      });
+      dom.printBtn.addEventListener('click', () => window.print());
       dom.bulkPreviewBody.addEventListener('click', handleBulkTableActions);
-      dom.createAccountsBtn.addEventListener('click', prepareAccountsForMailcow);
+      dom.createAccountsBtn.addEventListener('click', prepareAccountsForMailApi);
       dom.bulkFileInput.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
         if (file) parseBulkFile(file);
@@ -752,8 +812,6 @@
       renderTable();
       renderBulkPreview();
       loadLatestStudent();
-      dom.printBulkBtn.disabled = state.students.length === 0;
     </script>
-      <script src="./demo-auth.js"></script>
   </body>
 </html>

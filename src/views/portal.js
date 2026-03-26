@@ -67,7 +67,7 @@ function setStatus(message) {
   dom.status.textContent = message;
 }
 
-function simulateMailcowCreate(studentPayload) {
+function simulateMailApiCreate(studentPayload) {
   return new Promise((resolve) => {
     setTimeout(() => {
       const password = generatePassword();
@@ -110,9 +110,9 @@ async function saveStudent() {
   }
 
   dom.saveBtn.disabled = true;
-  setStatus('Mailcow API simülasyonu çalışıyor... öğrenci hesabı açılıyor.');
+  setStatus('Mail API simülasyonu çalışıyor... öğrenci hesabı açılıyor.');
 
-  const student = await simulateMailcowCreate({
+  const student = await simulateMailApiCreate({
     fullName: `${firstName} ${lastName}`,
     firstName,
     lastName,

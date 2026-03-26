@@ -1,39 +1,76 @@
 <!doctype html>
 <html lang="tr">
-  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Super Admin</title>
-  <style>body{margin:0;font-family:Inter,sans-serif;background:#0b1220;color:#e5e7eb}.c{max-width:1200px;margin:20px auto;padding:0 12px}.h,.b{background:#111827;border:1px solid #374151;border-radius:14px;padding:14px}.g{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}.k{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:10px}.k h3{margin:0;color:#94a3b8;font-size:12px}.k p{margin:4px 0 0;font-size:28px;font-weight:800}input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:#e2e8f0}.f{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.btn{border:none;border-radius:999px;padding:9px 12px;font-weight:700;cursor:pointer}.p{background:#38bdf8}.s{background:#334155;color:#e2e8f0}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border-top:1px solid #334155;padding:8px;text-align:left;font-size:13px}.st{margin-top:8px;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px;color:#93c5fd}</style></head>
-  <body data-role="super_admin"><div class="c">
-    <section class="h"><h1>👑 Super Admin Paneli</h1><p>Admin kullanıcılarını yönet, şifre sıfırlama linki üret ve tüm alt katman analizlerini izle.</p></section>
-    <section class="g">
-      <article class="k"><h3>Toplam Admin</h3><p id="adminCount">0</p></article>
-      <article class="k"><h3>Toplam Bayi</h3><p id="dealerCount">0</p></article>
-      <article class="k"><h3>Toplam Okul</h3><p id="schoolCount">0</p></article>
-      <article class="k"><h3>Mail API İşlem</h3><p id="apiOpsCount">0</p></article>
-    </section>
-    <section class="b"><h2>Admin Hesabı Ekle</h2>
-      <div class="f">
-        <div><label>Ad</label><input id="firstName" placeholder="Örn: Elif"/></div>
-        <div><label>Soyad</label><input id="lastName" placeholder="Örn: Kaya"/></div>
-        <div><label>Admin Maili</label><input id="email" type="email" placeholder="admin@alfabe.co"/></div>
-        <div><label>Sorumlu Bölge</label><input id="region" placeholder="Marmara"/></div>
-      </div>
-      <div style="margin-top:8px"><button class="btn p" id="addAdminBtn">Admin Ekle ve Şifre Linki Üret</button></div>
-      <div class="st" id="status">Admin ekleme ekranı hazır.</div>
-      <pre class="st" id="mailPreview">Şifre sıfırlama linki burada görünecek.</pre>
-      <table><thead><tr><th>#</th><th>Ad Soyad</th><th>Mail</th><th>Bölge</th><th>Durum</th></tr></thead><tbody id="adminTable"></tbody></table>
-    </section>
-    <section class="b" style="margin-top:10px"><h2>Analiz Merkezi</h2><table><thead><tr><th>Katman</th><th>Metrik</th><th>Değer</th></tr></thead><tbody id="analysisTable"></tbody></table></section>
-  </div>
-  <script>
-    const ADMIN_KEY='alfabeAdmins', DEALER_KEY='bayiler', SCHOOL_KEY='bayiOkullari', METRIC_KEY='mailApiMetrics';
-    const dom={adminCount:adminCount,dealerCount:dealerCount,schoolCount:schoolCount,apiOpsCount:apiOpsCount,firstName,lastName,email,region,addAdminBtn,status,mailPreview,adminTable,analysisTable};
-    const state={admins:JSON.parse(localStorage.getItem(ADMIN_KEY)||'[]')};
-    function persist(){localStorage.setItem(ADMIN_KEY,JSON.stringify(state.admins));}
-    function resetLink(email){const token=crypto.randomUUID();return `https://portal.alfabe.co/admin-reset?token=${token}&email=${encodeURIComponent(email)}`;}
-    function renderAdmins(){dom.adminTable.innerHTML=state.admins.length?state.admins.map((a,i)=>`<tr><td>${i+1}</td><td>${a.fullName}</td><td>${a.email}</td><td>${a.region}</td><td>Aktif</td></tr>`).join(''):'<tr><td colspan="5">Henüz admin yok.</td></tr>';dom.adminCount.textContent=state.admins.length;}
-    function renderAnalysis(){const dealers=JSON.parse(localStorage.getItem(DEALER_KEY)||'[]');const schools=JSON.parse(localStorage.getItem(SCHOOL_KEY)||'[]');const m=JSON.parse(localStorage.getItem(METRIC_KEY)||'{"apiCalls":0,"mailboxes":0}');dom.dealerCount.textContent=dealers.length;dom.schoolCount.textContent=schools.length;dom.apiOpsCount.textContent=m.apiCalls||0;dom.analysisTable.innerHTML=`<tr><td>Admin</td><td>Kayıtlı admin hesabı</td><td>${state.admins.length}</td></tr><tr><td>Bayi</td><td>Kayıtlı bayi</td><td>${dealers.length}</td></tr><tr><td>Okul</td><td>Aktif+beklemede okul</td><td>${schools.length}</td></tr><tr><td>Mail API</td><td>Toplam API çağrısı</td><td>${m.apiCalls||0}</td></tr><tr><td>Mail API</td><td>Toplam oluşturulan mailbox</td><td>${m.mailboxes||0}</td></tr>`;}
-    addAdminBtn.onclick=()=>{const fn=firstName.value.trim(),ln=lastName.value.trim(),em=email.value.trim().toLowerCase(),rg=region.value.trim();if(!fn||!ln||!em||!rg){status.textContent='Tüm alanlar zorunlu.';return;}if(state.admins.some(a=>a.email===em)){status.textContent='Bu admin maili zaten kayıtlı.';return;}const link=resetLink(em);state.admins.push({fullName:`${fn} ${ln}`,email:em,region:rg,createdAt:new Date().toISOString()});persist();status.textContent='Admin eklendi. Şifre sıfırlama linki üretildi.';mailPreview.textContent=`Konu: Admin Şifre Oluşturma\nAlıcı: ${em}\nLink: ${link}`;renderAdmins();renderAnalysis();};
-    renderAdmins();renderAnalysis();
-  </script>
-  <script src="./demo-auth.js"></script></body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alfabe Portal | Super Admin</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --bg-soft: #1e293b;
+        --card: #111827;
+        --ink: #e2e8f0;
+        --muted: #93a4be;
+        --line: #334155;
+        --accent: #38bdf8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, 'Segoe UI', sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at top, #1d2b4a, var(--bg));
+      }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 16px 40px; }
+      .hero, .card {
+        background: linear-gradient(180deg, rgba(17,24,39,.95), rgba(15,23,42,.98));
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 18px;
+      }
+      .hero h1 { margin: 0; font-size: 28px; }
+      .hero p { margin: 8px 0 0; color: var(--muted); }
+      .grid { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 10px; }
+      .badge { display: inline-block; font-size: 12px; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 4px 8px; }
+      .card h2 { margin: 10px 0 6px; font-size: 16px; }
+      .card p { margin: 0 0 12px; color: var(--muted); min-height: 42px; }
+      button {
+        border: none; border-radius: 999px; background: var(--accent); color: #06243a;
+        padding: 10px 12px; font-weight: 700; cursor: pointer;
+      }
+      .muted-btn { background: #334155; color: #e2e8f0; }
+      .actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <span class="badge">SEVİYE 1 / EN ÜST</span>
+        <h1>👑 Super Admin Paneli</h1>
+        <p>Bu katmanda sistem geneli tenant/lisans/rol hiyerarşisi yönetilir. Aşağı akış sırayla Admin → Bayi → Yönetici şeklindedir.</p>
+        <div class="actions">
+          <button onclick="location.href='admin.html'">Admin Katmanına Geç</button>
+          <button class="muted-btn" onclick="location.href='../index.html'">Ana Sayfaya Dön</button>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <span class="badge">Yetki</span>
+          <h2>Tenant Yönetimi</h2>
+          <p>Kurum açma/kapatma, marka ayarları ve global lisans sınırları.</p>
+        </article>
+        <article class="card">
+          <span class="badge">Yetki</span>
+          <h2>Rol Politikaları</h2>
+          <p>Admin/Bayi/Yönetici rollerinin kapsamı ve güvenlik ilkeleri.</p>
+        </article>
+        <article class="card">
+          <span class="badge">Yetki</span>
+          <h2>Denetim</h2>
+          <p>Sistem logları, audit raporları ve güvenlik alarm yönetimi.</p>
+        </article>
+      </section>
+    </main>
+  </body>
 </html>
