@@ -5,6 +5,14 @@
 Genç nesillerin bireyselleştirilmiş, çok uyaranlı öğrenme yanıtlarını veren; esnek bir Mail API altyapısı üzerine inşa edilmiş bir iletişim ve eğitim yönetimi ekosistemi. (Şu an belirli bir Mail API sağlayıcısı kullanılmaktadır, gelecekte farklı sağlayıcılar ile de çalışabilecek şekilde soyutlanmıştır.)
 
 2. KULLANICI ROLLERİ VE FONKSİYONLARI
+🟢ADMIN (Yazılımcılar)
+Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
+Görev: Sistemin çalışmasıyla alakalı süreçlerin yönetimi. 
+Yetki: Bayileri ekleme. 
+🟢 BAYİ (Yerel Yöneticiler)
+Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
+Görev: Sisteme müdürlerin eklenmesini sağlar ve sistemi tavsiye eder. 
+Yetki: Müdürleri ekleme. 
 🟢 YÖNETİCİ (Okul Yönetimi)
 Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
 Görev: Eğitim sürecinin izlenmesi, rehberlik etme ve sistemin birleştirici rolünü üstlenmesi.
@@ -98,6 +106,7 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - `portal/super_admin.html` eklendi (en üst seviye).
 - `portal/admin.html` eklendi (super admin altı yönetim seviyesi).
 - `portal/bayi.html` ile aşağı akışa devam eder; ardından `portal/yonetici.html`, `portal/ogretmen.html`, `portal/veli.html`, `portal/ogrenci.html` gelir.
+
 
 - Penguen görseli logo stiline yakın şekilde canlandırıldı; kapıya yaklaşınca kapı açılır ve penguen içeri geçer.
 - Merkezde animasyonlu Öğrenci Girişi kartı, çevresinde Yönetim/Öğretmen/Veli giriş kutuları yerleştirildi.
