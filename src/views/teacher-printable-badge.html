@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Öğretmen Paneli | Yazdırılabilir Yaka Kartı</title>
+    <link rel="stylesheet" href="./teacher-printable-badge.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="toolbar">
+        <h1>🎒 Yazdırılabilir Öğrenci Yaka Kartları</h1>
+        <button class="print-button" onclick="window.print()">Yazdır</button>
+      </section>
+
+      <section class="badges-grid" id="badgesGrid"></section>
+    </main>
+
+    <script>
+      const students = [
+        {
+          fullName: 'Ela Kaya',
+          email: 'ela.kaya@alfabe.co',
+          password: 'A7d!k9Lm2#Qp',
+          qrCodeUrl:
+            'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+            encodeURIComponent(JSON.stringify({ email: 'ela.kaya@alfabe.co', password: 'A7d!k9Lm2#Qp' })),
+        },
+        {
+          fullName: 'Can Demir',
+          email: 'can.demir@alfabe.co',
+          password: 'P8x$k2Ta5!Ns',
+          qrCodeUrl:
+            'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+            encodeURIComponent(JSON.stringify({ email: 'can.demir@alfabe.co', password: 'P8x$k2Ta5!Ns' })),
+        },
+      ];
+
+      const badgesGrid = document.getElementById('badgesGrid');
+
+      badgesGrid.innerHTML = students
+        .map(
+          (student) => `
+            <article class="badge-card">
+              <h2 class="student-name">${student.fullName}</h2>
+              <img class="qr" src="${student.qrCodeUrl}" alt="${student.fullName} karekod" />
+              <div class="cut-line"></div>
+              <p class="mail"><strong>Mail:</strong> ${student.email}</p>
+              <p class="password"><strong>Şifre:</strong> ${student.password}</p>
+            </article>
+          `,
+        )
+        .join('');
+    </script>
+  </body>
+</html>
