@@ -13,7 +13,7 @@ Yetki: Öğretmenleri (branş ve sınıflara dayalı) sistem ekleme.
 Giriş: Aktivasyon bağlantısı ve şifre oluşturma süreciyle.
 Görev: Eğitim planlama, zenginleştirme ve öğrenci rehberliği.
 Yetki: * Sınıf açma ve öğrenci listesi (CSV/Excel) yükleniyor.
-Öğrencisi için otomatik @alfabe.co maili oluşturma (Mail API katmanı).
+Öğrencisi için otomatik @alfabe.co maili oluşturma (Mail API).
 Öğrenci mail adresleri varsayılan olarak ad.soyad uzantıları mümkündür.
 Öğretmen, oluşturma aşamasında öğrencinin isteğine göre bu adrese (nick/rumuz) manuel olarak düzenleyebilir.
 Mevcut bir öğrencinin kullanıcı adı, veri bütünlüğünü bozmadan öğretmen paneli üzerinden güncellenebilir veya ek takma reklam (takma ad) yapılabilir.
@@ -90,6 +90,15 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 ## Yeni Başlangıç Ekranı (index.html)
 - `index.html` (repo kökü) dinamik karşılama tasarımı eklendi; domain kökünden direkt açılır.
 - Kayıp penguen animasyonu kapıdan içeri girer şekilde kurgulandı.
+- Penguen tasarımı sadeleştirildi: elinde herhangi bir nesne taşımadan yürür; kapıya yaklaşınca kapı açılır, penguen içeri girer ve kapı üzerinde `alfabe.co` yazısı görünür.
+- Giriş kartları rol hiyerarşisine göre sıralandı: `Super Admin → Admin → Bayi → Yönetici → Öğretmen / Veli / Öğrenci`.
+- Tasarım pastel renk paleti ve modern kart sistemiyle hazırlandı.
+
+## Rol Hiyerarşisi Sayfaları
+- `portal/super_admin.html` eklendi (en üst seviye).
+- `portal/admin.html` eklendi (super admin altı yönetim seviyesi).
+- `portal/bayi.html` ile aşağı akışa devam eder; ardından `portal/yonetici.html`, `portal/ogretmen.html`, `portal/veli.html`, `portal/ogrenci.html` gelir.
+
 - Penguen görseli logo stiline yakın şekilde canlandırıldı; kapıya yaklaşınca kapı açılır ve penguen içeri geçer.
 - Merkezde animasyonlu Öğrenci Girişi kartı, çevresinde Yönetim/Öğretmen/Veli giriş kutuları yerleştirildi.
 - Tasarım pastel renk paleti ve modern kart sistemiyle hazırlandı.
@@ -136,7 +145,9 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 
 ## Demo Giriş Bilgileri (Standart)
 
-- **Süper Admin (Bayi paneli)**: `info@ismailcimen.com.tr` / `alfabe123`
+- **Süper Admin (Ana panel)**: `info@ismailcimen.com.tr` / `alfabe123`
+- **Admin (Admin paneli)**: `admin@alfabe.co` / `alfabe123`
+- **Bayi (Bayi paneli)**: `bayi@alfabe.co` / `alfabe123`
 - **Yönetici (Okul Müdürü paneli)**: `yonetici@alfabe.co` / `alfabe123`
 - **Öğretmen**: `ogretmen@alfabe.co` / `alfabe123`
 - **Veli**: `veli@alfabe.co` / `alfabe123`

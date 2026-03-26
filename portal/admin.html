@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alfabe Portal | Admin</title>
+    <style>
+      :root {
+        --bg: #f4f6fb;
+        --card: #ffffff;
+        --ink: #212a38;
+        --muted: #637086;
+        --line: #dde2ea;
+        --accent: #3b82f6;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: Inter, 'Segoe UI', sans-serif; color: var(--ink); background: var(--bg); }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 40px; }
+      .hero, .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+      .hero h1 { margin: 0; }
+      .hero p { color: var(--muted); margin: 8px 0 0; }
+      .grid { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 10px; }
+      .step { font-size: 12px; color: #1d4ed8; background: #dbeafe; border-radius: 999px; padding: 3px 8px; display: inline-block; }
+      h2 { margin: 8px 0 6px; font-size: 17px; }
+      p { margin: 0 0 10px; color: var(--muted); }
+      button { border: none; border-radius: 999px; padding: 10px 12px; font-weight: 700; cursor: pointer; background: var(--accent); color: #fff; }
+      .secondary { background: #e5e7eb; color: #111827; }
+      .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <span class="step">SEVİYE 2</span>
+        <h1>🛡️ Admin Paneli</h1>
+        <p>Super Admin altında çalışan merkezi operasyon paneli. Bu katman Bayi ve kurum yapılandırmasını yönetir.</p>
+        <div class="actions">
+          <button onclick="location.href='bayi.html'">Bayi Katmanına Geç</button>
+          <button class="secondary" onclick="location.href='super_admin.html'">Super Admin'e Dön</button>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <span class="step">Operasyon</span>
+          <h2>Bayi Onayı</h2>
+          <p>Yeni bayi başvuruları, yetki seviyeleri ve aktivasyon süreçleri.</p>
+        </article>
+        <article class="card">
+          <span class="step">Güvenlik</span>
+          <h2>Politika Dağıtımı</h2>
+          <p>Parola kuralları, oturum politikaları ve entegrasyon kontrolleri.</p>
+        </article>
+        <article class="card">
+          <span class="step">İzleme</span>
+          <h2>Kurum Raporları</h2>
+          <p>Kurum bazlı kullanıcı artışı, kota ve performans metrikleri.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
