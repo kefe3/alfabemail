@@ -154,7 +154,7 @@
       }
     </style>
   </head>
-  <body>
+  <body data-role="ogrenci">
     <div class="container">
       <section id="loginView" class="login-view">
         <article class="card">
@@ -200,7 +200,7 @@
       <section id="mailView" class="mail-view">
         <header class="topbar">
           <div>
-            <h2>📬 Öğrenci Mail Paneli</h2>
+            <h2 id="mailTitle">📬 ogrenci@alfabe.co</h2>
             <small id="welcomeText"></small>
           </div>
           <button class="btn ghost" id="logoutBtn">Çıkış Yap</button>
@@ -254,6 +254,7 @@
         scanStatus: document.getElementById('scanStatus'),
         cameraBox: document.getElementById('cameraBox'),
         welcomeText: document.getElementById('welcomeText'),
+        mailTitle: document.getElementById('mailTitle'),
         logoutBtn: document.getElementById('logoutBtn'),
         mailList: document.getElementById('mailList'),
         toInput: document.getElementById('toInput'),
@@ -315,6 +316,7 @@
       function showMailView(student) {
         dom.loginView.style.display = 'none';
         dom.mailView.classList.add('active');
+        dom.mailTitle.textContent = `📬 ${student.email}`;
         dom.welcomeText.textContent = `${student.email} olarak giriş yaptın.`;
         seedMails();
         renderMails();
@@ -432,5 +434,6 @@
         showLoginView();
       }
     </script>
+      <script src="./demo-auth.js"></script>
   </body>
 </html>

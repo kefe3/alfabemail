@@ -9,11 +9,19 @@ class StudentMailService {
   } = {}) {
     this.apiBaseUrl = apiBaseUrl;
     this.apiKey = apiKey;
-    this.mailDomain = mailDomain;
+    this.mailDomain = String(mailDomain || '').trim().toLowerCase();
     this.quota = quota;
 
     if (!this.apiBaseUrl || !this.apiKey) {
-      throw new Error('Mail API ayarları eksik. MAILCOW_API_BASE_URL ve MAILCOW_API_KEY tanımlı olmalı.');
+      throw new Error('Mailcow API ayarları eksik. MAILCOW_API_BASE_URL ve MAILCOW_API_KEY tanımlı olmalı.');
+    }
+
+    if (!this.mailDomain) {
+      throw new Error('Mailcow domain ayarı eksik. MAILCOW_DOMAIN tanımlı olmalı.');
+    }
+
+    if (!Number.isFinite(this.quota) || this.quota <= 0) {
+      throw new Error('Mailcow kota ayarı geçersiz. MAILCOW_DEFAULT_QUOTA_MB pozitif sayı olmalı.');
     }
   }
 
@@ -29,7 +37,11 @@ class StudentMailService {
   }
 
   createMailboxLocalPart({ firstName, lastName, nickname }) {
-    const base = nickname || `${firstName}.${lastName}`;
+    const normalizedFirstName = String(firstName || '').trim();
+    const normalizedLastName = String(lastName || '').trim();
+    const normalizedNickname = String(nickname || '').trim();
+
+    const base = normalizedNickname || `${normalizedFirstName}.${normalizedLastName}`;
     const localPart = this.slugify(base);
 
     if (!localPart) {
@@ -49,11 +61,23 @@ class StudentMailService {
       body: JSON.stringify(body),
     });
 
-    const payload = await response.json();
+    const rawBody = await response.text();
+    let payload = null;
+
+    if (rawBody) {
+      try {
+        payload = JSON.parse(rawBody);
+      } catch {
+        payload = { message: rawBody };
+      }
+    }
 
     if (!response.ok) {
-      const message = payload?.msg || payload?.message || 'Mail API hatası';
-      throw new Error(message);
+      const message = payload?.msg || payload?.message || 'Mailcow API hatası';
+      const error = new Error(message);
+      error.statusCode = response.status;
+      error.details = payload;
+      throw error;
     }
 
     return payload;
@@ -64,10 +88,13 @@ class StudentMailService {
     const username = `${localPart}@${this.mailDomain}`;
     const password = generateStudentPassword();
 
+    const normalizedFirstName = String(student.firstName || '').trim();
+    const normalizedLastName = String(student.lastName || '').trim();
+
     const mailboxPayload = [{
       local_part: localPart,
       domain: this.mailDomain,
-      name: `${student.firstName} ${student.lastName}`,
+      name: `${normalizedFirstName} ${normalizedLastName}`.trim(),
       quota: this.quota,
       password,
       password2: password,
@@ -77,7 +104,7 @@ class StudentMailService {
     await this.request('/api/v1/add/mailbox', mailboxPayload);
 
     return {
-      fullName: `${student.firstName} ${student.lastName}`,
+      fullName: `${normalizedFirstName} ${normalizedLastName}`.trim(),
       email: username,
       password,
       parentEmail: student.parentEmail || null,
