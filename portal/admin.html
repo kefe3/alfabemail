@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin</title>
+    <style>
+      body { margin: 0; font-family: Inter, sans-serif; background:#f3f6fb; color:#1f2937; }
+      .c { max-width:1200px; margin:18px auto; padding:0 12px; }
+      .b { background:#fff; border:1px solid #dbe2ef; border-radius:14px; padding:14px; }
+      .g { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px; }
+      .k { background:#f8fbff; border:1px solid #dbe2ef; border-radius:12px; padding:10px; }
+      .k h3 { margin:0; font-size:12px; color:#64748b; }
+      .k p { margin:4px 0 0; font-size:26px; font-weight:800; color:#1d4ed8; }
+      .f { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+      input, select { width:100%; padding:10px; border-radius:10px; border:1px solid #cfd8e5; }
+      .btn { border:none; border-radius:999px; padding:9px 12px; font-weight:700; cursor:pointer; background:#2563eb; color:#fff; }
+      table { width:100%; border-collapse:collapse; margin-top:8px; }
+      th, td { border-top:1px solid #e2e8f0; padding:8px; text-align:left; font-size:13px; }
+      .st { margin-top:8px; background:#f8fbff; border:1px solid #dbe2ef; border-radius:10px; padding:8px; }
+      @media (max-width: 960px) { .g, .f { grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body data-role="admin">
+    <div class="c">
+      <section class="b">
+        <h1>🛡️ Admin Paneli</h1>
+        <p>Mail sisteminin API süreçlerini ve bayi/okul operasyonlarını yönetin.</p>
+      </section>
+
+      <section class="g">
+        <article class="k"><h3>Toplam Okul</h3><p id="totalSchools">0</p></article>
+        <article class="k"><h3>Aktif Okul</h3><p id="activeSchools">0</p></article>
+        <article class="k"><h3>Beklemede</h3><p id="pendingSchools">0</p></article>
+        <article class="k"><h3>Bayi Sayısı</h3><p id="dealerCount">0</p></article>
+      </section>
+
+      <section class="b" style="margin-top:10px;">
+        <h2>Mail API Operasyon Takibi</h2>
+        <div class="g">
+          <article class="k"><h3>API Çağrısı</h3><p id="apiCalls">0</p></article>
+          <article class="k"><h3>Mailbox Oluşturma</h3><p id="mailboxOps">0</p></article>
+          <article class="k"><h3>Başarılı</h3><p id="apiSuccess">0</p></article>
+          <article class="k"><h3>Hata</h3><p id="apiError">0</p></article>
+        </div>
+      </section>
+
+      <section class="b" style="margin-top:10px;">
+        <h2>Mailcow API Bağlantı Ayarları (Deneme)</h2>
+        <div class="f">
+          <div><label>MAILCOW_API_BASE_URL</label><input id="mailcowBaseUrl" placeholder="https://mail.alanadi.com" /></div>
+          <div><label>MAILCOW_API_KEY</label><input id="mailcowApiKey" placeholder="API Key" /></div>
+          <div><label>MAILCOW_DOMAIN</label><input id="mailcowDomain" value="alfabe.co" /></div>
+          <div><label>Test Endpoint</label><input id="mailcowTestPath" value="/api/v1/get/status" /></div>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button class="btn" id="mailcowTestBtn">Mailcow Bağlantı Testi</button>
+        </div>
+        <div class="st" id="mailcowStatus">Ayarları doldurup test yapabilirsiniz.</div>
+        <pre class="st" id="mailcowResponse">Cevap burada görünecek.</pre>
+      </section>
+
+      <section class="b" style="margin-top:10px;">
+        <h2>Bayi Ekleme Paneli</h2>
+        <div class="f">
+          <div><label>Ad</label><input id="dealerFirst" /></div>
+          <div><label>Soyad</label><input id="dealerLast" /></div>
+          <div><label>Bayi Maili</label><input id="dealerEmail" type="email" /></div>
+          <div><label>Bölge</label><input id="dealerRegion" /></div>
+        </div>
+        <div style="margin-top:8px;"><button class="btn" id="addDealerBtn">Bayi Oluştur</button></div>
+        <div class="st" id="dealerStatus">Bayi ekleme hazır.</div>
+        <table>
+          <thead><tr><th>#</th><th>Bayi</th><th>Mail</th><th>Bölge</th></tr></thead>
+          <tbody id="dealerTable"></tbody>
+        </table>
+      </section>
+
+      <section class="b" style="margin-top:10px;">
+        <h2>Okul Aktivasyon Paneli</h2>
+        <div class="f">
+          <div><label>Bayi Maili</label><input id="schoolDealerEmail" type="email" /></div>
+          <div><label>Okul Adı</label><input id="schoolName" /></div>
+          <div><label>Müdür Maili</label><input id="directorEmail" type="email" /></div>
+          <div><label>Durum</label><select id="schoolStatus"><option value="aktif">Aktif</option><option value="beklemede">Beklemede</option></select></div>
+        </div>
+        <div style="margin-top:8px;"><button class="btn" id="addSchoolBtn">Okul Kaydet</button></div>
+        <div class="st" id="schoolStatusText">Okul aktivasyonu hazır.</div>
+        <table>
+          <thead><tr><th>#</th><th>Bayi</th><th>Okul</th><th>Müdür</th><th>Durum</th></tr></thead>
+          <tbody id="schoolTable"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <script>
+      const DEALER_KEY = 'bayiler';
+      const SCHOOL_KEY = 'bayiOkullari';
+      const METRIC_KEY = 'mailApiMetrics';
+
+      const S = (k, d) => JSON.parse(localStorage.getItem(k) || JSON.stringify(d));
+      const P = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+      const dom = {
+        totalSchools: document.getElementById('totalSchools'),
+        activeSchools: document.getElementById('activeSchools'),
+        pendingSchools: document.getElementById('pendingSchools'),
+        dealerCount: document.getElementById('dealerCount'),
+        apiCalls: document.getElementById('apiCalls'),
+        mailboxOps: document.getElementById('mailboxOps'),
+        apiSuccess: document.getElementById('apiSuccess'),
+        apiError: document.getElementById('apiError'),
+
+        mailcowBaseUrl: document.getElementById('mailcowBaseUrl'),
+        mailcowApiKey: document.getElementById('mailcowApiKey'),
+        mailcowDomain: document.getElementById('mailcowDomain'),
+        mailcowTestPath: document.getElementById('mailcowTestPath'),
+        mailcowTestBtn: document.getElementById('mailcowTestBtn'),
+        mailcowStatus: document.getElementById('mailcowStatus'),
+        mailcowResponse: document.getElementById('mailcowResponse'),
+
+        dealerFirst: document.getElementById('dealerFirst'),
+        dealerLast: document.getElementById('dealerLast'),
+        dealerEmail: document.getElementById('dealerEmail'),
+        dealerRegion: document.getElementById('dealerRegion'),
+        addDealerBtn: document.getElementById('addDealerBtn'),
+        dealerStatus: document.getElementById('dealerStatus'),
+        dealerTable: document.getElementById('dealerTable'),
+
+        schoolDealerEmail: document.getElementById('schoolDealerEmail'),
+        schoolName: document.getElementById('schoolName'),
+        directorEmail: document.getElementById('directorEmail'),
+        schoolStatus: document.getElementById('schoolStatus'),
+        addSchoolBtn: document.getElementById('addSchoolBtn'),
+        schoolStatusText: document.getElementById('schoolStatusText'),
+        schoolTable: document.getElementById('schoolTable'),
+      };
+
+      let dealers = S(DEALER_KEY, []);
+      let schools = S(SCHOOL_KEY, []);
+      let m = S(METRIC_KEY, { apiCalls: 0, mailboxes: 0, success: 0, error: 0 });
+
+      function render() {
+        dom.dealerTable.innerHTML = dealers.length
+          ? dealers.map((d, i) => `<tr><td>${i + 1}</td><td>${d.firstName} ${d.lastName}</td><td>${d.email}</td><td>${d.region}</td></tr>`).join('')
+          : '<tr><td colspan="4">Henüz bayi yok.</td></tr>';
+
+        dom.schoolTable.innerHTML = schools.length
+          ? schools.map((s, i) => `<tr><td>${i + 1}</td><td>${s.dealerEmail}</td><td>${s.schoolName}</td><td>${s.directorEmail}</td><td>${s.status}</td></tr>`).join('')
+          : '<tr><td colspan="5">Henüz okul yok.</td></tr>';
+
+        dom.totalSchools.textContent = schools.length;
+        const active = schools.filter((x) => x.status === 'aktif').length;
+        dom.activeSchools.textContent = active;
+        dom.pendingSchools.textContent = schools.length - active;
+        dom.dealerCount.textContent = dealers.length;
+        dom.apiCalls.textContent = m.apiCalls;
+        dom.mailboxOps.textContent = m.mailboxes;
+        dom.apiSuccess.textContent = m.success;
+        dom.apiError.textContent = m.error;
+      }
+
+      async function testMailcowConnection() {
+        const baseUrl = dom.mailcowBaseUrl.value.trim().replace(/\/$/, '');
+        const apiKey = dom.mailcowApiKey.value.trim();
+        const path = dom.mailcowTestPath.value.trim() || '/api/v1/get/status';
+
+        if (!baseUrl || !apiKey) {
+          dom.mailcowStatus.textContent = 'MAILCOW_API_BASE_URL ve MAILCOW_API_KEY zorunlu.';
+          return;
+        }
+
+        dom.mailcowStatus.textContent = 'Mailcow bağlantısı test ediliyor...';
+        dom.mailcowResponse.textContent = 'Bekleniyor...';
+
+        try {
+          const response = await fetch(`${baseUrl}${path}`, {
+            method: 'GET',
+            headers: {
+              'X-API-Key': apiKey,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const raw = await response.text();
+          dom.mailcowResponse.textContent = raw || '(boş cevap)';
+
+          m.apiCalls += 1;
+          if (response.ok) {
+            m.success += 1;
+            dom.mailcowStatus.textContent = `Bağlantı başarılı (${response.status}). Domain: ${dom.mailcowDomain.value.trim() || 'alfabe.co'}`;
+          } else {
+            m.error += 1;
+            dom.mailcowStatus.textContent = `Bağlantı hatası (${response.status}). CORS veya endpoint kontrol edin.`;
+          }
+
+          P(METRIC_KEY, m);
+          render();
+        } catch (error) {
+          m.apiCalls += 1;
+          m.error += 1;
+          P(METRIC_KEY, m);
+          dom.mailcowStatus.textContent = `İstek başarısız: ${error.message}`;
+          dom.mailcowResponse.textContent = error.stack || String(error);
+          render();
+        }
+      }
+
+      dom.mailcowTestBtn.addEventListener('click', testMailcowConnection);
+
+      dom.addDealerBtn.addEventListener('click', () => {
+        const firstName = dom.dealerFirst.value.trim();
+        const lastName = dom.dealerLast.value.trim();
+        const email = dom.dealerEmail.value.trim().toLowerCase();
+        const region = dom.dealerRegion.value.trim();
+
+        if (!firstName || !lastName || !email || !region) {
+          dom.dealerStatus.textContent = 'Tüm bayi alanları zorunlu.';
+          return;
+        }
+
+        if (dealers.some((d) => d.email === email)) {
+          dom.dealerStatus.textContent = 'Bayi maili mevcut.';
+          return;
+        }
+
+        dealers.push({ firstName, lastName, email, region });
+        P(DEALER_KEY, dealers);
+        dom.dealerStatus.textContent = 'Bayi eklendi.';
+        render();
+      });
+
+      dom.addSchoolBtn.addEventListener('click', () => {
+        const dealerEmail = dom.schoolDealerEmail.value.trim().toLowerCase();
+        const schoolName = dom.schoolName.value.trim();
+        const director = dom.directorEmail.value.trim().toLowerCase();
+        const status = dom.schoolStatus.value;
+
+        if (!dealerEmail || !schoolName || !director) {
+          dom.schoolStatusText.textContent = 'Okul alanları zorunlu.';
+          m.error += 1;
+          m.apiCalls += 1;
+          P(METRIC_KEY, m);
+          render();
+          return;
+        }
+
+        schools.push({ dealerEmail, schoolName, directorEmail: director, status });
+        m.apiCalls += 1;
+        m.mailboxes += 1;
+        m.success += 1;
+        P(SCHOOL_KEY, schools);
+        P(METRIC_KEY, m);
+        dom.schoolStatusText.textContent = 'Okul kaydı tamamlandı ve API metriği işlendi.';
+        render();
+      });
+
+      render();
+    </script>
+    <script src="./demo-auth.js"></script>
+  </body>
+</html>
