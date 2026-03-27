@@ -2,9 +2,17 @@
 Çocuklar için mail uygulamasıdır.
 🚀 ALFABE PORTAL - PROJE ANA DÖKÜMANI
 1. VİZYON
-Genç nesillerin bireyselleştirilmiş, çok uyaranlı öğrenme yanıtlarını veren; Mailcow üzerine inşa edilmiş bir iletişim ve eğitim yönetimi ekosistemi.
+Genç nesillerin bireyselleştirilmiş, çok uyaranlı öğrenme yanıtlarını veren; esnek bir Mail API altyapısı üzerine inşa edilmiş bir iletişim ve eğitim yönetimi ekosistemi. (Şu an belirli bir Mail API sağlayıcısı kullanılmaktadır, gelecekte farklı sağlayıcılar ile de çalışabilecek şekilde soyutlanmıştır.)
 
 2. KULLANICI ROLLERİ VE FONKSİYONLARI
+🟢 ADMIN (Yazılımcılar)
+Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
+Görev: Sistemin çalışmasıyla alakalı süreçlerin yönetimi. 
+Yetki: Bayileri ekleme. 
+🟢 BAYİ (Yerel Yöneticiler)
+Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
+Görev: Sisteme müdürlerin eklenmesini sağlar ve sistemi tavsiye eder. 
+Yetki: Müdürleri ekleme. 
 🟢 YÖNETİCİ (Okul Yönetimi)
 Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
 Görev: Eğitim sürecinin izlenmesi, rehberlik etme ve sistemin birleştirici rolünü üstlenmesi.
@@ -28,7 +36,7 @@ Giriş: Kamera üzerinden Karekod okutarak.
 Özellik: Yaş grubuna özel, görsel uyaranı yüksek ayarları.
 Uluslararası Malzeme: Kesikli çizgilerle ayrılır; üstte Karekod, gizli kalacak şifre içeren yaka kartı.
 3. TEKNİK İŞ AKIŞI VE PÜF NOKTALARI
-API Entegrasyonu: Tüm mail açma işlemleri Mailcow API üzerinden X-API-Keyile yapılır.
+API Entegrasyonu: Tüm mail açma işlemleri Mail API üzerinden X-API-Key ile yapılır.
 
 Karekod Giriş: Karekod, gizli mail:sifrebilgileri (şifreli şekilde) içerir. Kamera okunduğunda sistem otomatik giriş olur.
 
