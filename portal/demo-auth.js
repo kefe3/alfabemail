@@ -11,6 +11,7 @@
 
   const role = document.body?.dataset?.role;
   if (!role || !ROLE_CREDENTIALS[role]) return;
+  if (role === 'ogrenci') return;
 
   const sessionKey = `alfabe_session_${role}`;
   const expected = ROLE_CREDENTIALS[role];
