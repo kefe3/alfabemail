@@ -36,31 +36,6 @@
       </section>
 
       <section class="b" style="margin-top:10px;">
-        <h2>Mail API Operasyon Takibi</h2>
-        <div class="g">
-          <article class="k"><h3>API Çağrısı</h3><p id="apiCalls">0</p></article>
-          <article class="k"><h3>Mailbox Oluşturma</h3><p id="mailboxOps">0</p></article>
-          <article class="k"><h3>Başarılı</h3><p id="apiSuccess">0</p></article>
-          <article class="k"><h3>Hata</h3><p id="apiError">0</p></article>
-        </div>
-      </section>
-
-      <section class="b" style="margin-top:10px;">
-        <h2>Mailcow API Bağlantı Ayarları (Deneme)</h2>
-        <div class="f">
-          <div><label>MAILCOW_API_BASE_URL</label><input id="mailcowBaseUrl" placeholder="https://mail.alanadi.com" /></div>
-          <div><label>MAILCOW_API_KEY</label><input id="mailcowApiKey" placeholder="API Key" /></div>
-          <div><label>MAILCOW_DOMAIN</label><input id="mailcowDomain" value="alfabe.co" /></div>
-          <div><label>Test Endpoint</label><input id="mailcowTestPath" value="/api/v1/get/status" /></div>
-        </div>
-        <div style="margin-top:8px; display:flex; gap:8px;">
-          <button class="btn" id="mailcowTestBtn">Mailcow Bağlantı Testi</button>
-        </div>
-        <div class="st" id="mailcowStatus">Ayarları doldurup test yapabilirsiniz.</div>
-        <pre class="st" id="mailcowResponse">Cevap burada görünecek.</pre>
-      </section>
-
-      <section class="b" style="margin-top:10px;">
         <h2>Bayi Ekleme Paneli</h2>
         <div class="f">
           <div><label>Ad</label><input id="dealerFirst" /></div>
@@ -106,19 +81,6 @@
         activeSchools: document.getElementById('activeSchools'),
         pendingSchools: document.getElementById('pendingSchools'),
         dealerCount: document.getElementById('dealerCount'),
-        apiCalls: document.getElementById('apiCalls'),
-        mailboxOps: document.getElementById('mailboxOps'),
-        apiSuccess: document.getElementById('apiSuccess'),
-        apiError: document.getElementById('apiError'),
-
-        mailcowBaseUrl: document.getElementById('mailcowBaseUrl'),
-        mailcowApiKey: document.getElementById('mailcowApiKey'),
-        mailcowDomain: document.getElementById('mailcowDomain'),
-        mailcowTestPath: document.getElementById('mailcowTestPath'),
-        mailcowTestBtn: document.getElementById('mailcowTestBtn'),
-        mailcowStatus: document.getElementById('mailcowStatus'),
-        mailcowResponse: document.getElementById('mailcowResponse'),
-
         dealerFirst: document.getElementById('dealerFirst'),
         dealerLast: document.getElementById('dealerLast'),
         dealerEmail: document.getElementById('dealerEmail'),
@@ -154,59 +116,7 @@
         dom.activeSchools.textContent = active;
         dom.pendingSchools.textContent = schools.length - active;
         dom.dealerCount.textContent = dealers.length;
-        dom.apiCalls.textContent = m.apiCalls;
-        dom.mailboxOps.textContent = m.mailboxes;
-        dom.apiSuccess.textContent = m.success;
-        dom.apiError.textContent = m.error;
       }
-
-      async function testMailcowConnection() {
-        const baseUrl = dom.mailcowBaseUrl.value.trim().replace(/\/$/, '');
-        const apiKey = dom.mailcowApiKey.value.trim();
-        const path = dom.mailcowTestPath.value.trim() || '/api/v1/get/status';
-
-        if (!baseUrl || !apiKey) {
-          dom.mailcowStatus.textContent = 'MAILCOW_API_BASE_URL ve MAILCOW_API_KEY zorunlu.';
-          return;
-        }
-
-        dom.mailcowStatus.textContent = 'Mailcow bağlantısı test ediliyor...';
-        dom.mailcowResponse.textContent = 'Bekleniyor...';
-
-        try {
-          const response = await fetch(`${baseUrl}${path}`, {
-            method: 'GET',
-            headers: {
-              'X-API-Key': apiKey,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          const raw = await response.text();
-          dom.mailcowResponse.textContent = raw || '(boş cevap)';
-
-          m.apiCalls += 1;
-          if (response.ok) {
-            m.success += 1;
-            dom.mailcowStatus.textContent = `Bağlantı başarılı (${response.status}). Domain: ${dom.mailcowDomain.value.trim() || 'alfabe.co'}`;
-          } else {
-            m.error += 1;
-            dom.mailcowStatus.textContent = `Bağlantı hatası (${response.status}). CORS veya endpoint kontrol edin.`;
-          }
-
-          P(METRIC_KEY, m);
-          render();
-        } catch (error) {
-          m.apiCalls += 1;
-          m.error += 1;
-          P(METRIC_KEY, m);
-          dom.mailcowStatus.textContent = `İstek başarısız: ${error.message}`;
-          dom.mailcowResponse.textContent = error.stack || String(error);
-          render();
-        }
-      }
-
-      dom.mailcowTestBtn.addEventListener('click', testMailcowConnection);
 
       dom.addDealerBtn.addEventListener('click', () => {
         const firstName = dom.dealerFirst.value.trim();
