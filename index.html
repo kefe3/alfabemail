@@ -176,12 +176,13 @@
       .penguin .beak {
         position: absolute;
         left: 61px;
-        top: 48px;
-        width: 16px;
-        height: 14px;
+        top: 46px;
+        width: 18px;
+        height: 16px;
         background: #ecd923;
         border-radius: 0 0 10px 10px;
         border: 2px solid #27210f;
+        z-index: 4;
       }
 
       .penguin .wing-left,
@@ -220,7 +221,30 @@
       }
 
       .penguin .foot { left: 28px; }
-      .penguin .foot.right { right: 28px; transform: rotate(12deg); }
+      .penguin .foot.right { right: 20px; transform: rotate(12deg); }
+
+      .penguin .mail {
+        position: absolute;
+        width: 26px;
+        height: 16px;
+        border-radius: 5px;
+        background: #ffffff;
+        border: 2px solid #8ca2c8;
+        z-index: 5;
+      }
+      .penguin .mail::before {
+        content: '';
+        position: absolute;
+        left: 2px;
+        right: 2px;
+        top: 2px;
+        height: 0;
+        border-top: 8px solid #e9f1ff;
+        border-left: 9px solid transparent;
+        border-right: 9px solid transparent;
+      }
+      .penguin .mail.one { left: 2px; top: 56px; transform: rotate(-10deg); }
+      .penguin .mail.two { left: 10px; top: 72px; transform: rotate(8deg); }
 
       .penguin .shadow {
         position: absolute;
@@ -304,12 +328,39 @@
         display: block;
         animation: student-cta-bounce 1.8s ease-in-out infinite;
       }
-      .admin { background: linear-gradient(150deg, var(--admin), #e6fff0); }
-      .admin button { background: #55b88f; color: #fff; }
-      .teacher { background: linear-gradient(150deg, var(--teacher), #ffeede); animation-delay: .4s; }
-      .teacher button { background: #d98856; color: #fff; }
-      .parent { background: linear-gradient(150deg, var(--parent), #f2e9ff); animation-delay: .6s; }
-      .parent button { background: #8860cf; color: #fff; }
+      .manager { background: linear-gradient(150deg, #dbe9ff, #eef4ff); }
+      .manager button { background: #4285F4; color: #fff; }
+      .teacher { background: linear-gradient(150deg, #ffe2de, #ffeceb); animation-delay: .4s; }
+      .teacher button { background: #EA4335; color: #fff; }
+      .parent { background: linear-gradient(150deg, #dff6e6, #edfbf1); animation-delay: .6s; }
+      .parent button { background: #34A853; color: #fff; }
+      .portal-info { background: linear-gradient(150deg, #f0e6ff, #f8f2ff); }
+      .portal-info button { background: #A142F4; color: #fff; }
+
+      .footer {
+        margin-top: 36px;
+        background: #112642;
+        color: #e8f0ff;
+        padding: 34px 0;
+      }
+      .footer-wrap {
+        width: min(1200px, 96vw);
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        text-align: left;
+      }
+      .footer h3 { margin: 0 0 10px; font-size: 18px; }
+      .footer p, .footer a, .footer li { color: #d1deff; font-size: 14px; line-height: 1.55; text-decoration: none; }
+      .footer ul { margin: 0; padding-left: 16px; }
+      .socials { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+      .socials a {
+        background: rgba(255,255,255,0.14);
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 999px;
+        padding: 4px 10px;
+      }
 
       .left-col, .right-col { display: grid; gap: 16px; }
 
@@ -346,6 +397,7 @@
 
       @media (max-width: 920px) {
         .grid { grid-template-columns: 1fr; }
+        .footer-wrap { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -361,6 +413,8 @@
       <div class="penguin" id="penguin">
         <div class="wing-left"></div>
         <div class="wing-right"></div>
+        <div class="mail one"></div>
+        <div class="mail two"></div>
         <div class="head"></div>
         <div class="eye"></div>
         <div class="eye right"></div>
@@ -375,29 +429,11 @@
 
     <main class="entry">
       <h1>🐧 Kayıp Penguen ALFABE Portalı Buldu!</h1>
-      <p class="sub">Rol hiyerarşisi: Super Admin → Admin → Bayi → Yönetici → Öğretmen / Veli / Öğrenci</p>
+      <p class="sub">Alfabe çocukların güvenle kullanabilecekleri bir eMail sistemidir.</p>
 
       <div class="grid">
         <div class="left-col">
-          <article class="card admin">
-            <h2>👑 Super Admin</h2>
-            <p>Sistemin en üst seviyesi: tenant, lisans ve global yönetim.</p>
-            <button onclick="go('portal/super_admin.html')">Super Admin Olarak Giriş</button>
-          </article>
-
-          <article class="card admin">
-            <h2>🛡️ Admin</h2>
-            <p>Bayi ve kurum yönetim akışını organize eden merkezi panel.</p>
-            <button onclick="go('portal/admin.html')">Admin Olarak Giriş</button>
-          </article>
-
-          <article class="card admin">
-            <h2>🤝 Bayi</h2>
-            <p>Okul aktivasyonları ve kurum onboarding süreçleri.</p>
-            <button onclick="go('portal/bayi.html')">Bayi Olarak Giriş</button>
-          </article>
-
-          <article class="card admin">
+          <article class="card manager">
             <h2>🏫 Yönetici</h2>
             <p>Okul yönetimi, sınıf ve öğretmen organizasyonu.</p>
             <button onclick="go('portal/yonetici.html')">Yönetici Olarak Giriş</button>
@@ -423,7 +459,7 @@
             <button onclick="go('portal/veli.html')">Veli Olarak Giriş</button>
           </article>
 
-          <article class="card">
+          <article class="card portal-info">
             <h2>✨ Portal Bilgisi</h2>
             <p>Kapı açılır, penguen içeri girer ve öğrenme yolculuğu başlar.</p>
             <button onclick="restartPenguin()">Pengueni Tekrar Yürüt</button>
@@ -431,6 +467,52 @@
         </div>
       </div>
     </main>
+
+    <footer class="footer">
+      <div class="footer-wrap">
+        <section>
+          <h3>ALFABE</h3>
+          <p>Çocuklar için güvenli eMail dünyası.</p>
+          <div class="socials">
+            <a href="#">Instagram</a>
+            <a href="#">X</a>
+            <a href="#">LinkedIn</a>
+            <a href="#">YouTube</a>
+          </div>
+          <div style="margin-top:10px;">
+            <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="proacademy" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Bize kahve ısmarla :)" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+          </div>
+        </section>
+        <section>
+          <h3>Hızlı Linkler</h3>
+          <ul>
+            <li><a href="#">Ana Sayfa</a></li>
+            <li><a href="#">Biz Kimiz</a></li>
+            <li><a href="#">Basında Biz</a></li>
+            <li><a href="#">Takım Sitemiz</a></li>
+            <li><a href="#">Alfabeye Giriş</a></li>
+            <li><a href="portal/super_admin.html">Super Admin</a></li>
+            <li><a href="portal/admin.html">Admin</a></li>
+            <li><a href="portal/bayi.html">Bayi</a></li>
+          </ul>
+        </section>
+        <section>
+          <h3>Adres</h3>
+          <p>Konya Kapsül</p>
+          <p>E-posta: iletisim@alfabe.co</p>
+          <p>Telefon: +90 (332) 000 00 00</p>
+        </section>
+        <section>
+          <h3>Yasal</h3>
+          <ul>
+            <li><a href="#">KVKK</a></li>
+            <li><a href="#">Gizlilik Politikası</a></li>
+            <li><a href="#">Kullanım Şartları</a></li>
+            <li><a href="#">Çerez Politikası</a></li>
+          </ul>
+        </section>
+      </div>
+    </footer>
 
     <script>
       const penguin = document.getElementById('penguin');

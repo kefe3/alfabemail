@@ -93,7 +93,7 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 
 ## Süreç Notu
 - Ana mimariye zarar vermeden mevcut modüllere ek geliştirme yapıldı.
-- Mail API katmanı, altında kullanılan sağlayıcıdan bağımsız olacak şekilde tasarlandı; ileride farklı altyapılara geçişe uygundur.
+- Önceki Mailcow servis/controller dosyaları korunarak, öğretmen odaklı uçtan uca demo akışı portal ekranına taşındı.
 
 ## Yeni Başlangıç Ekranı (index.html)
 - `index.html` (repo kökü) dinamik karşılama tasarımı eklendi; domain kökünden direkt açılır.
