@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alfabe Portal | Öğrenci Giriş</title>
+    <style>
+      :root {
+        --bg-1: #f4f0ff;
+        --bg-2: #eaf2ff;
+        --ink: #243b67;
+        --muted: #6981ad;
+        --purple: #8e7dff;
+        --blue: #66b5ff;
+        --card: #ffffff;
+        --ok: #5cc69f;
+        --shadow: 0 18px 34px rgba(36, 59, 103, 0.18);
+        --radius: 18px;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: 'Nunito', 'Segoe UI', sans-serif;
+        color: var(--ink);
+        min-height: 100vh;
+        background: radial-gradient(circle at 15% 10%, #fff, var(--bg-1) 45%, var(--bg-2) 100%);
+      }
+
+      .container {
+        width: min(1100px, 95vw);
+        margin: 26px auto;
+      }
+
+      .login-view {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 20px;
+      }
+
+      h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 34px); }
+      .muted { margin: 0 0 16px; color: var(--muted); }
+
+      .icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 28px;
+        background: linear-gradient(150deg, #ece6ff, #dcecff);
+        margin-bottom: 10px;
+      }
+
+      label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+
+      input, textarea {
+        width: 100%;
+        border: 2px solid #dae5ff;
+        border-radius: 12px;
+        padding: 11px 12px;
+        outline: none;
+        font: inherit;
+      }
+
+      input:focus, textarea:focus { border-color: var(--purple); }
+
+      .form-grid { display: grid; gap: 12px; }
+      .actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+      .btn {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .btn.primary { background: var(--purple); color: white; }
+      .btn.secondary { background: var(--blue); color: white; }
+      .btn.ghost { background: #eef3ff; color: #385488; }
+
+      .status {
+        margin-top: 10px;
+        background: #f1f5ff;
+        border: 1px solid #dbe6ff;
+        color: #3f5e8c;
+        border-radius: 10px;
+        padding: 10px;
+      }
+
+      .camera-box {
+        display: none;
+        margin-top: 12px;
+        border: 2px dashed #b6c8f3;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      .camera-box.visible { display: block; }
+
+      #reader {
+        width: 100%;
+        min-height: 260px;
+        background: #f7f9ff;
+      }
+
+      .mail-view { display: none; }
+      .mail-view.active { display: block; }
+
+      .topbar {
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .topbar h2 { margin: 0; font-size: 20px; }
+
+      .mail-layout {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .mail-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+      .mail-item {
+        border: 1px solid #e3ebff;
+        border-radius: 12px;
+        padding: 12px;
+        background: #fbfdff;
+      }
+
+      .mail-item strong { display: block; margin-bottom: 4px; }
+      .mail-item small { color: var(--muted); }
+
+      .success { color: var(--ok); font-weight: 700; }
+
+      @media (max-width: 900px) {
+        .login-view, .mail-layout { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body data-role="ogrenci">
+    <div class="container">
+      <section id="loginView" class="login-view">
+        <article class="card">
+          <div class="icon">🧑‍🎓</div>
+          <h1>Öğrenci Girişi</h1>
+          <p class="muted">E-posta ve şifre ile giriş yap veya sağdan karekod okut.</p>
+
+          <div class="form-grid">
+            <div>
+              <label for="emailInput">E-posta</label>
+              <input id="emailInput" type="email" placeholder="ogrenci@alfabe.co" />
+            </div>
+            <div>
+              <label for="passwordInput">Şifre</label>
+              <input id="passwordInput" type="password" placeholder="Şifreniz" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" id="loginBtn">Giriş Yap</button>
+          </div>
+
+          <div class="status" id="loginStatus">Giriş bekleniyor.</div>
+        </article>
+
+        <article class="card">
+          <div class="icon">📷</div>
+          <h2>Karekod ile Hızlı Giriş</h2>
+          <p class="muted">Karekod okut butonuna tıkla, kamera açılsın ve otomatik giriş yapılsın.</p>
+
+          <div class="actions">
+            <button class="btn secondary" id="scanBtn">Karekod Okut</button>
+            <button class="btn ghost" id="stopScanBtn" disabled>Taramayı Durdur</button>
+          </div>
+
+          <div id="cameraBox" class="camera-box">
+            <div id="reader"></div>
+          </div>
+          <div class="status" id="scanStatus">Kamera kapalı.</div>
+        </article>
+      </section>
+
+      <section id="mailView" class="mail-view">
+        <header class="topbar">
+          <div>
+            <h2 id="mailTitle">📬 ogrenci@alfabe.co</h2>
+            <small id="welcomeText"></small>
+          </div>
+          <button class="btn ghost" id="logoutBtn">Çıkış Yap</button>
+        </header>
+
+        <div class="mail-layout">
+          <article class="card">
+            <h3>Gelen Kutusu</h3>
+            <ul class="mail-list" id="mailList"></ul>
+          </article>
+
+          <article class="card">
+            <h3>Yeni Mail Gönder</h3>
+            <div class="form-grid">
+              <div>
+                <label for="toInput">Kime</label>
+                <input id="toInput" type="email" placeholder="arkadas@alfabe.co" />
+              </div>
+              <div>
+                <label for="subjectInput">Konu</label>
+                <input id="subjectInput" placeholder="Merhaba" />
+              </div>
+              <div>
+                <label for="messageInput">Mesaj</label>
+                <textarea id="messageInput" rows="5" placeholder="Mesajınızı yazın..."></textarea>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="sendBtn">Mail Gönder</button>
+            </div>
+            <div class="status" id="sendStatus">Henüz mesaj gönderilmedi.</div>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+      const SESSION_KEY = 'alfabeStudentSession';
+      const MAILS_KEY = 'alfabeStudentMails';
+
+      const dom = {
+        loginView: document.getElementById('loginView'),
+        mailView: document.getElementById('mailView'),
+        emailInput: document.getElementById('emailInput'),
+        passwordInput: document.getElementById('passwordInput'),
+        loginBtn: document.getElementById('loginBtn'),
+        loginStatus: document.getElementById('loginStatus'),
+        scanBtn: document.getElementById('scanBtn'),
+        stopScanBtn: document.getElementById('stopScanBtn'),
+        scanStatus: document.getElementById('scanStatus'),
+        cameraBox: document.getElementById('cameraBox'),
+        welcomeText: document.getElementById('welcomeText'),
+        mailTitle: document.getElementById('mailTitle'),
+        logoutBtn: document.getElementById('logoutBtn'),
+        mailList: document.getElementById('mailList'),
+        toInput: document.getElementById('toInput'),
+        subjectInput: document.getElementById('subjectInput'),
+        messageInput: document.getElementById('messageInput'),
+        sendBtn: document.getElementById('sendBtn'),
+        sendStatus: document.getElementById('sendStatus'),
+      };
+
+      let scanner = null;
+
+      function getMails() {
+        return JSON.parse(localStorage.getItem(MAILS_KEY) || '[]');
+      }
+
+      function setMails(mails) {
+        localStorage.setItem(MAILS_KEY, JSON.stringify(mails));
+      }
+
+      function seedMails() {
+        const mails = getMails();
+        if (mails.length) return;
+        setMails([
+          { from: 'ogretmen@alfabe.co', subject: 'Hoş geldin!', text: 'Portalımıza hoş geldin 🎉' },
+          { from: 'duyuru@alfabe.co', subject: 'Yarın Etkinlik', text: 'Yarın 10:00’da sınıf etkinliği var.' },
+        ]);
+      }
+
+      function renderMails() {
+        const mails = getMails();
+        if (!mails.length) {
+          dom.mailList.innerHTML = '<li class="mail-item">Henüz mail yok.</li>';
+          return;
+        }
+
+        dom.mailList.innerHTML = mails
+          .map((mail) => `
+            <li class="mail-item">
+              <strong>${mail.subject}</strong>
+              <small>Kimden: ${mail.from}</small>
+              <p>${mail.text}</p>
+            </li>
+          `)
+          .join('');
+      }
+
+      function setSession(student) {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(student));
+      }
+
+      function getSession() {
+        return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+      }
+
+      function clearSession() {
+        sessionStorage.removeItem(SESSION_KEY);
+      }
+
+      function showMailView(student) {
+        dom.loginView.style.display = 'none';
+        dom.mailView.classList.add('active');
+        dom.mailTitle.textContent = `📬 ${student.email}`;
+        dom.welcomeText.textContent = `${student.email} olarak giriş yaptın.`;
+        seedMails();
+        renderMails();
+      }
+
+      function showLoginView() {
+        dom.loginView.style.display = 'grid';
+        dom.mailView.classList.remove('active');
+      }
+
+      function loginWithCredentials() {
+        const email = dom.emailInput.value.trim();
+        const password = dom.passwordInput.value.trim();
+
+        if (!email || !password) {
+          dom.loginStatus.textContent = 'Lütfen e-posta ve şifre gir.';
+          return;
+        }
+
+        const student = { email, password, source: 'form' };
+        setSession(student);
+        dom.loginStatus.innerHTML = '<span class="success">Giriş başarılı!</span>';
+        showMailView(student);
+      }
+
+      async function stopScanner() {
+        if (!scanner) return;
+        try {
+          await scanner.stop();
+          await scanner.clear();
+        } catch (_) {}
+        scanner = null;
+        dom.cameraBox.classList.remove('visible');
+        dom.stopScanBtn.disabled = true;
+        dom.scanStatus.textContent = 'Kamera kapalı.';
+      }
+
+      async function startScanner() {
+        if (typeof Html5Qrcode === 'undefined') {
+          dom.scanStatus.textContent = 'html5-qrcode yüklenemedi.';
+          return;
+        }
+
+        dom.cameraBox.classList.add('visible');
+        dom.stopScanBtn.disabled = false;
+        dom.scanStatus.textContent = 'Kamera başlatılıyor...';
+
+        scanner = new Html5Qrcode('reader');
+
+        try {
+          await scanner.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            async (decodedText) => {
+              try {
+                const parsed = JSON.parse(decodedText);
+                if (!parsed.email || !parsed.password) throw new Error('Eksik veri');
+
+                const student = { email: parsed.email, password: parsed.password, source: 'qr' };
+                setSession(student);
+                dom.scanStatus.innerHTML = '<span class="success">Karekod okundu, giriş yapıldı!</span>';
+                await stopScanner();
+                showMailView(student);
+              } catch (_) {
+                dom.scanStatus.textContent = 'Karekod formatı geçersiz. Beklenen: {"email":"...","password":"..."}';
+              }
+            },
+            () => {}
+          );
+          dom.scanStatus.textContent = 'Kamera açık, karekodu okut.';
+        } catch (error) {
+          dom.scanStatus.textContent = `Kamera açılamadı: ${error}`;
+          await stopScanner();
+        }
+      }
+
+      function sendMail() {
+        const to = dom.toInput.value.trim();
+        const subject = dom.subjectInput.value.trim();
+        const message = dom.messageInput.value.trim();
+
+        if (!to || !subject || !message) {
+          dom.sendStatus.textContent = 'Kime, konu ve mesaj alanlarını doldur.';
+          return;
+        }
+
+        const mails = getMails();
+        mails.unshift({ from: 'ben@alfabe.co', subject: `[Giden] ${subject}`, text: `Kime: ${to}\n${message}` });
+        setMails(mails);
+        renderMails();
+
+        dom.toInput.value = '';
+        dom.subjectInput.value = '';
+        dom.messageInput.value = '';
+        dom.sendStatus.innerHTML = '<span class="success">Mail gönderildi (simülasyon).</span>';
+      }
+
+      function logout() {
+        clearSession();
+        stopScanner();
+        showLoginView();
+        dom.loginStatus.textContent = 'Çıkış yapıldı.';
+      }
+
+      dom.loginBtn.addEventListener('click', loginWithCredentials);
+      dom.scanBtn.addEventListener('click', startScanner);
+      dom.stopScanBtn.addEventListener('click', stopScanner);
+      dom.sendBtn.addEventListener('click', sendMail);
+      dom.logoutBtn.addEventListener('click', logout);
+
+      const existingSession = getSession();
+      if (existingSession?.email) {
+        showMailView(existingSession);
+      } else {
+        showLoginView();
+      }
+    </script>
+      <script src="./demo-auth.js"></script>
+  </body>
+</html>
