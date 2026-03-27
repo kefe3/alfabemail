@@ -29,7 +29,7 @@
 
   if (!active) {
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.72);display:grid;place-items:center;z-index:10000;';
+    wrap.style.cssText = 'position:fixed;inset:0;background:#0b1020;display:grid;place-items:center;z-index:10000;';
     wrap.innerHTML = `
       <form id="demoLoginForm" style="width:min(420px,92vw);background:#fff;border-radius:14px;padding:16px;box-shadow:0 20px 35px rgba(0,0,0,.25);font-family:Inter,sans-serif;">
         <h3 style="margin:0 0 4px;">Demo Giriş (${role})</h3>
