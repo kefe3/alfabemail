@@ -128,6 +128,11 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
   3. `npm install`
   4. `npm start`
 
+## Laravel + Filament Dönüşüm Notu (Fazlı Geçiş)
+- `docs/phase-1-sail.md` içinde Faz-1 Docker/Sail hazırlığı dokümante edildi.
+- `docker-compose.yml` Mailcow ile aynı external network'e bağlanacak şekilde hazırlandı (`MAILCOW_DOCKER_NETWORK`).
+- İlerleyen fazda Laravel 11 + Filament + Spatie roles kurulumu yapılacaktır.
+
 ## Öğrenci Sayfası (Tek Dosya)
 - `portal/ogrenci.html` eklendi.
 - Sol tarafta e-posta/şifre giriş formu, sağ tarafta html5-qrcode ile kamera tabanlı karekod giriş alanı vardır.
