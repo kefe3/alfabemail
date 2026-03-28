@@ -1,65 +1,267 @@
 <!doctype html>
 <html lang="tr">
-  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Super Admin</title>
-  <style>body{margin:0;font-family:Inter,sans-serif;background:#0b1220;color:#e5e7eb}.c{max-width:1200px;margin:20px auto;padding:0 12px}.h,.b{background:#111827;border:1px solid #374151;border-radius:14px;padding:14px}.g{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}.k{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:10px}.k h3{margin:0;color:#94a3b8;font-size:12px}.k p{margin:4px 0 0;font-size:28px;font-weight:800}input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:#e2e8f0}.f{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.btn{border:none;border-radius:999px;padding:9px 12px;font-weight:700;cursor:pointer}.p{background:#38bdf8}.s{background:#334155;color:#e2e8f0}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border-top:1px solid #334155;padding:8px;text-align:left;font-size:13px}.st{margin-top:8px;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px;color:#93c5fd}</style></head>
-  <body data-role="super_admin"><div class="c">
-    <section class="h"><h1>👑 İsmail Çimen | Super Admin Paneli</h1><p>Admin kullanıcılarını yönet, şifre sıfırlama linki üret ve tüm alt katman analizlerini izle.</p></section>
-    <section class="g">
-      <article class="k"><h3>Toplam Admin</h3><p id="adminCount">0</p></article>
-      <article class="k"><h3>Toplam Bayi</h3><p id="dealerCount">0</p></article>
-      <article class="k"><h3>Toplam Okul</h3><p id="schoolCount">0</p></article>
-      <article class="k"><h3>Mail API İşlem</h3><p id="apiOpsCount">0</p></article>
-    </section>
-    <section class="b"><h2>Admin Hesabı Ekle</h2>
-      <div class="f">
-        <div><label>Ad</label><input id="firstName" placeholder="Örn: Elif"/></div>
-        <div><label>Soyad</label><input id="lastName" placeholder="Örn: Kaya"/></div>
-        <div><label>Admin Maili</label><input id="email" type="email" placeholder="admin@alfabe.co"/></div>
-        <div><label>Sorumlu Bölge</label><input id="region" placeholder="Marmara"/></div>
-      </div>
-      <div style="margin-top:8px"><button class="btn p" id="addAdminBtn">Admin Ekle ve Şifre Linki Üret</button></div>
-      <div class="st" id="status">Admin ekleme ekranı hazır.</div>
-      <pre class="st" id="mailPreview">Şifre sıfırlama linki burada görünecek.</pre>
-      <table><thead><tr><th>#</th><th>Ad Soyad</th><th>Mail</th><th>Bölge</th><th>Durum</th></tr></thead><tbody id="adminTable"></tbody></table>
-    </section>
-    <section class="b" style="margin-top:10px;">
-      <h2>Mail API Operasyon Takibi</h2>
-      <div class="g">
-        <article class="k"><h3>API Çağrısı</h3><p id="apiCalls">0</p></article>
-        <article class="k"><h3>Mailbox Oluşturma</h3><p id="mailboxOps">0</p></article>
-        <article class="k"><h3>Başarılı</h3><p id="apiSuccess">0</p></article>
-        <article class="k"><h3>Hata</h3><p id="apiError">0</p></article>
-      </div>
-    </section>
-    <section class="b" style="margin-top:10px;">
-      <h2>Mailcow API Bağlantı Ayarları (Deneme)</h2>
-      <div class="f">
-        <div><label>MAILCOW_API_BASE_URL</label><input id="mailcowBaseUrl" placeholder="https://mail.alanadi.com" /></div>
-        <div><label>MAILCOW_API_KEY</label><input id="mailcowApiKey" placeholder="API Key" /></div>
-        <div><label>MAILCOW_DOMAIN</label><input id="mailcowDomain" value="alfabe.co" /></div>
-        <div><label>Test Endpoint</label><input id="mailcowTestPath" value="/api/v1/get/status" /></div>
-      </div>
-      <div style="margin-top:8px"><button class="btn p" id="mailcowTestBtn">Mailcow Bağlantı Testi</button></div>
-      <div class="st" id="mailcowStatus">Ayarları doldurup test yapabilirsiniz.</div>
-      <pre class="st" id="mailcowResponse">Cevap burada görünecek.</pre>
-    </section>
-    <section class="b" style="margin-top:10px"><h2>Analiz Merkezi</h2><table><thead><tr><th>Katman</th><th>Metrik</th><th>Değer</th></tr></thead><tbody id="analysisTable"></tbody></table></section>
-    <section class="b" style="margin-top:10px">
-      <small>✅ Değişiklik yapıldı: 26.03.2026 00:00 UTC</small>
-    </section>
-  </div>
-  <script>
-    const ADMIN_KEY='alfabeAdmins', DEALER_KEY='bayiler', SCHOOL_KEY='bayiOkullari', METRIC_KEY='mailApiMetrics';
-    const dom={adminCount:adminCount,dealerCount:dealerCount,schoolCount:schoolCount,apiOpsCount:apiOpsCount,firstName,lastName,email,region,addAdminBtn,status,mailPreview,adminTable,analysisTable,apiCalls,mailboxOps,apiSuccess,apiError,mailcowBaseUrl,mailcowApiKey,mailcowDomain,mailcowTestPath,mailcowTestBtn,mailcowStatus,mailcowResponse};
-    const state={admins:JSON.parse(localStorage.getItem(ADMIN_KEY)||'[]')};
-    function persist(){localStorage.setItem(ADMIN_KEY,JSON.stringify(state.admins));}
-    function resetLink(email){const token=crypto.randomUUID();return `https://portal.alfabe.co/admin-reset?token=${token}&email=${encodeURIComponent(email)}`;}
-    function renderAdmins(){dom.adminTable.innerHTML=state.admins.length?state.admins.map((a,i)=>`<tr><td>${i+1}</td><td>${a.fullName}</td><td>${a.email}</td><td>${a.region}</td><td>Aktif</td></tr>`).join(''):'<tr><td colspan="5">Henüz admin yok.</td></tr>';dom.adminCount.textContent=state.admins.length;}
-    function renderAnalysis(){const dealers=JSON.parse(localStorage.getItem(DEALER_KEY)||'[]');const schools=JSON.parse(localStorage.getItem(SCHOOL_KEY)||'[]');const m=JSON.parse(localStorage.getItem(METRIC_KEY)||'{"apiCalls":0,"mailboxes":0,"success":0,"error":0}');dom.dealerCount.textContent=dealers.length;dom.schoolCount.textContent=schools.length;dom.apiOpsCount.textContent=m.apiCalls||0;dom.apiCalls.textContent=m.apiCalls||0;dom.mailboxOps.textContent=m.mailboxes||0;dom.apiSuccess.textContent=m.success||0;dom.apiError.textContent=m.error||0;dom.analysisTable.innerHTML=`<tr><td>Admin</td><td>Kayıtlı admin hesabı</td><td>${state.admins.length}</td></tr><tr><td>Bayi</td><td>Kayıtlı bayi</td><td>${dealers.length}</td></tr><tr><td>Okul</td><td>Aktif+beklemede okul</td><td>${schools.length}</td></tr><tr><td>Mail API</td><td>Toplam API çağrısı</td><td>${m.apiCalls||0}</td></tr><tr><td>Mail API</td><td>Toplam oluşturulan mailbox</td><td>${m.mailboxes||0}</td></tr>`;}
-    async function testMailcowConnection(){const baseUrl=dom.mailcowBaseUrl.value.trim().replace(/\/$/,'');const apiKey=dom.mailcowApiKey.value.trim();const path=dom.mailcowTestPath.value.trim()||'/api/v1/get/status';if(!baseUrl||!apiKey){dom.mailcowStatus.textContent='MAILCOW_API_BASE_URL ve MAILCOW_API_KEY zorunlu.';return;}dom.mailcowStatus.textContent='Mailcow bağlantısı test ediliyor...';dom.mailcowResponse.textContent='Bekleniyor...';const m=JSON.parse(localStorage.getItem(METRIC_KEY)||'{\"apiCalls\":0,\"mailboxes\":0,\"success\":0,\"error\":0}');try{const response=await fetch(`${baseUrl}${path}`,{method:'GET',headers:{'X-API-Key':apiKey,'Content-Type':'application/json'}});const raw=await response.text();dom.mailcowResponse.textContent=raw||'(boş cevap)';m.apiCalls+=1;if(response.ok){m.success=(m.success||0)+1;dom.mailcowStatus.textContent=`Bağlantı başarılı (${response.status}). Domain: ${dom.mailcowDomain.value.trim()||'alfabe.co'}`;}else{m.error=(m.error||0)+1;dom.mailcowStatus.textContent=`Bağlantı hatası (${response.status}). CORS veya endpoint kontrol edin.`;}localStorage.setItem(METRIC_KEY,JSON.stringify(m));renderAnalysis();}catch(error){m.apiCalls+=1;m.error=(m.error||0)+1;localStorage.setItem(METRIC_KEY,JSON.stringify(m));dom.mailcowStatus.textContent=`İstek başarısız: ${error.message}`;dom.mailcowResponse.textContent=error.stack||String(error);renderAnalysis();}}
-    addAdminBtn.onclick=()=>{const fn=firstName.value.trim(),ln=lastName.value.trim(),em=email.value.trim().toLowerCase(),rg=region.value.trim();if(!fn||!ln||!em||!rg){status.textContent='Tüm alanlar zorunlu.';return;}if(state.admins.some(a=>a.email===em)){status.textContent='Bu admin maili zaten kayıtlı.';return;}const link=resetLink(em);state.admins.push({fullName:`${fn} ${ln}`,email:em,region:rg,createdAt:new Date().toISOString()});persist();status.textContent='Admin eklendi. Şifre sıfırlama linki üretildi.';mailPreview.textContent=`Konu: Admin Şifre Oluşturma\nAlıcı: ${em}\nLink: ${link}`;renderAdmins();renderAnalysis();};
-    dom.mailcowTestBtn.addEventListener('click',testMailcowConnection);
-    renderAdmins();renderAnalysis();
-  </script>
-  <script src="./demo-auth.js"></script></body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Admin</title>
+    <style>
+      body { margin: 0; font-family: Inter, sans-serif; background: #0b1220; color: #e5e7eb; }
+      .c { max-width: 1200px; margin: 20px auto; padding: 0 12px; }
+      .h, .b { background: #111827; border: 1px solid #374151; border-radius: 14px; padding: 14px; }
+      .g { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+      .k { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 10px; }
+      .k h3 { margin: 0; color: #94a3b8; font-size: 12px; }
+      .k p { margin: 4px 0 0; font-size: 28px; font-weight: 800; }
+      input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #334155; background: #020617; color: #e2e8f0; }
+      .f { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+      .btn { border: none; border-radius: 999px; padding: 9px 12px; font-weight: 700; cursor: pointer; }
+      .p { background: #38bdf8; }
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      th, td { border-top: 1px solid #334155; padding: 8px; text-align: left; font-size: 13px; }
+      .st { margin-top: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 8px; color: #93c5fd; }
+      @media (max-width: 960px) { .f, .g { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body data-role="super_admin">
+    <div class="c">
+      <section class="h">
+        <h1>👑 İsmail Çimen | Super Admin Paneli</h1>
+        <p>Admin kullanıcılarını yönet, şifre sıfırlama linki üret ve tüm alt katman analizlerini izle.</p>
+      </section>
+
+      <section class="g">
+        <article class="k"><h3>Toplam Admin</h3><p id="adminCount">0</p></article>
+        <article class="k"><h3>Toplam Bayi</h3><p id="dealerCount">0</p></article>
+        <article class="k"><h3>Toplam Okul</h3><p id="schoolCount">0</p></article>
+        <article class="k"><h3>Mail API İşlem</h3><p id="apiOpsCount">0</p></article>
+      </section>
+
+      <section class="b">
+        <h2>Admin Hesabı Ekle</h2>
+        <div class="f">
+          <div><label>Ad</label><input id="firstName" placeholder="Örn: Elif" /></div>
+          <div><label>Soyad</label><input id="lastName" placeholder="Örn: Kaya" /></div>
+          <div><label>Admin Maili</label><input id="email" type="email" placeholder="admin@alfabe.co" /></div>
+          <div><label>Sorumlu Bölge</label><input id="region" placeholder="Marmara" /></div>
+        </div>
+        <div style="margin-top:8px"><button class="btn p" id="addAdminBtn">Admin Ekle ve Şifre Linki Üret</button></div>
+        <div class="st" id="status">Admin ekleme ekranı hazır.</div>
+        <pre class="st" id="mailPreview">Şifre sıfırlama linki burada görünecek.</pre>
+        <table>
+          <thead><tr><th>#</th><th>Ad Soyad</th><th>Mail</th><th>Bölge</th><th>Durum</th></tr></thead>
+          <tbody id="adminTable"></tbody>
+        </table>
+      </section>
+
+      <section class="b" style="margin-top:10px;">
+        <h2>Mail API Operasyon Takibi</h2>
+        <div class="g">
+          <article class="k"><h3>API Çağrısı</h3><p id="apiCalls">0</p></article>
+          <article class="k"><h3>Mailbox Oluşturma</h3><p id="mailboxOps">0</p></article>
+          <article class="k"><h3>Başarılı</h3><p id="apiSuccess">0</p></article>
+          <article class="k"><h3>Hata</h3><p id="apiError">0</p></article>
+        </div>
+      </section>
+
+      <section class="b" style="margin-top:10px;">
+        <h2>Mailcow API Proxy Ayarları (Sunucu Tarafı)</h2>
+        <div class="f">
+          <div><label>MAILCOW_API_BASE_URL</label><input id="mailcowBaseUrl" placeholder="https://mail.alanadi.com" /></div>
+          <div><label>MAILCOW_API_KEY</label><input id="mailcowApiKey" placeholder="API Key" /></div>
+          <div><label>MAILCOW_DOMAIN</label><input id="mailcowDomain" value="alfabe.co" /></div>
+          <div><label>Test Endpoint</label><input id="mailcowTestPath" value="get/status" /></div>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn p" id="saveMailcowConfigBtn">Proxy Konfigürasyonu Kaydet</button>
+          <button class="btn p" id="mailcowTestBtn">Proxy Üzerinden Test Et</button>
+        </div>
+        <div class="st" id="mailcowStatus">Ayarları girip kaydedin. Frontend artık doğrudan Mailcow'a gitmez.</div>
+        <pre class="st" id="mailcowResponse">Cevap burada görünecek.</pre>
+      </section>
+
+      <section class="b" style="margin-top:10px">
+        <h2>Analiz Merkezi</h2>
+        <table>
+          <thead><tr><th>Katman</th><th>Metrik</th><th>Değer</th></tr></thead>
+          <tbody id="analysisTable"></tbody>
+        </table>
+      </section>
+
+      <section class="b" style="margin-top:10px">
+        <small>✅ Değişiklik yapıldı: 28.03.2026 00:00 UTC</small>
+      </section>
+    </div>
+
+    <script>
+      const ADMIN_KEY = 'alfabeAdmins';
+      const DEALER_KEY = 'bayiler';
+      const SCHOOL_KEY = 'bayiOkullari';
+      const METRIC_KEY = 'mailApiMetrics';
+      const PROXY_BASE = 'http://localhost:3000';
+
+      const dom = {
+        adminCount: document.getElementById('adminCount'),
+        dealerCount: document.getElementById('dealerCount'),
+        schoolCount: document.getElementById('schoolCount'),
+        apiOpsCount: document.getElementById('apiOpsCount'),
+        firstName: document.getElementById('firstName'),
+        lastName: document.getElementById('lastName'),
+        email: document.getElementById('email'),
+        region: document.getElementById('region'),
+        addAdminBtn: document.getElementById('addAdminBtn'),
+        status: document.getElementById('status'),
+        mailPreview: document.getElementById('mailPreview'),
+        adminTable: document.getElementById('adminTable'),
+        analysisTable: document.getElementById('analysisTable'),
+        apiCalls: document.getElementById('apiCalls'),
+        mailboxOps: document.getElementById('mailboxOps'),
+        apiSuccess: document.getElementById('apiSuccess'),
+        apiError: document.getElementById('apiError'),
+        mailcowBaseUrl: document.getElementById('mailcowBaseUrl'),
+        mailcowApiKey: document.getElementById('mailcowApiKey'),
+        mailcowDomain: document.getElementById('mailcowDomain'),
+        mailcowTestPath: document.getElementById('mailcowTestPath'),
+        saveMailcowConfigBtn: document.getElementById('saveMailcowConfigBtn'),
+        mailcowTestBtn: document.getElementById('mailcowTestBtn'),
+        mailcowStatus: document.getElementById('mailcowStatus'),
+        mailcowResponse: document.getElementById('mailcowResponse'),
+      };
+
+      const state = {
+        admins: JSON.parse(localStorage.getItem(ADMIN_KEY) || '[]'),
+      };
+
+      function persist() {
+        localStorage.setItem(ADMIN_KEY, JSON.stringify(state.admins));
+      }
+
+      function resetLink(email) {
+        const token = crypto.randomUUID();
+        return `https://portal.alfabe.co/admin-reset?token=${token}&email=${encodeURIComponent(email)}`;
+      }
+
+      function renderAdmins() {
+        dom.adminTable.innerHTML = state.admins.length
+          ? state.admins.map((a, i) => `<tr><td>${i + 1}</td><td>${a.fullName}</td><td>${a.email}</td><td>${a.region}</td><td>Aktif</td></tr>`).join('')
+          : '<tr><td colspan="5">Henüz admin yok.</td></tr>';
+
+        dom.adminCount.textContent = state.admins.length;
+      }
+
+      function renderAnalysis() {
+        const dealers = JSON.parse(localStorage.getItem(DEALER_KEY) || '[]');
+        const schools = JSON.parse(localStorage.getItem(SCHOOL_KEY) || '[]');
+        const m = JSON.parse(localStorage.getItem(METRIC_KEY) || '{"apiCalls":0,"mailboxes":0,"success":0,"error":0}');
+
+        dom.dealerCount.textContent = dealers.length;
+        dom.schoolCount.textContent = schools.length;
+        dom.apiOpsCount.textContent = m.apiCalls || 0;
+        dom.apiCalls.textContent = m.apiCalls || 0;
+        dom.mailboxOps.textContent = m.mailboxes || 0;
+        dom.apiSuccess.textContent = m.success || 0;
+        dom.apiError.textContent = m.error || 0;
+
+        dom.analysisTable.innerHTML = `
+          <tr><td>Admin</td><td>Kayıtlı admin hesabı</td><td>${state.admins.length}</td></tr>
+          <tr><td>Bayi</td><td>Kayıtlı bayi</td><td>${dealers.length}</td></tr>
+          <tr><td>Okul</td><td>Aktif+beklemede okul</td><td>${schools.length}</td></tr>
+          <tr><td>Mail API</td><td>Toplam API çağrısı</td><td>${m.apiCalls || 0}</td></tr>
+          <tr><td>Mail API</td><td>Toplam oluşturulan mailbox</td><td>${m.mailboxes || 0}</td></tr>
+        `;
+      }
+
+      async function saveMailcowConfig() {
+        const apiBaseUrl = dom.mailcowBaseUrl.value.trim().replace(/\/$/, '');
+        const apiKey = dom.mailcowApiKey.value.trim();
+        const mailDomain = dom.mailcowDomain.value.trim() || 'alfabe.co';
+
+        if (!apiBaseUrl || !apiKey) {
+          dom.mailcowStatus.textContent = 'MAILCOW_API_BASE_URL ve MAILCOW_API_KEY zorunlu.';
+          return;
+        }
+
+        dom.mailcowStatus.textContent = 'Proxy konfigürasyonu kaydediliyor...';
+
+        try {
+          const response = await fetch(`${PROXY_BASE}/api/mailcow/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiBaseUrl, apiKey, mailDomain }),
+          });
+
+          const payload = await response.text();
+          dom.mailcowResponse.textContent = payload || '(boş cevap)';
+
+          if (!response.ok) {
+            dom.mailcowStatus.textContent = `Konfigürasyon hatası (${response.status}).`;
+            return;
+          }
+
+          dom.mailcowStatus.textContent = 'Proxy konfigürasyonu sunucu tarafına kaydedildi.';
+        } catch (error) {
+          dom.mailcowStatus.textContent = `Konfigürasyon isteği başarısız: ${error.message}`;
+          dom.mailcowResponse.textContent = error.stack || String(error);
+        }
+      }
+
+      async function testMailcowConnection() {
+        const testPath = (dom.mailcowTestPath.value.trim() || 'get/status').replace(/^\//, '');
+        dom.mailcowStatus.textContent = 'Proxy üzerinden Mailcow testi yapılıyor...';
+        dom.mailcowResponse.textContent = 'Bekleniyor...';
+
+        try {
+          const response = await fetch(`${PROXY_BASE}/api/mailcow/${testPath}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          const raw = await response.text();
+          dom.mailcowResponse.textContent = raw || '(boş cevap)';
+
+          if (response.ok) {
+            dom.mailcowStatus.textContent = `Proxy testi başarılı (${response.status}).`;
+          } else {
+            dom.mailcowStatus.textContent = `Proxy testi hatalı (${response.status}). Önce konfigürasyonu kaydedin.`;
+          }
+
+          renderAnalysis();
+        } catch (error) {
+          dom.mailcowStatus.textContent = `Proxy testi başarısız: ${error.message}`;
+          dom.mailcowResponse.textContent = error.stack || String(error);
+        }
+      }
+
+      dom.addAdminBtn.addEventListener('click', () => {
+        const fn = dom.firstName.value.trim();
+        const ln = dom.lastName.value.trim();
+        const em = dom.email.value.trim().toLowerCase();
+        const rg = dom.region.value.trim();
+
+        if (!fn || !ln || !em || !rg) {
+          dom.status.textContent = 'Tüm alanlar zorunlu.';
+          return;
+        }
+
+        if (state.admins.some((a) => a.email === em)) {
+          dom.status.textContent = 'Bu admin maili zaten kayıtlı.';
+          return;
+        }
+
+        const link = resetLink(em);
+        state.admins.push({ fullName: `${fn} ${ln}`, email: em, region: rg, createdAt: new Date().toISOString() });
+        persist();
+        dom.status.textContent = 'Admin eklendi. Şifre sıfırlama linki üretildi.';
+        dom.mailPreview.textContent = `Konu: Admin Şifre Oluşturma\nAlıcı: ${em}\nLink: ${link}`;
+        renderAdmins();
+        renderAnalysis();
+      });
+
+      dom.saveMailcowConfigBtn.addEventListener('click', saveMailcowConfig);
+      dom.mailcowTestBtn.addEventListener('click', testMailcowConnection);
+
+      renderAdmins();
+      renderAnalysis();
+    </script>
+    <script src="./demo-auth.js"></script>
+  </body>
 </html>

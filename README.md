@@ -116,6 +116,18 @@ Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birle
 - veli: `veli@alfabe.co / Demo123!`
 - ogrenci: `ogrenci@alfabe.co / Demo123!`
 
+## Mailcow Proxy Backend (CORS ve Güvenlik için)
+- Tarayıcıdan doğrudan Mailcow API çağrısı yapmak yerine `server.js` içinde Express tabanlı bir proxy eklendi.
+- Frontend, Mailcow'a doğrudan gitmez; `http://localhost:3000/api/mailcow/*` endpoint'ine istek atar.
+- Mailcow host/key bilgileri sunucu tarafında tutulur:
+  - `.env` (önerilen kalıcı kullanım)
+  - veya `/api/mailcow/config` ile runtime konfigürasyon
+- Başlatma:
+  1. `cp .env.example .env`
+  2. `.env` içinde `MAILCOW_API_BASE_URL` ve `MAILCOW_API_KEY` doldur
+  3. `npm install`
+  4. `npm start`
+
 ## Öğrenci Sayfası (Tek Dosya)
 - `portal/ogrenci.html` eklendi.
 - Sol tarafta e-posta/şifre giriş formu, sağ tarafta html5-qrcode ile kamera tabanlı karekod giriş alanı vardır.
