@@ -1,4 +1,4 @@
-# alfabemail
+# Alfabe Mail
 Çocuklar için mail uygulamasıdır.
 🚀 ALFABE PORTAL - PROJE ANA DÖKÜMANI
 1. VİZYON
