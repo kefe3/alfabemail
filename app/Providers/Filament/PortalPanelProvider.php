@@ -6,7 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
+use App\Filament\Portal\Pages\PortalDashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -18,6 +18,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
+
 class PortalPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -25,21 +28,37 @@ class PortalPanelProvider extends PanelProvider
         return $panel
             ->id('portal')
             ->path('/panel')
-            ->login()
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn () => Blade::render('<a href="{{ route(\'home\') }}" style="display:inline-block; margin-bottom: 20px; color: #7fa7ff; text-decoration: none; font-weight: bold;">← Ana Sayfa</a>'),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('partials.hata-bildir')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn () => view('partials.kayit-link')->render(),
+            )
             ->authGuard('web')
+            ->login()
             ->colors([
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,
             ])
             ->favicon(asset('favicon.ico'))
             ->discoverResources(in: app_path('Filament/Portal/Resources'), for: 'App\Filament\Portal\Resources')
+            ->resources([
+                \App\Filament\Portal\Resources\Sinifs\SinifResource::class,
+                \App\Filament\Portal\Resources\Ogrencis\OgrenciResource::class,
+            ])
             ->discoverPages(in: app_path('Filament/Portal/Pages'), for: 'App\Filament\Portal\Pages')
             ->pages([
-                Dashboard::class,
+                PortalDashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Portal/Widgets'), for: 'App\Filament\Portal\Widgets')
             ->widgets([
-                AccountWidget::class,
+                \App\Filament\Portal\Widgets\PortalStatsOverview::class,
+                \App\Filament\Portal\Widgets\VeliDashboardWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

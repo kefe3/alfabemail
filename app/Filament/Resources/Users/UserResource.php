@@ -18,7 +18,18 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+        return $user && $user->hasRole('admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->can('ogretmen.create') ?? false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -41,7 +52,6 @@ class UserResource extends Resource
     {
         return [
             'index' => ListUsers::route('/'),
-            'create' => CreateUser::route('/create'),
             'edit' => EditUser::route('/{record}/edit'),
         ];
     }

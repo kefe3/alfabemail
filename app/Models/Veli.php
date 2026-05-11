@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Veli extends Model
 {
+    use HasTenantScope;
+    protected $table = 'veliler';
     protected $fillable = [
         'user_id',
     ];

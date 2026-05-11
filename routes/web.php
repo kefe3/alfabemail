@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\OgrenciController;
 use App\Http\Controllers\VeliController;
 
@@ -9,19 +10,143 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::get('/login', function () {
+    return redirect('/panel');
+})->name('login');
+
 // Öğrenci girişi (QR + form)
 Route::get('/giris', function () {
     return view('ogrenci.giris');
 })->name('ogrenci.giris');
 
-Route::post('/giris/qr', [OgrenciController::class, 'qrLogin'])->name('ogrenci.qr-login');
+Route::get('/ogrenci/dashboard', function () {
+    if (!Auth::check()) {
+        return redirect('/giris');
+    }
+    return view('ogrenci.dashboard');
+})->name('ogrenci.dashboard');
 
-// Veli dashboard
+Route::post('/ogrenci/login', [OgrenciController::class, 'login'])->name('ogrenci.login');
+Route::post('/ogrenci/qr-login', [OgrenciController::class, 'qrLogin'])->name('ogrenci.qr-login');
+Route::post('/ogrenci/logout', [OgrenciController::class, 'logout'])->name('ogrenci.logout');
+Route::get('/ogrenci/yaka-karti/{ogrenci}', [OgrenciController::class, 'yakaKarti'])->name('ogrenci.yaka-karti');
+Route::get('/ogrenci/yaka-karti-bulk', [OgrenciController::class, 'yakaKartiBulk'])->name('ogrenci.yaka-karti.bulk');
+
+Route::post('/ogrenci/send-mail', [OgrenciController::class, 'sendMail'])->name('ogrenci.send-mail');
+Route::post('/ogrenci/upload-attachment', [OgrenciController::class, 'uploadAttachment'])->name('ogrenci.upload-attachment');
+Route::get('/ogrenci/inbox', [OgrenciController::class, 'getInbox'])->name('ogrenci.inbox');
+Route::get('/ogrenci/sent', [OgrenciController::class, 'getSent'])->name('ogrenci.sent');
+Route::get('/ogrenci/stats', [OgrenciController::class, 'getStats'])->name('ogrenci.stats');
+Route::post('/ogrenci/log-read', [OgrenciController::class, 'logRead'])->name('ogrenci.log-read');
+
+// Docker'dan IMAP verisi çek (tmp sorunu için workaround)
+Route::get('/api/mails/inbox', function () {
+    $output = shell_exec("docker compose exec -T laravel.test php artisan fetch:imail inbox 2>/dev/null");
+    $data = json_decode($output, true);
+    return response()->json($data ?: ['success' => false, 'mails' => []]);
+});
+
+Route::get('/api/mails/sent', function () {
+    $output = shell_exec("docker compose exec -T laravel.test php artisan fetch:imail sent 2>/dev/null");
+    $data = json_decode($output, true);
+    return response()->json($data ?: ['success' => false, 'mails' => []]);
+});
+
+Route::get('/debug/mailcow-test', function () {
+    $mailcow = app(\App\Services\MailcowService::class);
+    $mailcow->refreshConfig();
+    
+    $settings = \App\Models\Setting::where('key', 'like', 'mailcow_%')->get();
+    
+    return response()->json([
+        'settings_in_db' => $settings->pluck('value', 'key'),
+        'configured' => $mailcow->isConfigured(),
+        'test_result' => $mailcow->testConnection(),
+    ]);
+});
+
+Route::get('/debug/mailcow-create', function () {
+    $mailcow = app(\App\Services\MailcowService::class);
+    $mailcow->refreshConfig();
+    
+    try {
+        $result = $mailcow->createStudentMailbox('Test', 'Ogrenci', null);
+        return response()->json(['success' => true, 'result' => $result]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()]);
+    }
+});
+
+Route::get('/debug/cleanup-ogrenciler', function () {
+    // Ogrenci rolü + ogrenci kaydı olmayan
+    $ogrenciOrphans = \App\Models\User::whereHas('roles', fn($q) => $q->where('name', 'ogrenci'))
+        ->whereDoesntHave('ogrenci')
+        ->pluck('id');
+    
+    $deletedOgrenci = \App\Models\User::whereIn('id', $ogrenciOrphans)->delete();
+    
+    // Ogrenciler tablosunda user_id'si olmayan kayıtlar (orphaned ogrenci)
+    $orphanedOgrenciler = \App\Models\Ogrenci::whereNull('user_id')->delete();
+    
+    // Mailbox oluşturulmuş ama kullanıcı kaydı başarısız olmuş - ali, veli, öğretmen prefixli
+    $deletedGhost = \App\Models\User::where(function($q) {
+        $q->where('email', 'like', 'ali%@alfabe.co')
+          ->orWhere('email', 'like', 'veli%@alfabe.co')
+          ->orWhere('email', 'like', 'ogretmen%@alfabe.co');
+    })->delete();
+    
+    // Veli kaydı olmayan veli kullanıcıları
+    $veliOrphans = \App\Models\User::whereHas('roles', fn($q) => $q->where('name', 'veli'))
+        ->whereRaw('id NOT IN (SELECT user_id FROM veliler WHERE user_id IS NOT NULL)')
+        ->pluck('id');
+    $deletedVeli = \App\Models\User::whereIn('id', $veliOrphans)->delete();
+    
+    return response()->json([
+        'deleted_ogrenci_orphans' => $deletedOgrenci,
+        'orphaned_ogrenciler' => $orphanedOgrenciler,
+        'deleted_ghost' => $deletedGhost,
+        'deleted_veli_orphans' => $deletedVeli,
+    ]);
+});
+
+// Authenticated routes
 Route::middleware(['auth'])->group(function () {
+    Route::get('/ogrenci/dashboard', [OgrenciController::class, 'dashboard'])->name('ogrenci.dashboard');
     Route::get('/veli/dashboard', function () {
         return view('veli.dashboard');
     })->name('veli.dashboard');
 });
 
+// Hata bildir
+Route::post('/hata-bildir', [App\Http\Controllers\HataBildirController::class, 'store'])->name('hata-bildir.store');
+
+// Kayit
+Route::post('/kayit/send-code', [App\Http\Controllers\KayitController::class, 'sendCode'])->name('kayit.send-code');
+Route::post('/kayit/verify-code', [App\Http\Controllers\KayitController::class, 'verifyCode'])->name('kayit.verify-code');
+Route::post('/kayit/complete', [App\Http\Controllers\KayitController::class, 'complete'])->name('kayit.complete');
+
+// Veli işlemleri
+Route::middleware(['auth'])->prefix('veli')->group(function () {
+    Route::post('/mesaj-gonder', [App\Http\Controllers\VeliController::class, 'mesajGonder']);
+    Route::post('/sifre-sifirla', [App\Http\Controllers\VeliController::class, 'sifreSifirla']);
+});
+
+// Yasal sayfalar
+Route::view('/kvkk', 'legal.kvkk')->name('kvkk');
+Route::view('/gizlilik', 'legal.gizlilik')->name('gizlilik');
+Route::view('/kullanim-sartlari', 'legal.kullanim-sartlari')->name('kullanim-sartlari');
+Route::view('/cerez-politikasi', 'legal.cerez-politikasi')->name('cerez-politikasi');
+
 // Aktivasyon linkleri
 Route::get('/aktivasyon/{token}', [App\Http\Controllers\ActivationController::class, 'activate'])->name('activation.activate');
+
+// API routes (Mailcow Proxy) - using /api prefix
+use App\Http\Controllers\MailcowProxyController;
+
+Route::prefix('api/mailcow')->middleware(['auth:sanctum'])->group(function () {
+    Route::get('/status',              [MailcowProxyController::class, 'status']);
+    Route::get('/mailboxes',           [MailcowProxyController::class, 'listMailboxes'])->middleware('permission:kota-sor');
+    Route::get('/quota/{email}',       [MailcowProxyController::class, 'getQuota'])->middleware('permission:kota-sor');
+    Route::post('/mailbox',            [MailcowProxyController::class, 'createMailbox'])->middleware('permission:mailbox-olustur');
+    Route::delete('/mailbox/{email}',  [MailcowProxyController::class, 'deleteMailbox'])->middleware('permission:mailbox-sil');
+});

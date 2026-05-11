@@ -6,6 +6,9 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
+use App\Models\Setting;
+use Illuminate\Support\Facades\Cache;
+
 class MailcowService
 {
     private string $apiBaseUrl;
@@ -15,13 +18,42 @@ class MailcowService
 
     public function __construct()
     {
-        $this->apiBaseUrl   = rtrim((string) config('mailcow.api_base_url', ''), '/');
-        $this->apiKey       = (string) config('mailcow.api_key', '');
-        $this->mailDomain   = strtolower(trim((string) config('mailcow.domain', 'alfabe.co')));
-        $this->defaultQuotaMb = (int) config('mailcow.default_quota_mb', 2048);
+        $this->refreshConfig();
+    }
 
-        if (empty($this->apiBaseUrl) || empty($this->apiKey)) {
-            throw new RuntimeException('Mailcow yapılandırması eksik: MAILCOW_API_BASE_URL ve MAILCOW_API_KEY tanımlı olmalı.');
+    public function refreshConfig(): void
+    {
+        $this->apiBaseUrl     = rtrim((string) $this->getSetting('mailcow_api_base_url', config('mailcow.api_base_url', '')), '/');
+        $this->apiKey         = (string) $this->getSetting('mailcow_api_key', config('mailcow.api_key', ''));
+        $this->mailDomain     = strtolower(trim((string) $this->getSetting('mailcow_domain', config('mailcow.domain', 'alfabe.co'))));
+        $this->defaultQuotaMb = (int) $this->getSetting('mailcow_default_quota_mb', config('mailcow.default_quota_mb', 2048));
+    }
+
+    private function getSetting(string $key, mixed $default = null): mixed
+    {
+        try {
+            $setting = Setting::where('key', $key)->first();
+            return $setting ? $setting->value : $default;
+        } catch (\Exception $e) {
+            return $default;
+        }
+    }
+
+    public function testConnection(): bool
+    {
+        if (!$this->isConfigured()) {
+            return false;
+        }
+
+        try {
+            $url = "/api/v1/get/domain/{$this->mailDomain}";
+            \Log::info("Mailcow test URL: {$this->apiBaseUrl}{$url}");
+            $response = $this->http()->get($url);
+            \Log::info("Mailcow response: " . $response->status() . " - " . $response->body());
+            return $response->successful();
+        } catch (\Exception $e) {
+            \Log::error("Mailcow connection error: " . $e->getMessage());
+            return false;
         }
     }
 
@@ -60,7 +92,23 @@ class MailcowService
             throw new RuntimeException('Öğrenci adı/soyadı veya rumuz geçersiz.');
         }
 
+        $email = "{$localPart}@{$this->mailDomain}";
+        
+        if (\App\Models\User::where('email', $email)->exists()) {
+            throw new RuntimeException('Bu e-posta adresi zaten kullanılıyor.');
+        }
+
         return $localPart;
+    }
+
+    private function mailboxExists(string $localPart): bool
+    {
+        try {
+            $response = $this->http()->get("/api/v1/get/mailbox/{$localPart}@{$this->mailDomain}", ['timeout' => 3]);
+            return $response->successful();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     // -------------------------------------------------------
@@ -72,7 +120,9 @@ class MailcowService
             'X-API-Key'    => $this->apiKey,
             'Content-Type' => 'application/json',
             'Accept'       => 'application/json',
-        ])->baseUrl($this->apiBaseUrl)->timeout(15);
+        ])->baseUrl($this->apiBaseUrl)->timeout(10)->connectTimeout(5)->withOptions([
+            'verify' => false,
+        ]);
     }
 
     // -------------------------------------------------------
@@ -82,27 +132,29 @@ class MailcowService
         string $firstName,
         string $lastName,
         ?string $nickname = null,
-        int $quotaMb = 0
+        int $quotaMb = 0,
+        ?string $password = null
     ): array {
         $localPart = $this->createMailboxLocalPart($firstName, $lastName, $nickname);
         $email     = "{$localPart}@{$this->mailDomain}";
-        $password  = $this->generatePassword();
+        $password  = $password ?: $this->generatePassword();
         $quota     = $quotaMb > 0 ? $quotaMb : $this->defaultQuotaMb;
 
-        $response = $this->http()->post('/api/v1/add/mailbox', [[
+        $response = $this->http()->post('/api/v1/add/mailbox', [
             'local_part' => $localPart,
             'domain'     => $this->mailDomain,
             'name'       => trim("{$firstName} {$lastName}"),
-            'quota'      => $quota,
             'password'   => $password,
             'password2'  => $password,
             'active'     => '1',
-        ]]);
+        ]);
 
-        if ($response->failed()) {
-            $msg = $response->json('msg') ?? $response->json('message') ?? 'Mailcow API hatası';
-            throw new RuntimeException("Mailbox oluşturulamadı: {$msg}", $response->status());
-        }
+        \Log::info('Mailcow create response', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+
+        $this->validateMailcowResponse($response, 'Mailbox oluşturulamadı');
 
         return [
             'email'      => $email,
@@ -112,14 +164,85 @@ class MailcowService
         ];
     }
 
+    private function validateMailcowResponse(object $response, string $defaultMsg): void
+    {
+        if ($response->failed()) {
+            $bodyArray = $response->json();
+            $msg = is_array($bodyArray) ? ($bodyArray[0]['msg'] ?? $bodyArray[0]['message'] ?? null) : ($bodyArray['msg'] ?? $bodyArray['message'] ?? null);
+            
+            if ($msg === 'object_exists') {
+                throw new RuntimeException('Bu e-posta adresi zaten alınmış. Lütfen farklı bir isim veya rumuz kullanın.');
+            }
+            
+            throw new RuntimeException("{$defaultMsg}: " . ($msg ?? 'Mailcow API hatası'), $response->status());
+        }
+
+        $bodyArray = $response->json();
+        $body = is_array($bodyArray) && isset($bodyArray[0]) ? $bodyArray[0] : $bodyArray;
+        
+        if (isset($body['type']) && in_array($body['type'], ['danger', 'warning'], true)) {
+            $msg = is_array($body['msg']) ? ($body['msg'][0] ?? $defaultMsg) : ($body['msg'] ?? $body['message'] ?? $defaultMsg);
+            
+            if ($msg === 'object_exists') {
+                throw new RuntimeException('Bu e-posta adresi zaten alınmış. Lütfen farklı bir isim veya rumuz kullanın.');
+            }
+            
+            throw new RuntimeException("{$defaultMsg}: {$msg}");
+        }
+    }
+
     public function deleteMailbox(string $email): void
     {
         $response = $this->http()->post('/api/v1/delete/mailbox', [$email]);
 
+        $this->validateMailcowResponse($response, 'Mailbox silinemedi');
+    }
+
+    public function updateMailboxPassword(string $email, string $newPassword): array
+    {
+        $localPart = explode('@', $email)[0];
+
+        $response = $this->http()->post('/api/v1/edit/mailbox', [
+            'local_part'  => $localPart,
+            'domain'      => $this->mailDomain,
+            'password'    => $newPassword,
+            'password2'   => $newPassword,
+        ]);
+
+        \Log::info('Mailcow password update response', [
+            'email'  => $email,
+            'status' => $response->status(),
+            'body'   => $response->body(),
+        ]);
+
+        $this->validateMailcowResponse($response, 'Şifre güncellenemedi');
+
+        return [
+            'email'    => $email,
+            'password' => $newPassword,
+            'success'  => true,
+        ];
+    }
+
+    public function getMailboxInfo(string $email): array
+    {
+        $response = $this->http()->get("/api/v1/get/mailbox/{$email}");
+
         if ($response->failed()) {
-            $msg = $response->json('msg') ?? 'Mailcow API hatası';
-            throw new RuntimeException("Mailbox silinemedi: {$msg}", $response->status());
+            throw new RuntimeException("Mailbox bilgisi alınamadı: {$email}", $response->status());
         }
+
+        $data = $response->json();
+        return [
+            'email'          => $email,
+            'username'       => $data['username'] ?? $email,
+            'name'           => $data['name'] ?? '',
+            'quota_used'     => $data['quota_used'] ?? 0,
+            'quota'          => $data['quota'] ?? $this->defaultQuotaMb,
+            'percent_used'  => $data['percent_in_use'] ?? 0,
+            'active'         => $data['active'] ?? true,
+            'created'        => $data['created'] ?? null,
+        ];
     }
 
     public function getMailboxQuota(string $email): array
@@ -136,6 +259,32 @@ class MailcowService
             'quota_used'  => $data['quota_used']  ?? 0,
             'quota'       => $data['quota']        ?? $this->defaultQuotaMb,
             'percent_used'=> $data['percent_in_use'] ?? 0,
+        ];
+    }
+
+    public function updateMailboxQuota(string $email, int $quotaMb): array
+    {
+        $localPart = explode('@', $email)[0];
+
+        $response = $this->http()->post('/api/v1/edit/mailbox', [
+            'local_part' => $localPart,
+            'domain'     => $this->mailDomain,
+            'quota'      => $quotaMb,
+        ]);
+
+        \Log::info('Mailcow quota update response', [
+            'email'  => $email,
+            'quota'  => $quotaMb,
+            'status' => $response->status(),
+            'body'   => $response->body(),
+        ]);
+
+        $this->validateMailcowResponse($response, 'Kota güncellenemedi');
+
+        return [
+            'email'  => $email,
+            'quota'  => $quotaMb,
+            'success' => true,
         ];
     }
 

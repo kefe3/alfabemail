@@ -114,7 +114,7 @@
       e.preventDefault();
       const errEl = document.getElementById('formError');
       errEl.style.display = 'none';
-      const res = await fetch('/login', {
+      const res = await fetch('{{ route('ogrenci.login') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })

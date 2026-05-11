@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -14,17 +14,27 @@ class UserForm
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->required(),
+                    ->required()
+                    ->maxLength(255),
                 TextInput::make('email')
                     ->label('Email address')
-                    ->email()
-                    ->required(),
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->disabled(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                    ->formatStateUsing(fn ($state) => substr($state, 0, 5) . '*****'),
+                Select::make('roles')
+                    ->relationship('roles', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->searchable(),
                 Toggle::make('is_active')
-                    ->required(),
-                DateTimePicker::make('email_verified_at'),
+                    ->label('Aktif')
+                    ->default(true),
                 TextInput::make('password')
+                    ->label('Yeni Şifre (değiştirmek istemezsen boş bırak)')
                     ->password()
-                    ->required(),
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
             ]);
     }
 }

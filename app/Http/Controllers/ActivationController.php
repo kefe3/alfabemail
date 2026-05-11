@@ -28,7 +28,7 @@ class ActivationController extends Controller
         Auth::login($user);
 
         return redirect()->intended(
-            $user->hasAnyRole(['super_admin', 'admin'])
+            $user->hasRole('admin')
                 ? route('filament.admin.pages.dashboard')
                 : route('filament.portal.pages.dashboard')
         )->with('success', 'Hesabınız başarıyla aktive edildi.');

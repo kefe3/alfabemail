@@ -7,6 +7,8 @@ use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -46,10 +48,10 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasAnyRole(['super_admin', 'admin']) && $this->is_active;
+            return $this->hasRole('admin') && $this->is_active;
         }
         if ($panel->getId() === 'portal') {
-            return $this->hasAnyRole(['bayi', 'yonetici', 'ogretmen']) && $this->is_active;
+            return $this->hasAnyRole(['yonetici', 'ogretmen', 'veli', 'ogrenci']) && $this->is_active;
         }
         return false;
     }
@@ -57,6 +59,11 @@ class User extends Authenticatable implements FilamentUser
     public function bayi(): HasOne
     {
         return $this->hasOne(Bayi::class);
+    }
+
+    public function okul(): HasOne
+    {
+        return $this->hasOne(Okul::class, 'yonetici_user_id');
     }
 
     public function ogrenci(): HasOne
@@ -67,5 +74,15 @@ class User extends Authenticatable implements FilamentUser
     public function veli(): HasOne
     {
         return $this->hasOne(Veli::class);
+    }
+
+    public function ogretmen_siniflar(): HasMany
+    {
+        return $this->hasMany(Sinif::class, 'ogretmen_user_id');
+    }
+
+    public function ogretmen_sinifler_pivot(): BelongsToMany
+    {
+        return $this->belongsToMany(Sinif::class, 'ogretmen_sinif', 'ogretmen_user_id', 'sinif_id');
     }
 }

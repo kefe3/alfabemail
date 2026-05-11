@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Services\MailcowService;
+use Filament\Notifications\Notification;
 
 class Ogrenci extends Model
 {
+    use HasTenantScope;
+    protected $table = 'ogrenciler';
     protected $fillable = [
         'user_id',
         'sinif_id',
@@ -15,7 +20,41 @@ class Ogrenci extends Model
         'mailbox_quota_mb',
         'qr_token',
         'qr_svg',
+        'anne_email',
+        'baba_email',
+        'veli_email',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($ogrenci) {
+            if (empty($ogrenci->user_id)) {
+                $ogrenci->user_id = auth()->id();
+            }
+        });
+
+        static::deleting(function ($ogrenci) {
+            if (!auth()->check() || !auth()->user()->can('mailbox.delete')) {
+                return;
+            }
+
+            if ($ogrenci->mailbox_local_part) {
+                try {
+                    $mailcow = app(MailcowService::class);
+                    $email = $ogrenci->mailbox_local_part . '@' . config('mailcow.domain', 'alfabe.co');
+                    $mailcow->deleteMailbox($email);
+                } catch (\Exception $e) {
+                    Notification::make()
+                        ->title('Uyarı')
+                        ->body('Mailbox silinirken hata: ' . $e->getMessage())
+                        ->warning()
+                        ->send();
+                }
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {

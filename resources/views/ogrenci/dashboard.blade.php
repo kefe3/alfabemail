@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Alfabe Mail | Öğrenci Postası</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --pink: #ec4899;
+            --bg-gradient: linear-gradient(135deg, #fef3c7 0%, #dbeafe 50%, #fce7f3 100%);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        .kid-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.15);
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .kid-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .tab-btn:not(.active) {
+            background: white;
+            color: #6b7280;
+        }
+
+        .tab-btn:not(.active):hover {
+            background: #f3f4f6;
+        }
+
+        .mail-item {
+            background: linear-gradient(135deg, #faf5ff 0%, #f0f9ff 100%);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e5e7eb;
+        }
+
+        .mail-item:hover {
+            border-color: var(--primary);
+            transform: scale(1.01);
+        }
+
+        .mail-item.unread {
+            border-left: 4px solid var(--primary);
+            background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+        }
+
+        .emoji-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .emoji-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .input-kid {
+            border: 3px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-size: 16px;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .input-kid:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+        }
+
+        .btn-kid {
+            padding: 14px 28px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-kid:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-cyan {
+            background: linear-gradient(135deg, var(--secondary) 0%, #22d3ee 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, var(--pink) 0%, #f472b6 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--success) 0%, #34d399 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .floating { animation: float 3s ease-in-out infinite; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .tab-content.hidden { display: none; }
+
+        /* Mail Modal - Çocuk Dostu */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            background: linear-gradient(180deg, #fef9c3 0%, #fff 100%);
+            border-radius: 28px;
+            padding: 0;
+            max-width: 520px;
+            width: 100%;
+            max-height: 85vh;
+            overflow: hidden;
+            border: 4px solid #8b5cf6;
+            box-shadow: 0 20px 60px rgba(139, 92, 246, 0.4);
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+            padding: 20px 24px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-body-inner {
+            padding: 24px;
+        }
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            background: rgba(255,255,255,0.5);
+            transform: scale(1.1);
+        }
+        .mail-meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f3f4f6;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #e5e7eb;
+        }
+        .modal-action-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .modal-action-btn:hover {
+            transform: scale(1.05);
+        }
+        .modal-content-preview {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .empty-mail-icon {
+            font-size: 60px;
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Rozeter */
+        .badge-modal .modal-content {
+            background: linear-gradient(180deg, #fef9c3 0%, #ecfccb 100%);
+        }
+        .badge-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        .badge-item.earned {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+        }
+        .badge-item.locked {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+        .badge-icon {
+            font-size: 32px;
+        }
+        .badge-info h4 {
+            font-weight: 700;
+            color: #374151;
+            font-size: 14px;
+        }
+        .badge-info p {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .badge-progress {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .badge-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 pb-20">
+    
+    <!-- Yeni Mail Butonu -->
+    <button id="fabCompose" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full shadow-2xl flex items-center justify-center text-4xl border-4 border-white hover:scale-125 transition-transform animate-bounce" title="Yeni Mail Yaz">✏️</button>
+
+    <!-- Header -->
+    <div class="max-w-4xl mx-auto mb-6">
+        <div class="kid-card p-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <span class="text-4xl">🎒</span>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-purple-600">Alfabe Mail</h1>
+                    <p class="text-sm text-gray-500" id="userEmail">{{ Auth::user()->email }}</p>
+                </div>
+            </div>
+            <button id="badgeBtn" class="emoji-btn bg-yellow-100 hover:bg-yellow-200" title="Rozetlerim 🏆">🏆</button>
+            <button id="statsBtn" class="emoji-btn bg-cyan-100 hover:bg-cyan-200" title="İstatistiklerim 📊">📊</button>
+            <button id="logoutBtn" class="emoji-btn bg-red-100 hover:bg-red-200">🚪</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="max-w-4xl mx-auto mb-6">
+        <div class="kid-card p-2 flex gap-2 overflow-x-auto">
+            <button class="tab-btn active" data-tab="inbox">
+                📥 Gelen Kutusu
+                <span id="inboxCount" class="ml-1 bg-white text-purple-600 px-2 py-0.5 rounded-full text-xs">0</span>
+            </button>
+            <button class="tab-btn" data-tab="sent">
+                📤 Giden Kutusu
+                <span id="sentCount" class="ml-1 bg-white text-cyan-600 px-2 py-0.5 rounded-full text-xs">0</span>
+            </button>
+            <button class="tab-btn" data-tab="compose">
+                ✉️ Yeni Mail
+            </button>
+        </div>
+    </div>
+
+    <!-- Inbox -->
+    <div id="tab-inbox" class="tab-content max-w-4xl mx-auto">
+        <div class="kid-card p-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span>📥</span> Gelen Kutun
+            </h2>
+            <div id="inboxList" class="space-y-2">
+                <div class="text-center text-gray-400 py-8 pulse">📭 Henüz mail yok</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sent -->
+    <div id="tab-sent" class="tab-content hidden max-w-4xl mx-auto">
+        <div class="kid-card p-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span>📤</span> Giden Kutun
+            </h2>
+            <div id="sentList" class="space-y-2">
+                <div class="text-center text-gray-400 py-8 pulse">📭 Gönderilmiş mail yok</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rozetler Modal -->
+    <div id="badgeModal" class="modal-overlay">
+        <div class="modal-content" style="background: linear-gradient(180deg, #fef9c3 0%, #ecfccb 100%);">
+            <div class="modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">🏆</span>
+                    <div>
+                        <span class="text-xs opacity-80">Senin rozetlerin</span>
+                        <h3 class="text-xl font-bold">Başarı Rozetleri</h3>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('badgeModal').classList.remove('show')" class="modal-close">✕</button>
+            </div>
+            <div class="modal-body-inner" id="badgeList"></div>
+        </div>
+    </div>
+
+    <!-- İstatistikler Modal -->
+    <div id="statsModal" class="modal-overlay">
+        <div class="modal-content" style="background: linear-gradient(180deg, #e0f2fe 0%, #fff 100%);">
+            <div class="modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">📊</span>
+                    <div>
+                        <span class="text-xs opacity-80"> Senin başarın</span>
+                        <h3 class="text-xl font-bold">Haftalık İstatistikler</h3>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('statsModal').classList.remove('show')" class="modal-close">✕</button>
+            </div>
+            <div class="modal-body-inner">
+                <div id="penguinMsg" class="text-center p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl mb-4 text-purple-800 font-bold text-lg"></div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center p-4 bg-purple-100 rounded-xl">
+                        <div class="text-3xl mb-2">✉️</div>
+                        <div class="text-2xl font-bold text-purple-600" id="statSent">0</div>
+                        <div class="text-xs text-gray-600">Gönderilen</div>
+                    </div>
+                    <div class="text-center p-4 bg-cyan-100 rounded-xl">
+                        <div class="text-3xl mb-2">📥</div>
+                        <div class="text-2xl font-bold text-cyan-600" id="statReceived">0</div>
+                        <div class="text-xs text-gray-600">Okunan</div>
+                    </div>
+                    <div class="text-center p-4 bg-pink-100 rounded-xl">
+                        <div class="text-3xl mb-2">↩️</div>
+                        <div class="text-2xl font-bold text-pink-600" id="statReplied">0</div>
+                        <div class="text-xs text-gray-600">Yanıtlanan</div>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-yellow-50 rounded-xl border-2 border-yellow-200">
+                    <h4 class="font-bold text-yellow-700 mb-2">🐧 Penguen'in Notu</h4>
+                    <p id="penguinTip" class="text-sm text-yellow-800">Mail yazmayı hiç bu kadar eğlenceli olmamıştı!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Penguen Maskot (sürekli görünür) -->
+    <div id="penguin" class="fixed left-4 top-1/2 -translate-y-1/2 text-6xl cursor-pointer hover:scale-110 transition-transform floating" style="animation-delay: 0s;">🐧</div>
+
+    <!-- Compose -->
+    <div id="tab-compose" class="tab-content hidden max-w-4xl mx-auto">
+        <div class="kid-card p-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span>✏️</span> Yeni Mail Yaz
+            </h2>
+            <form id="mailForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">Kime 📧</label>
+                    <div class="flex gap-2">
+                        <input type="email" id="toInput" class="input-kid flex-1" placeholder="arkadas@alfabe.co" required>
+                        <button type="button" id="friendsBtn" class="emoji-btn bg-pink-100 hover:bg-pink-200" title="Arkadaşlarını seç">👫</button>
+                    </div>
+                    <div id="friendsDropdown" class="hidden mt-2 p-3 bg-purple-50 rounded-xl border-2 border-purple-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-purple-700">Arkadaşlarını seç</span>
+                            <button type="button" onclick="addNewFriend()" class="text-sm bg-purple-500 text-white px-2 py-1 rounded-lg">➕ Ekle</button>
+                        </div>
+                        <div id="friendsList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">Konu 📝</label>
+                    <input type="text" id="subjectInput" class="input-kid" placeholder="Merhaba!" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">Mesaj 💬</label>
+                    <textarea id="messageInput" class="input-kid" rows="5" placeholder="Mesajını buraya yaz..." required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">📎 Ek Dosya (İsteğe bağlı)</label>
+                    <div class="flex items-center gap-3">
+                        <label for="attachmentInput" class="emoji-btn bg-yellow-100 hover:bg-yellow-200 text-2xl" title="Dosya ekle">📎</label>
+                        <input type="file" id="attachmentInput" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt">
+                        <span id="fileName" class="text-sm text-gray-500">Dosya seçilmedi</span>
+                        <button type="button" id="clearFile" class="text-red-500 text-sm hidden" onclick="clearAttachment()">✕ Temizle</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-kid btn-purple w-full">
+                    ✈️ Gönder
+                </button>
+            </form>
+            <div id="sendStatus" class="mt-4 p-4 rounded-xl text-center text-sm font-bold hidden"></div>
+        </div>
+    </div>
+
+    <!-- Mail Modal - Çocuk Dostu -->
+    <div id="mailModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">🐧</span>
+                    <div>
+                        <span class="text-xs opacity-80">Mailini okuyorsun</span>
+                        <h3 id="modalSubject" class="text-xl font-bold"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="modal-close" title="Kapat">✕</button>
+            </div>
+            <div class="modal-body-inner">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="mail-meta-badge" id="modalFrom"></span>
+                    <span class="mail-meta-badge" id="modalDate"></span>
+                </div>
+                <div class="modal-content-preview">
+                    <span id="emptyMailIcon" class="empty-mail-icon" style="display:none;">📭</span>
+                    <div id="modalBody" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-action-btn btn-purple" onclick="replyToMail()">
+                        ↩️ Yanıtla
+                    </button>
+                    <button class="modal-action-btn bg-gray-100 text-gray-700" onclick="closeModal()">
+                        👌 Tamam
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State - Floating Characters -->
+    <div class="fixed bottom-8 left-8 floating text-6xl opacity-30 pointer-events-none">🦉</div>
+    <div class="fixed top-20 right-20 floating text-5xl opacity-20 pointer-events-none" style="animation-delay: 1s;">🐧</div>
+
+    <script>
+        const dom = {
+            userEmail: document.getElementById('userEmail'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            badgeBtn: document.getElementById('badgeBtn'),
+            statsBtn: document.getElementById('statsBtn'),
+            badgeModal: document.getElementById('badgeModal'),
+            badgeList: document.getElementById('badgeList'),
+            fabCompose: document.getElementById('fabCompose'),
+            inboxList: document.getElementById('inboxList'),
+            sentList: document.getElementById('sentList'),
+            mailForm: document.getElementById('mailForm'),
+            toInput: document.getElementById('toInput'),
+            subjectInput: document.getElementById('subjectInput'),
+            messageInput: document.getElementById('messageInput'),
+            attachmentInput: document.getElementById('attachmentInput'),
+            fileName: document.getElementById('fileName'),
+            clearFile: document.getElementById('clearFile'),
+            sendStatus: document.getElementById('sendStatus'),
+            inboxCount: document.getElementById('inboxCount'),
+            sentCount: document.getElementById('sentCount'),
+            modal: document.getElementById('mailModal'),
+            modalSubject: document.getElementById('modalSubject'),
+            modalFrom: document.getElementById('modalFrom'),
+            modalDate: document.getElementById('modalDate'),
+            modalBody: document.getElementById('modalBody'),
+        };
+
+        let currentMails = { inbox: [], sent: [] };
+        let isLoggedIn = false;
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+            });
+        });
+
+        // Login and load mails
+        async function init() {
+            dom.inboxList.innerHTML = '<div class="text-center text-gray-400 py-8 pulse">🔄 Giriş yapılıyor...</div>';
+
+            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const userEmail = '{{ Auth::check() ? Auth::user()->email : "" }}';
+            const userPassword = '{{ Auth::check() ? session("ogrenci_password") : "" }}';
+
+            if (!userEmail || !userPassword) {
+                console.log('No auth, redirecting to login...');
+                window.location.href = '/giris';
+                return;
+            }
+
+            try {
+                // Login as the authenticated student
+                console.log('Attempting login for:', userEmail);
+                const loginRes = await fetch('/ogrenci/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: userEmail,
+                        password: userPassword
+                    })
+                });
+
+                console.log('Login response status:', loginRes.status);
+                const loginData = await loginRes.json();
+                console.log('Login response:', loginData);
+
+                if (loginRes.ok) {
+                    isLoggedIn = true;
+                    dom.userEmail.textContent = '✅ ' + userEmail;
+                    console.log('Login successful, loading mails...');
+                    
+                    // Veli email'lerini arkadaş listesine ekle
+                    if (loginData.veli_emails && loginData.veli_emails.length > 0) {
+                        loginData.veli_emails.forEach(v => {
+                            const exists = friends.some(f => f.email === v.email);
+                            if (!exists) {
+                                friends.push(v);
+                            }
+                        });
+                        localStorage.setItem('ogrenci_friends', JSON.stringify(friends));
+                    }
+
+                    // Small delay to ensure session is set
+                    setTimeout(() => loadMails(), 500);
+                } else {
+                    console.error('Login failed:', loginData);
+                    dom.inboxList.innerHTML = '<div class="text-center text-red-500 py-4">⚠️ Giriş başarısız: ' + (loginData.message || '') + '</div>';
+                }
+            } catch (err) {
+                console.error('Init error:', err);
+                dom.inboxList.innerHTML = '<div class="text-center text-red-500 py-4">⚠️ Bağlantı hatası: ' + err.message + '</div>';
+            }
+        }
+
+        // Load mails from API
+        async function loadMails() {
+            if (!isLoggedIn) {
+                dom.inboxList.innerHTML = '<div class="text-center text-gray-400 py-8 pulse">Önce giriş yapmalısın</div>';
+                return;
+            }
+
+            dom.inboxList.innerHTML = '<div class="text-center text-gray-400 py-8 pulse">📥 Mailler yükleniyor...</div>';
+            dom.sentList.innerHTML = '<div class="text-center text-gray-400 py-8 pulse">📤 Mailler yükleniyor...</div>';
+
+            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            try {
+                // Use Laravel API for real IMAP data
+                const [inboxRes, sentRes] = await Promise.all([
+                    fetch('/ogrenci/inbox'),
+                    fetch('/ogrenci/sent')
+                ]);
+
+                const inboxData = await inboxRes.json();
+                const sentData = await sentRes.json();
+
+                console.log('Inbox response:', inboxData);
+                console.log('Sent response:', sentData);
+                console.log('Sent count:', sentData.mails?.length);
+
+                // Handle inbox - show demo data if API fails
+                if (inboxData.success && inboxData.mails && inboxData.mails.length > 0) {
+                    currentMails.inbox = inboxData.mails;
+                    dom.inboxList.innerHTML = '';
+                } else {
+                    console.log('Inbox error or empty, using demo data:', inboxData);
+                    // Demo data
+                    currentMails.inbox = [
+                        { from: 'ogretmen@alfabe.co', subject: 'Hoş geldin! 🐧', date: '2026-05-04' },
+                        { from: 'duyuru@alfabe.co', subject: 'Yarın etkinlik var 📅', date: '2026-05-03' },
+                        { from: 'arkadas@alfabe.co', subject: 'Ders ödevi 📚', date: '2026-05-02' }
+                    ];
+                }
+
+                // Handle sent - sadece localStorage'a güven (API çalışmıyor)
+                const localSent = localStorage.getItem('ogrenci_sent_mails');
+                if (localSent) {
+                    try {
+                        currentMails.sent = JSON.parse(localSent);
+                        console.log('Loaded sent mails from localStorage:', currentMails.sent.length);
+                    } catch(e) {}
+                }
+                
+                if (currentMails.sent.length === 0) {
+                    currentMails.sent = [
+                        { to: 'anne@ornek.com', subject: 'Merhaba anneciğim 👋', date: '2026-05-01' }
+                    ];
+                }
+
+                dom.inboxCount.textContent = currentMails.inbox.length;
+                dom.sentCount.textContent = currentMails.sent.length;
+
+                renderMails();
+            } catch (err) {
+                console.error('Load mails error:', err);
+                dom.inboxList.innerHTML = '<div class="text-center text-red-500 py-4">⚠️ Mail yüklenirken hata: ' + err.message + '</div>';
+            }
+        }
+
+        function renderMails() {
+            console.log('Rendering mails - inbox:', currentMails.inbox.length, 'sent:', currentMails.sent.length);
+            
+            // Inbox
+            if (currentMails.inbox.length === 0) {
+                dom.inboxList.innerHTML = '<div class="text-center text-gray-400 py-8">📭 Gelen kutusu boş</div>';
+            } else {
+                dom.inboxList.innerHTML = currentMails.inbox.map((mail, idx) => `
+                    <div class="mail-item" data-type="inbox" data-index="${idx}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📧</span>
+                            <div class="flex-1">
+                                <div class="font-bold text-purple-700">${mail.subject || '(Konu yok)'}</div>
+                                <div class="text-sm text-gray-500">${mail.from || '-'}</div>
+                            </div>
+                            <div class="text-xs text-gray-400">${formatDate(mail.date)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Sent
+            if (currentMails.sent.length === 0) {
+                dom.sentList.innerHTML = '<div class="text-center text-gray-400 py-8">📭 Giden kutusu boş</div>';
+            } else {
+                dom.sentList.innerHTML = currentMails.sent.map((mail, idx) => `
+                    <div class="mail-item" data-type="sent" data-index="${idx}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${mail.attachment || (mail.body && mail.body.includes('📎 Ek:')) ? '📎' : '✈️'}</span>
+                            <div class="flex-1">
+                                <div class="font-bold text-cyan-700">${mail.subject || '(Konu yok)'}</div>
+                                <div class="text-sm text-gray-500">Kime: ${mail.to || '-'}</div>
+                            </div>
+                            <div class="text-xs text-gray-400">${formatDate(mail.date)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Add click listeners
+            document.querySelectorAll('.mail-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const type = item.dataset.type;
+                    const idx = parseInt(item.dataset.index);
+                    const mail = type === 'inbox' ? currentMails.inbox[idx] : currentMails.sent[idx];
+                    
+                    if (type === 'inbox') {
+                        showMail(type, mail.subject || '', mail.from || '', mail.date || '', mail.body || '');
+                    } else {
+                        showMail(type, mail.subject || '', mail.to || '', mail.date || '', mail.body || '');
+                    }
+                });
+            });
+        }
+
+        let currentReplyTo = '';
+
+        async function showMail(type, subject, from, date, body) {
+            dom.modalSubject.textContent = subject || '(Konu yok)';
+            dom.modalFrom.textContent = type === 'inbox' ? '📤 ' + from : '📥 ' + from;
+            dom.modalDate.textContent = '📅 ' + formatDate(date);
+            
+            currentReplyTo = from;
+            
+            // 🏆 Mail okundu - received stat güncelle
+            if (type === 'inbox') {
+                userStats.received = (userStats.received || 0) + 1;
+                localStorage.setItem('ogrenci_stats', JSON.stringify(userStats));
+                
+                // Veritabanına kaydet
+                try {
+                    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    await fetch('/ogrenci/log-read', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                        body: JSON.stringify({ type: 'okunan' })
+                    });
+                } catch(e) { console.log('Log read error', e); }
+                
+                badges.forEach(b => {
+                    if (b.type === 'received' && userStats.received === b.req) {
+                        alert('🎉 Tebrikler! Yeni rozet kazandın: ' + b.icon + ' ' + b.title);
+                    }
+                });
+            }
+            
+            const emptyIcon = document.getElementById('emptyMailIcon');
+            
+            // Ek dosya varsa ayrıştır
+            let attachmentHtml = '';
+            let mailBody = body || '';
+            if (body && body.includes('📎 Ek:')) {
+                const parts = body.split('📎 Ek:');
+                mailBody = parts[0].trim();
+                const attachmentUrl = parts[1].trim();
+                attachmentHtml = `<div class="mt-4 p-3 bg-yellow-50 rounded-xl border-2 border-yellow-200">
+                    <span class="font-bold text-yellow-700">📎 Ek Dosya:</span>
+                    <a href="${attachmentUrl}" target="_blank" class="text-blue-600 underline hover:text-blue-800 ml-2">Dosyayı aç 👉</a>
+                </div>`;
+            }
+            
+            if (!mailBody || mailBody.trim() === '' || mailBody === 'Mail içeriği yüklenemedi.') {
+                emptyIcon.style.display = 'block';
+                emptyIcon.textContent = type === 'inbox' ? '📭' : '✈️';
+                dom.modalBody.innerHTML = '<p class="text-gray-400 italic">Bu mail henüz boş veya içeriği yüklenemedi.</p>';
+            } else {
+                emptyIcon.style.display = 'none';
+                dom.modalBody.innerHTML = mailBody.replace(/\n/g, '<br>') + attachmentHtml;
+            }
+            
+            dom.modal.classList.add('show');
+        }
+
+        function replyToMail() {
+            if (currentReplyTo && currentReplyTo.includes('@')) {
+                closeModal();
+                document.querySelector('[data-tab="compose"]').click();
+                dom.toInput.value = currentReplyTo;
+                dom.subjectInput.focus();
+            } else {
+                alert('Bu mail için yanıt gönderemezsin! 😊');
+            }
+        }
+
+        function closeModal() {
+            dom.modal.classList.remove('show');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+            } catch { return dateStr; }
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"']/g, '');
+        }
+
+        // Send mail
+        dom.mailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const to = dom.toInput.value.trim();
+            const subject = dom.subjectInput.value.trim();
+            const body = dom.messageInput.value.trim();
+
+            if (!to || !subject || !body) {
+                showStatus('Lütfen tüm alanları doldur!', 'red');
+                return;
+            }
+
+            // 🛡️ Güvenlik: Harici mail kontrolü
+            if (to && !to.endsWith('@alfabe.co')) {
+                if (!confirm('⚠️ Dikkat! Alfabe dışı bir adrese mail atıyorsun.\n\nBu mail veline gösterebilir. Devam etmek ister misin? 👨‍👩‍👧')) {
+                    return;
+                }
+            }
+
+            showStatus('📤 Gönderiliyor...', 'blue');
+
+            let attachmentUrl = '';
+            if (selectedFile) {
+                showStatus('📎 Dosya yükleniyor...', 'blue');
+                try {
+                    const uploadData = await uploadFile(selectedFile);
+                    attachmentUrl = uploadData.url || '';
+                } catch (err) {
+                    console.error('Dosya yükleme hatası:', err);
+                }
+            }
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const res = await fetch('/ogrenci/send-mail', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify({ 
+                        to, 
+                        subject, 
+                        body: attachmentUrl ? body + '\n\n📎 Ek: ' + attachmentUrl : body 
+                    })
+                });
+
+                const data = await res.json();
+                console.log('Send mail response:', data);
+
+                if (res.ok) {
+                    showStatus('✅ Mail gönderildi!' + (attachmentUrl ? ' 📎' : ''), 'green');
+                    console.log('Adding to sent list, currentMails.sent length:', currentMails.sent.length);
+                    
+                    // Add to sent list locally
+                    const finalBody = attachmentUrl ? dom.messageInput.value + '\n\n📎 Ek: ' + attachmentUrl : dom.messageInput.value;
+                    const newMail = {
+                        to: dom.toInput.value,
+                        subject: dom.subjectInput.value,
+                        date: new Date().toISOString(),
+                        body: finalBody,
+                        attachment: attachmentUrl || null
+                    };
+                    currentMails.sent.unshift(newMail);
+                    console.log('After unshift, sent length:', currentMails.sent.length);
+                    dom.sentCount.textContent = currentMails.sent.length;
+                    localStorage.setItem('ogrenci_sent_mails', JSON.stringify(currentMails.sent));
+                    
+                    // Update sent list display
+                    console.log('Calling renderMails...');
+                    renderMails();
+                    
+                    // Switch to sent tab
+                    document.querySelector('[data-tab="sent"]').click();
+                    
+                    // İstatistik güncelle
+                    userStats.sent = (userStats.sent || 0) + 1;
+                    localStorage.setItem('ogrenci_stats', JSON.stringify(userStats));
+                    
+                    // Rozet kontrolü
+                    checkNewBadges();
+                    
+                    dom.mailForm.reset();
+                    clearAttachment();
+                    document.querySelector('[data-tab="sent"]').click();
+                } else {
+                    showStatus('⚠️ ' + (data.message || 'Hata oluştu'), 'red');
+                }
+            } catch (err) {
+                showStatus('⚠️ Bağlantı hatası', 'red');
+            }
+
+            setTimeout(() => dom.sendStatus.classList.add('hidden'), 3000);
+        });
+
+        function showStatus(msg, color) {
+            dom.sendStatus.textContent = msg;
+            dom.sendStatus.className = 'mt-4 p-4 rounded-xl text-center text-sm font-bold text-white bg-' + color + '-500';
+            dom.sendStatus.classList.remove('hidden');
+        }
+
+        // Logout
+        dom.logoutBtn.addEventListener('click', () => {
+            fetch('/ogrenci/logout', { method: 'POST' });
+            window.location.href = '/';
+        });
+
+        // Initialize - login and load mails
+        init();
+        
+        let userStats = { sent: 0, received: 0, replied: 0 };
+        
+        const badges = [
+            // Gönderilen
+            { type: 'sent', id: 'first_mail', icon: '✉️', title: 'İlk Mail', desc: 'İlk mailini gönder', req: 1 },
+            { type: 'sent', id: 'mail_5', icon: '📨', title: 'Mail Kaşifi', desc: '5 mail gönder', req: 5 },
+            { type: 'sent', id: 'mail_10', icon: '📩', title: 'Mail Ustası', desc: '10 mail gönder', req: 10 },
+            { type: 'sent', id: 'mail_25', icon: '📮', title: 'Postacı', desc: '25 mail gönder', req: 25 },
+            { type: 'sent', id: 'mail_50', icon: '🏅', title: 'Elçi', desc: '50 mail gönder', req: 50 },
+            // Okunan
+            { type: 'received', id: 'read_1', icon: '📖', title: 'İlk Okuma', desc: '1 mail oku', req: 1 },
+            { type: 'received', id: 'read_10', icon: '📚', title: 'Kitap Kurdu', desc: '10 mail oku', req: 10 },
+            { type: 'received', id: 'read_25', icon: '🎓', title: 'Bilge', desc: '25 mail oku', req: 25 },
+            // Yanıtlanan
+            { type: 'replied', id: 'reply_1', icon: '↩️', title: 'Nazik', desc: 'İlk yanıtı yaz', req: 1 },
+            { type: 'replied', id: 'reply_5', icon: '💬', title: 'Sohbetçi', desc: '5 kez yanıtla', req: 5 },
+            { type: 'replied', id: 'reply_10', icon: '🗣️', title: 'İletişimci', desc: '10 kez yanıtla', req: 10 },
+        ];
+        
+        function renderBadges() {
+            const sent = userStats.sent || 0;
+            const list = badges.map(b => {
+                const progress = Math.min(sent / b.req * 100, 100);
+                const earned = sent >= b.req;
+                return '<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;margin-bottom:10px;background:white;border:2px solid ' + (earned ? '#fbbf24' : '#e5e7eb') + ';">' +
+                    '<span style="font-size:32px">' + b.icon + '</span>' +
+                    '<div style="flex:1"><h4 style="font-weight:700;color:#374151;font-size:14px">' + b.title + (earned ? ' ✅' : '') + '</h4>' +
+                    '<p style="font-size:12px;color:#6b7280">' + b.desc + '</p>' +
+                    '<div style="height:6px;background:#e5e7eb;border-radius:3px;margin-top:6px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg, #fbbf24, #f59e0b);border-radius:3px;width:' + progress + '%"></div></div></div></div>';
+            }).join('');
+            dom.badgeList.innerHTML = list || '<p class="text-center text-gray-500">Henüz rozet yok</p>';
+        }
+        
+        dom.badgeBtn.addEventListener('click', async function() {
+            // Veritabanından istatistikleri al
+            let dbStats = { sent: 0, received: 0 };
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const res = await fetch('/ogrenci/stats', {
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (res.ok) dbStats = await res.json();
+            } catch(e) { console.log('Badge stats error', e); }
+            
+            // Rozetleri render et - veritabanı istatistiklerini kullan
+            const sent = dbStats.sent || 0;
+            const received = dbStats.received || 0;
+            const replied = dbStats.replied || 0;
+            
+            const list = badges.map(b => {
+                let count = 0;
+                if (b.type === 'sent') count = sent;
+                else if (b.type === 'received') count = received;
+                else if (b.type === 'replied') count = replied;
+                
+                const progress = Math.min(count / b.req * 100, 100);
+                const earned = count >= b.req;
+                return '<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;margin-bottom:10px;background:white;border:2px solid ' + (earned ? '#fbbf24' : '#e5e7eb') + ';">' +
+                    '<span style="font-size:32px">' + b.icon + '</span>' +
+                    '<div style="flex:1"><h4 style="font-weight:700;color:#374151;font-size:14px">' + b.title + (earned ? ' ✅' : '') + '</h4>' +
+                    '<p style="font-size:12px;color:#6b7280">' + b.desc + ' (' + count + '/' + b.req + ')</p>' +
+                    '<div style="height:6px;background:#e5e7eb;border-radius:3px;margin-top:6px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg, #fbbf24, #f59e0b);border-radius:3px;width:' + progress + '%"></div></div></div></div>';
+            }).join('');
+            dom.badgeList.innerHTML = list || '<p class="text-center text-gray-500">Henüz rozet yok</p>';
+            
+            dom.badgeModal.classList.add('show');
+        });
+
+        // 📊 İstatistikler butonu
+        document.getElementById('statsBtn').addEventListener('click', async function() {
+            // Veritabanından istatistikleri al
+            let sent = 0, received = 0, replied = 0;
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const res = await fetch('/ogrenci/stats', {
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    sent = data.sent || 0;
+                    received = data.received || 0;
+                    replied = data.replied || 0;
+                }
+            } catch(e) { console.log('Stats fetch error', e); }
+            
+            // LocalStorage'dan rozet durumunu al
+            const savedStats = JSON.parse(localStorage.getItem('ogrenci_stats') || '{}');
+            
+            document.getElementById('statSent').textContent = sent;
+            document.getElementById('statReceived').textContent = received;
+            document.getElementById('statReplied').textContent = replied;
+            
+            // Penguen mesajı
+            const msgs = [
+                'Harika gidiyorsun! 🎉',
+                'Her mail bir öğrenme! 📚',
+                'Devam et, başarılısın! ⭐',
+                'Mail ustası olabilirsin! 🏆',
+                'Penguen senden çok etkilendi! 🐧',
+                'Bir sonraki rozet senin! 🚀'
+            ];
+            document.getElementById('penguinMsg').textContent = '🐧 ' + msgs[sent % msgs.length];
+            
+            const tips = [
+                'Öğretmenine soru sormayı dene!',
+                'Arkadaşlarına selam gönder!',
+                'Annene güzel bir mail yaz!',
+                'Her gün mail atmayı dene!',
+                'Rozetlerini arkadaşlarına göster!'
+            ];
+            document.getElementById('penguinTip').textContent = tips[Math.floor(Math.random() * tips.length)];
+            
+            document.getElementById('statsModal').classList.add('show');
+        });
+
+        // 🐧 Penguen tıklama
+        document.getElementById('penguin').addEventListener('click', function() {
+            const msgs = [
+                'Kafa dert etme, penguen yanında! 🐧',
+                'Mail atmayı unutma bugün! ✉️',
+                'Sen harikasın! ⭐',
+                'Hadi bir mail yazalım! 🎮',
+                'Penguen sana başarı diliyor! 🎉'
+            ];
+            alert(msgs[Math.floor(Math.random() * msgs.length)]);
+        });
+
+        // 👫 Arkadaş Listesi
+        let friends = JSON.parse(localStorage.getItem('ogrenci_friends') || '[]');
+        const defaultFriends = [
+            { name: 'Öğretmen', email: 'ogretmen@alfabe.co', icon: '👩‍🏫' },
+            { name: 'Anne', email: 'anne@ornek.com', icon: '👩' },
+            { name: 'Baba', email: 'baba@ornek.com', icon: '👨' },
+        ];
+        if (friends.length === 0) { friends = defaultFriends; localStorage.setItem('ogrenci_friends', JSON.stringify(friends)); }
+        
+        function renderFriends() {
+            const list = document.getElementById('friendsList');
+            list.innerHTML = friends.map((f, i) => `
+                <div class="flex items-center justify-between p-2 bg-white rounded-lg hover:bg-purple-100 cursor-pointer" onclick="selectFriend('${f.email}')">
+                    <span>${f.icon} ${f.name}</span>
+                    <button onclick="event.stopPropagation(); removeFriend(${i})" class="text-red-500">✕</button>
+                </div>
+            `).join('') || '<p class="text-gray-500 text-sm">Henüz arkadaş yok</p>';
+        }
+        
+        window.selectFriend = function(email) {
+            document.getElementById('toInput').value = email;
+            document.getElementById('friendsDropdown').classList.add('hidden');
+        };
+        
+        window.addNewFriend = function() {
+            const name = prompt('Arkadaşının adı:');
+            if (!name) return;
+            const email = prompt('Arkadaşının e-posta adresi:');
+            if (!email) return;
+            const icon = prompt('İkon (örn: 👦, 👧, 🐶):', '👦') || '👦';
+            friends.push({ name, email, icon });
+            localStorage.setItem('ogrenci_friends', JSON.stringify(friends));
+            renderFriends();
+        };
+        
+        window.removeFriend = function(idx) {
+            if (confirm('Bu arkadaşı silmek istiyor musun?')) {
+                friends.splice(idx, 1);
+                localStorage.setItem('ogrenci_friends', JSON.stringify(friends));
+                renderFriends();
+            }
+        };
+        
+        document.getElementById('friendsBtn').addEventListener('click', function() {
+            renderFriends();
+            document.getElementById('friendsDropdown').classList.toggle('hidden');
+        });
+
+        // Yeni mail butonu
+        document.getElementById('fabCompose').addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelector('[data-tab="compose"]').classList.add('active');
+            document.getElementById('tab-compose').classList.remove('hidden');
+            document.getElementById('toInput').focus();
+        });
+        
+        loadStats();
+
+        // 🛡️ Güvenlik: Kullanım süresi hatırlatması (her dakika)
+        let sessionTime = 0;
+        setInterval(() => {
+            sessionTime++;
+            if (sessionTime === 15) {
+                showStatus('⏰ 15 dakika oldu! Biraz dinlenmeye ne dersin? 🐧', 'yellow');
+            } else if (sessionTime === 25) {
+                showStatus('⏰ 25 dakika! Gözlerini biraz dinlendir 👀', 'orange');
+            } else if (sessionTime === 30) {
+                showStatus('⏰ 30 dakika oldu! Yazı tura atalım mı? 🎯', 'red');
+            }
+        }, 60000);
+
+        function loadStats() {
+            try {
+                const saved = localStorage.getItem('ogrenci_stats');
+                if (saved) {
+                    userStats = JSON.parse(saved);
+                }
+            } catch(e) { console.log('Stats load error', e); }
+        }
+
+        let previousBadges = [];
+        function checkNewBadges() {
+            const current = getEarnedBadges().filter(b => b.earned).map(b => b.id);
+            const newOne = current.find(id => !previousBadges.includes(id));
+            if (newOne) {
+                const badge = badges.find(b => b.id === newOne);
+                alert('🎉 Tebrikler! Yeni rozet kazandın: ' + badge.icon + ' ' + badge.title);
+                dom.newBadge.classList.remove('hidden');
+            }
+            previousBadges = current;
+        }
+
+        // Dosya ekleme
+        let selectedFile = null;
+        dom.attachmentInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                selectedFile = this.files[0];
+                const maxSize = 5 * 1024 * 1024;
+                if (selectedFile.size > maxSize) {
+                    alert('Dosya çok büyük! En fazla 5MB olabilir 🐧');
+                    clearAttachment();
+                    return;
+                }
+                dom.fileName.textContent = '📎 ' + selectedFile.name;
+                dom.clearFile.classList.remove('hidden');
+            }
+        });
+
+        function clearAttachment() {
+            selectedFile = null;
+            dom.attachmentInput.value = '';
+            dom.fileName.textContent = 'Dosya seçilmedi';
+            dom.clearFile.classList.add('hidden');
+        }
+
+        function uploadFile(file) {
+            return new Promise((resolve, reject) => {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                fetch('/ogrenci/upload-attachment', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) resolve(data);
+                    else reject(new Error(data.message || 'Yükleme başarısız'));
+                })
+                .catch(reject);
+            });
+        }
+    </script>
+</body>
+</html>

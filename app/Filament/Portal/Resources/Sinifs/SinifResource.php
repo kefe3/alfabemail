@@ -14,11 +14,44 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
+use Illuminate\Database\Eloquent\Builder;
+
 class SinifResource extends Resource
 {
     protected static ?string $model = Sinif::class;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function shouldSkipAuthorization(): bool
+    {
+        return false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->hasAnyRole(['admin', 'yonetici']);
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'yonetici']) ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'yonetici']) ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'yonetici']) ?? false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery();
+    }
 
     public static function form(Schema $schema): Schema
     {

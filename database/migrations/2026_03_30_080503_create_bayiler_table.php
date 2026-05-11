@@ -13,6 +13,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('il');
             $table->integer('okul_kotasi')->default(10);
+            $table->boolean('onaylandi')->default(false);
+            $table->timestamp('onay_tarihi')->nullable();
             $table->timestamp('aktif_at')->nullable();
             $table->timestamps();
         });

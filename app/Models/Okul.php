@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Okul extends Model
 {
+    use HasTenantScope;
+    protected $table = 'okullar';
     protected $fillable = [
         'bayi_id',
         'yonetici_user_id',
@@ -15,6 +18,18 @@ class Okul extends Model
         'adres',
         'telefon',
         'is_active',
+        'yonetici_ad_soyad',
+        'yonetici_email',
+        'ulke',
+        'sehir',
+        'ilce',
+        'mahalle',
+        'durum',
+        'red_nedeni',
+    ];
+
+    protected $attributes = [
+        'bayi_id' => null,
     ];
 
     protected $casts = [

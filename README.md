@@ -1,169 +1,248 @@
-# alfabemail
-Çocuklar için mail uygulamasıdır.
-🚀 ALFABE PORTAL - PROJE ANA DÖKÜMANI
-1. VİZYON
-Genç nesillerin bireyselleştirilmiş, çok uyaranlı öğrenme yanıtlarını veren; esnek bir Mail API altyapısı üzerine inşa edilmiş bir iletişim ve eğitim yönetimi ekosistemi. (Şu an belirli bir Mail API sağlayıcısı kullanılmaktadır, gelecekte farklı sağlayıcılar ile de çalışabilecek şekilde soyutlanmıştır.)
+# Alfabe Mail — Çocuklar için Güvenli E-posta Sistemi
 
-2. KULLANICI ROLLERİ VE FONKSİYONLARI
-🟢 ADMIN (Yazılımcılar)
-Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
-Görev: Sistemin çalışmasıyla alakalı süreçlerin yönetimi. 
-Yetki: Bayileri ekleme. 
-🟢 BAYİ (Yerel Yöneticiler)
-Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
-Görev: Sisteme müdürlerin eklenmesini sağlar ve sistemi tavsiye eder. 
-Yetki: Müdürleri ekleme. 
-🟢 YÖNETİCİ (Okul Yönetimi)
-Giriş: Mevcut şahsi e-posta adresi ve aktivasyon linkiyle.
-Görev: Eğitim sürecinin izlenmesi, rehberlik etme ve sistemin birleştirici rolünü üstlenmesi.
-Yetki: Öğretmenleri (branş ve sınıflara dayalı) sistem ekleme.
-🔵 ÖĞRETMEN (Sınıf ve Süreç Lideri)
-Giriş: Aktivasyon bağlantısı ve şifre oluşturma süreciyle.
-Görev: Eğitim planlama, zenginleştirme ve öğrenci rehberliği.
-Yetki: * Sınıf açma ve öğrenci listesi (CSV/Excel) yükleniyor.
-Öğrencisi için otomatik @alfabe.co maili oluşturma (Mailcow API).
-Öğrenci mail adresleri varsayılan olarak ad.soyad uzantıları mümkündür.
-Öğretmen, oluşturma aşamasında öğrencinin isteğine göre bu adrese (nick/rumuz) manuel olarak düzenleyebilir.
-Mevcut bir öğrencinin kullanıcı adı, veri bütünlüğünü bozmadan öğretmen paneli üzerinden güncellenebilir veya ek takma reklam (takma ad) yapılabilir.
-Öğrenci kaydı sırasında veli e-postasını eşleştirme.
-Yaka Kartı Üretimi: öğrenciler için karekodlu giriş kartlarını yazdırma.
-🟡 VELİ (Akademik Takip)
-Giriş: Şahsi mailine gelen link ile.
-Görev: Akademik gelişim ve ödev takibi.
-Yetki: Öğrencinin posta aktarımının sadece özet analizini görmesi (Kimlere posta atıldı, çalışma performansı vb.).
-🔴ÖĞRENCİ (Genç Yetenek)
-Giriş: Kamera üzerinden Karekod okutarak.
-Özellik: Yaş grubuna özel, görsel uyaranı yüksek ayarları.
-Uluslararası Malzeme: Kesikli çizgilerle ayrılır; üstte Karekod, gizli kalacak şifre içeren yaka kartı.
-3. TEKNİK İŞ AKIŞI VE PÜF NOKTALARI
-API Entegrasyonu: Tüm mail açma işlemleri Mail API üzerinden X-API-Key ile yapılır.
+> **v1.0** — Kapsül Serix Teknoloji Platformu
 
-Karekod Giriş: Karekod, gizli mail:sifrebilgileri (şifreli şekilde) içerir. Kamera okunduğunda sistem otomatik giriş olur.
+Çocukların güvenli, reklamsız ve kontrollü bir ortamda e-posta kullanmasını sağlayan eğitim odaklı mail platformu.
 
-Yaka Kartı Tasarımı: - [AD SOYAD]
+---
 
-[KAREKOD (Giriş için)]
------------------------ (Kesme Çizgisi)
-[E-POSTA ADRESİ]
-[METİN ŞİFRE (Saklamak için)]
-4. ANALİZ VE RAPORLAMA
-Veli panelinde yaşanan maillerin içeriği okunmaz; Sadece etkinlik analizi (AI destekli çalışma özeti) sunulur.
+## 🚀 Özellikler
 
-## İlk Aşama - Kodlanan Modüller
+### Paneller
+| Panel | URL | Kullanıcı | Açıklama |
+|-------|-----|-----------|----------|
+| Admin | `/admin` | admin@alfabe.co | Tüm yönetim |
+| Portal | `/panel` | ogretmen/yonetici/veli | Öğretmen, yönetici ve veli paneli |
+| Öğrenci | `/giris` | ogrenci@alfabe.co | Karekodla giriş, mail kullanımı |
 
-- `src/controllers/auth_controller.js`: Mailcow API bağlantısı için auth controller ve öğrenci oluşturma endpoint handler'ı.
-- `src/services/student_mail_service.js`: Öğrenci bilgilerini alıp Mailcow üzerinde otomatik mailbox açma ve güçlü şifre üretimi.
-- `src/views/teacher-printable-badge.html` + `src/views/teacher-printable-badge.css`: Öğrenci maili, karekodu ve kesikli şifre alanı içeren yazdırılabilir yaka kartı şablonu.
+### Demo Hesap Bilgileri
+| Rol | E-posta | Şifre |
+|-----|---------|-------|
+| Admin | admin@alfabe.co | Demo123! |
+| Öğretmen | ogretmen@alfabe.co | Demo123! |
+| Veli | veli@alfabe.co | Demo123! |
+| Öğrenci | ogrenci@alfabe.co | Demo123! |
 
-## Portal Modülleri - Güncel Uygulama Kapsamı
+---
 
-Bu sürümde ana yapı korunarak dört ana panel tek bir portal ekranında birleştirildi:
+## ✅ v1.0 Tamamlanan Özellikler
 
-### 1) Yönetici Paneli
-- Toplam öğrenci sayısı
-- Toplam öğretmen sayısı
-- Öğretmen/sınıf listesi
-- Öğretmen panelinden yeni öğrenci kaydedildikçe sayıların dinamik güncellenmesi
+### Giriş & Kimlik Doğrulama
+- [x] Admin/Portal panel girişi (Filament auth)
+- [x] Öğrenci karekod ile giriş
+- [x] Öğrenci normal giriş
+- [x] Aktivasyon linki ile ilk giriş
+- [x] Kayıt sistemi (e-posta doğrulama → şifre belirleme → admin onayı)
 
-### 2) Öğretmen Paneli
-- Öğrenci adı, soyadı ve veli maili giriş alanları
-- Ad + soyad girildiği anda `ad.soyad@alfabe.co` formatında otomatik kullanıcı adı önerisi
-- Öğretmenin kullanıcı adı alanını manuel düzenleyebilmesi (nick/rumuz)
-- `Öğrenciyi Kaydet` ile Mailcow API sürecinin simülasyonu
-- Simülasyon sonrası otomatik şifre üretimi
-- Karekodlu, kesikli çizgili yaka kartı önizlemesi
-- Kayıttan sonra aktifleşen `Yaka Kartını Yazdır` butonu
+### Öğrenci Mail Sistemi
+- [x] Gelen kutusu (IMAP)
+- [x] Giden kutusu
+- [x] Mail gönderme (SMTP)
+- [x] Mail detay modalı
+- [x] UTF-8 Türkçe destek
+- [x] Çocuk dostu UI (penguen maskot 🐧)
+- [x] Yaka kartı oluşturma (karekodlu)
 
-### 3) Öğrenci Giriş Yönetim Modülü
-- Son oluşturulan öğrenci hesabının özet görünümü
-- Karekodla otomatik giriş akışına hazırlık metni
+### Öğretmen Paneli
+- [x] Sınıf yönetimi (CRUD)
+- [x] Öğrenci yönetimi (CSV yükleme, Mailcow mailbox oluşturma)
+- [x] Veli e-posta eşleştirme
+- [x] Yaka kartı toplu yazdırma
+- [x] Pivot tabanlı sınıf filtreleme
 
-### 4) Veli Paneli
-- Öğrencinin bağlı olduğu veli e-posta bilgisini özetleme
-- İçerik yerine etkinlik/akademik takip odaklı panel yaklaşımı
+### Veli Paneli (6 özellik)
+- [x] AI Haftalık Özet Raporu (VeliAnalizService)
+- [x] Aktivite Takvimi (son 7 gün)
+- [x] Kota/Uyarı Bildirimleri (Mailcow API)
+- [x] Veli-Öğretmen Mesajlaşma
+- [x] Öğrenci Şifre Sıfırlama
+- [x] Çoklu Öğrenci Karşılaştırma
 
-## Teknik Detaylar
-- Front-end: HTML + CSS + Vanilla JS
-- Tasarım: pastel tonlar, yumuşak köşeler, kart tabanlı düzen
-- Çıktı: yazdırmaya uygun yaka kartı önizleme (print CSS)
-- Yeni dosyalar:
-  - `src/views/portal.html`
-  - `src/views/portal.css`
-  - `src/views/portal.js`
+### Admin Paneli
+- [x] Kullanıcı yönetimi (CRUD, rol atama)
+- [x] Okul yönetimi ve onay sistemi
+- [x] Sponsor yönetimi
+- [x] Aktivite logları
+- [x] Hata Bildirisi yönetimi
+- [x] Yeni Kullanıcı Onay Sistemi (kayıt → onay → kullanıcıya taşıma)
+- [x] Yetki/rol yönetimi
 
-## Süreç Notu
-- Ana mimariye zarar vermeden mevcut modüllere ek geliştirme yapıldı.
-- Önceki Mailcow servis/controller dosyaları korunarak, öğretmen odaklı uçtan uca demo akışı portal ekranına taşındı.
+### Hata Bildir Sistemi
+- [x] Tüm sayfalarda floating ⚠️ butonu
+- [x] AJAX ile form gönderimi
+- [x] Ekran görüntüsü yükleme
+- [x] Admin panelinde yönetim (çözüldü/çözülmedi)
 
-## Yeni Başlangıç Ekranı (index.html)
-- `index.html` (repo kökü) dinamik karşılama tasarımı eklendi; domain kökünden direkt açılır.
-- Kayıp penguen animasyonu kapıdan içeri girer şekilde kurgulandı.
-- Penguen tasarımı sadeleştirildi: elinde herhangi bir nesne taşımadan yürür; kapıya yaklaşınca kapı açılır, penguen içeri girer ve kapı üzerinde `alfabe.co` yazısı görünür.
-- Giriş kartları rol hiyerarşisine göre sıralandı: `Super Admin → Admin → Bayi → Yönetici → Öğretmen / Veli / Öğrenci`.
-- Tasarım pastel renk paleti ve modern kart sistemiyle hazırlandı.
+### E-posta Güvenliği (DNS)
+- [x] SPF kaydı (`v=spf1 mx a:mail.alfabe.co -all`)
+- [x] DKIM imzası (RSA 2048 bit)
+- [x] DMARC politikası (`p=quarantine`)
+- [x] PTR kaydı (`45.94.4.39 → mail.alfabe.co`)
 
-## Rol Hiyerarşisi Sayfaları
-- `portal/super_admin.html` eklendi (en üst seviye).
-- `portal/admin.html` eklendi (super admin altı yönetim seviyesi).
-- `portal/bayi.html` ile aşağı akışa devam eder; ardından `portal/yonetici.html`, `portal/ogretmen.html`, `portal/veli.html`, `portal/ogrenci.html` gelir.
+---
 
-## Demo Giriş Bilgileri (Geçici)
-- super_admin: `info@ismailcimen.com.tr / Demo123!`
-- admin: `admin@alfabe.co / Demo123!`
-- bayi: `bayi@alfabe.co / Demo123!`
-- yonetici: `yonetici@alfabe.co / Demo123!`
-- ogretmen: `ogretmen@alfabe.co / Demo123!`
-- veli: `veli@alfabe.co / Demo123!`
-- ogrenci: `ogrenci@alfabe.co / Demo123!`
+## 📡 API Endpoint'leri
 
-## Mailcow Proxy Backend (CORS ve Güvenlik için)
-- Tarayıcıdan doğrudan Mailcow API çağrısı yapmak yerine `server.js` içinde Express tabanlı bir proxy eklendi.
-- Frontend, Mailcow'a doğrudan gitmez; `http://localhost:3000/api/mailcow/*` endpoint'ine istek atar.
-- Mailcow host/key bilgileri sunucu tarafında tutulur:
-  - `.env` (önerilen kalıcı kullanım)
-  - veya `/api/mailcow/config` ile runtime konfigürasyon
-- Başlatma:
-  1. `cp .env.example .env`
-  2. `.env` içinde `MAILCOW_API_BASE_URL` ve `MAILCOW_API_KEY` doldur
-  3. `npm install`
-  4. `npm start`
+### Öğrenci
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| POST | `/ogrenci/login` | Giriş |
+| POST | `/ogrenci/qr-login` | Karekod girişi |
+| GET | `/ogrenci/inbox` | Gelen kutusu |
+| GET | `/ogrenci/sent` | Giden kutusu |
+| POST | `/ogrenci/send-mail` | Mail gönderme |
+| POST | `/ogrenci/log-read` | Okundu kaydı |
+| GET | `/ogrenci/yaka-karti/{id}` | Yaka kartı |
 
-## Öğrenci Sayfası (Tek Dosya)
-- `portal/ogrenci.html` eklendi.
-- Sol tarafta e-posta/şifre giriş formu, sağ tarafta html5-qrcode ile kamera tabanlı karekod giriş alanı vardır.
-- Başarılı giriş sonrası öğrenci mail paneli görünür; gelen kutusu ve mail gönderme (simülasyon) akışı bulunur.
-- Öğrenci oturumu `sessionStorage` ile tutulur, sayfa yenilendiğinde tekrar giriş istenmez.
+### Kayıt
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| POST | `/kayit/send-code` | Doğrulama kodu gönder |
+| POST | `/kayit/verify-code` | Kodu doğrula |
+| POST | `/kayit/complete` | Kaydı tamamla |
 
-## Öğretmen Paneli - Toplu Öğrenci Yükleme
-- `portal/ogretmen.html` içinde drag&drop destekli `.csv/.xlsx` dosya yükleme alanı eklendi.
-- Dosya satırları `xlsx.full.min.js` ile okunur; her öğrenci için otomatik `ad.soyad@alfabe.co` önerisi ve 10 karakter karmaşık şifre üretilir.
-- Önizleme tablosunda satır bazlı `Düzenle` (nick/mail alanı güncelleme) ve `Sil` aksiyonları bulunur.
-- `Hesapları Oluştur` butonu listeleri Mailcow API gönderimine hazır payload formatına dönüştürüp `console.log` çıktısı üretir.
+### Veli
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| POST | `/veli/mesaj-gonder` | Öğretmene mesaj |
+| POST | `/veli/sifre-sifirla` | Öğrenci şifre sıfırlama |
 
-## Veli Sayfası (Dashboard)
-- `portal/veli.html` eklendi.
-- Üst bilgi alanında Veli ve Öğrenci bilgileri gösterilir.
-- İstatistik kartları: haftalık toplam mail, en çok iletişim kurulan kişi, konu filtreli tamamlanan ödev sayısı.
-- `Chart.js` ile haftalık mail trafiği bar grafik olarak sunulur.
-- Mail içeriğini göstermeyen aktivite timeline özeti içerir.
-- Grafik veya analiz düşüşlerinde velinin tek tıkla öğretmene e-posta atabilmesi için `Öğretmenle İletişim` butonu eklendi.
+### Hata Bildir
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| POST | `/hata-bildir` | Hata bildirisi gönder |
 
-## Yönetici Sayfası (yonetici.html)
-- `portal/yonetici.html` eklendi.
-- Sidebar sekmeleri: Okul Özeti, Öğretmen Yönetimi, Sistem Ayarları.
-- Öğretmen ekleme formu: ad, soyad, şahsi mail, sınıf/branş.
-- Öğretmen listesi tablo görünümü ve satır bazlı `Hesabı Askıya Al` + `Şifre Linki Gönder` aksiyonları.
-- Veriler `localStorage` içinde `ogretmenler` anahtarında saklanır.
+---
 
-## Bayi Aktivasyon Sayfası (bayi.html)
-- `portal/bayi.html` eklendi.
-- JavaScript başında sabit Süper Admin tanımı vardır:
-  - `const SUPER_ADMIN_EMAIL = "info@ismailcimen.com.tr";`
-- İki yüzlü panel yapısı:
-  - Süper Admin girişinde `Yeni Bayi Ekle` alanı ve `Tüm Bayileri Listele` tablosu görünür.
-  - Bayi girişinde yalnızca kendi iline ait okul ekleme/görüntüleme yetkisi aktif olur.
-- Bayi oluşturma akışı: ad, soyad, mevcut mail, sorumlu il/bölge ve okul kotası tanımlanır.
-- `Bayi Oluştur` işleminde aktivasyon/panel erişim linki içeren davet maili şablonu üretilir (simülasyon + console payload).
-- Okul aktivasyonunda müdüre `Alfabe Portal'a Davetlisiniz` başlıklı tokenlı davet şablonu üretilir.
-- Takip tablosunda bayi bazlı okul kayıtları ve aktivasyon durumları (Aktif/Beklemede) izlenir.
-- Güvenlik kuralı: Süper Admin e-postasına bağlı kayıtlar silinemez (Sil butonundan muaf).
+## 🛠 Teknik Mimari
+
+### Stack
+- **Backend**: Laravel 13 + Filament 4
+- **Veritabanı**: MySQL (Docker)
+- **Mail Sunucusu**: Mailcow (Docker)
+- **Cache/Queue**: Redis
+- **Yetki**: Spatie Laravel Permission
+- **Frontend**: Blade + Chart.js + IMAP/SMTP
+
+### Veritabanı Hiyerarşisi
+```
+okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
+       → users → (roles: admin, yonetici, ogretmen, veli, ogrenci)
+       → veliler
+       → pending_users (kayıt onay bekleme)
+```
+
+### Roller
+1. **admin** — Tüm yönetim
+2. **yonetici** — Okul yönetimi, öğretmen/sınıf yönetimi
+3. **ogretmen** — Öğrenci yönetimi, sınıf açma
+4. **veli** — Akademik takip, AI raporları
+5. **ogrenci** — Mail kullanımı
+
+---
+
+## 🌐 Sunucu Bilgileri
+
+### Mailcow
+| Servis | Adres |
+|--------|-------|
+| API | `https://mail.alfabe.co/api/v1/` |
+| SMTP | `mail.alfabe.co:587` (TLS) |
+| IMAP | `mail.alfabe.co:993` (SSL) |
+| Domain | `alfabe.co` |
+
+### DNS Kayıtları
+| Kayıt | Değer | Durum |
+|-------|-------|-------|
+| SPF | `v=spf1 mx a:mail.alfabe.co -all` | ✅ |
+| DKIM | `dkim._domainkey.alfabe.co` | ✅ |
+| DMARC | `v=DMARC1; p=quarantine; rua=mailto:postmaster@alfabe.co` | ✅ |
+| PTR | `45.94.4.39 → mail.alfabe.co` | ✅ |
+
+### Development
+- Local: `http://127.0.0.1:8001`
+- Docker: `http://localhost:8000`
+
+---
+
+## 📁 Önemli Dosyalar
+
+### Servisler
+- `app/Services/MailcowService.php` — Mailcow API
+- `app/Services/VeliAnalizService.php` — AI haftalık özet
+- `app/Services/ActivityLogger.php` — Aktivite loglama
+- `app/Services/PermissionService.php` — İzin yönetimi
+- `app/Services/DynamicMailer.php` — Dinamik mail gönderimi
+
+### Controller
+- `app/Http/Controllers/OgrenciController.php` — Öğrenci işlemleri
+- `app/Http/Controllers/VeliController.php` — Veli işlemleri
+- `app/Http/Controllers/HataBildirController.php` — Hata bildirimi
+- `app/Http/Controllers/KayitController.php` — Kayıt işlemleri
+
+### Modeller
+- `app/Models/User.php`, `Ogrenci.php`, `Veli.php`, `Sinif.php`, `Okul.php`
+- `app/Models/PendingUser.php`, `HataBildirisi.php`, `VeliMesaj.php`
+- `app/Models/ActivityLog.php`, `MailAktiviteLog.php`, `Sponsor.php`
+
+### Filament Kaynakları (Admin)
+- `app/Filament/Resources/PendingUserResource.php` — Yeni Kullanıcı Onayı
+- `app/Filament/Resources/HataBildirisis/` — Hata Bildirisi Yönetimi
+- `app/Filament/Resources/Users/` — Kullanıcı Yönetimi
+- `app/Filament/Resources/ActivityLogs/` — Aktivite Logları
+- `app/Filament/Resources/Sponsors/` — Sponsor Yönetimi
+- `app/Filament/Resources/Okuls/Pages/OkulOnay/` — Okul Onayları
+
+### Görünümler
+- `resources/views/welcome.blade.php` — Anasayfa
+- `resources/views/ogrenci/` — Öğrenci dashboard, yaka kartı
+- `resources/views/filament/portal/widgets/veli-dashboard.blade.php` — Veli dashboard
+- `resources/views/partials/hata-bildir.blade.php` — Hata bildir modalı
+- `resources/views/partials/kayit.blade.php` — Kayıt modalı
+- `resources/views/emails/verification-code.blade.php` — Doğrulama e-postası
+
+---
+
+## 🔧 Geliştirme Notları
+
+### Port Kullanımı
+- Local: `8001` (`.env`'de `APP_URL=http://localhost:8000` olsa da localde 8001)
+- Docker internal: `8000`
+- Storage symlink: `public/storage → /var/www/html/storage/app/public` (host mutlak yol değil)
+
+### Koyu Tema Uyumluluğu
+Filament widget view'larında Tailwind kullanılmaz (purge sorunu). Tüm stiller inline olarak yazılır. Input alanlarında `color:#1a202c` ile koyu temada okunabilirlik sağlanır.
+
+### Yeni Resource Eklerken
+```php
+use BackedEnum;
+
+protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-plus';
+protected static ?string $model = MyModel::class;
+protected static bool $shouldRegisterNavigation = true;
+
+public static function canAccess(): bool
+{
+    return auth()->user()?->hasRole('admin') ?? false;
+}
+
+public static function getPages(): array
+{
+    return ['index' => Pages\ListMyModel::route('/')];
+}
+```
+
+---
+
+## 🚧 Gelecek Planları
+
+- [ ] IMAP inbox okuma iyileştirmesi
+- [ ] Öğrenci mail paneli UI redesign
+- [ ] Ek dosya ekleme (resim, belge)
+- [ ] Arama ve filtreleme
+- [ ] Gamification rozetleri
+- [ ] Mobil uyum
+
+---
+
+*Kapsül Serix Teknoloji Platformu Destek Ofisi — Konya*

@@ -14,9 +14,14 @@ class RolesAndPermissionsSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
-            'bayileri-yonet', 'okullari-yonet', 'ogretmenleri-yonet',
-            'ogrencileri-yonet', 'mailbox-olustur', 'mailbox-sil',
-            'kota-sor', 'rapor-gor', 'aktivasyon-gonder', 'yaka-karti-yazdir',
+            'bayi.view', 'bayi.create', 'bayi.edit', 'bayi.delete',
+            'okul.view', 'okul.create', 'okul.edit', 'okul.delete',
+            'sinif.view', 'sinif.create', 'sinif.edit', 'sinif.delete',
+            'ogretmen.view', 'ogretmen.create', 'ogretmen.edit', 'ogretmen.delete',
+            'ogrenci.view', 'ogrenci.create', 'ogrenci.edit', 'ogrenci.delete',
+            'mailbox.view', 'mailbox-olustur', 'mailbox-sil',
+            'rapor.view', 'rapor.export',
+            'aktivasyon.send', 'yaka-karti.print', 'kota-sor', 'ayar.manage',
         ];
 
         foreach ($permissions as $permission) {
@@ -27,19 +32,36 @@ class RolesAndPermissionsSeeder extends Seeder
         $superAdmin->syncPermissions(Permission::all());
 
         $admin = Role::firstOrCreate(['name' => 'admin']);
-        $admin->syncPermissions(['bayileri-yonet','okullari-yonet','ogretmenleri-yonet','aktivasyon-gonder','rapor-gor']);
+        $admin->syncPermissions([
+            'bayi.view', 'bayi.create', 'bayi.edit',
+            'okul.view', 'okul.create', 'okul.edit',
+            'ogretmen.view', 'ogretmen.create', 'ogretmen.edit',
+            'aktivasyon.send', 'rapor.view', 'rapor.export', 'ayar.manage',
+        ]);
 
         $bayi = Role::firstOrCreate(['name' => 'bayi']);
-        $bayi->syncPermissions(['okullari-yonet','aktivasyon-gonder','rapor-gor']);
+        $bayi->syncPermissions([
+            'okul.view', 'okul.create', 'okul.edit',
+            'aktivasyon.send', 'rapor.view',
+        ]);
 
         $yonetici = Role::firstOrCreate(['name' => 'yonetici']);
-        $yonetici->syncPermissions(['ogretmenleri-yonet','aktivasyon-gonder','rapor-gor']);
+        $yonetici->syncPermissions([
+            'sinif.view', 'sinif.create', 'sinif.edit', 'sinif.delete',
+            'ogretmen.view', 'ogretmen.create', 'ogretmen.edit',
+            'aktivasyon.send', 'rapor.view',
+        ]);
 
         $ogretmen = Role::firstOrCreate(['name' => 'ogretmen']);
-        $ogretmen->syncPermissions(['ogrencileri-yonet','mailbox-olustur','mailbox-sil','kota-sor','yaka-karti-yazdir','rapor-gor']);
+        $ogretmen->syncPermissions([
+            'sinif.view', 'sinif.create', 'sinif.edit', 'sinif.delete',
+            'ogrenci.view', 'ogrenci.create', 'ogrenci.edit', 'ogrenci.delete',
+            'mailbox-olustur', 'mailbox-sil', 'mailbox.view',
+            'kota-sor', 'yaka-karti.print', 'rapor.view',
+        ]);
 
         $veli = Role::firstOrCreate(['name' => 'veli']);
-        $veli->syncPermissions(['rapor-gor']);
+        $veli->syncPermissions(['rapor.view']);
 
         Role::firstOrCreate(['name' => 'ogrenci']);
     }

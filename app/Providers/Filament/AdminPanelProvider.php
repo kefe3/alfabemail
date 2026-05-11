@@ -6,7 +6,8 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
+use App\Filament\Pages\AdminDashboard;
+use App\Filament\Pages\MailcowSettings;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -19,16 +20,27 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
+use App\Filament\Resources\Yetki\YetkiManagement;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
             ->id('admin')
             ->path('/admin')
-            ->login()
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn () => Blade::render('<a href="{{ route(\'home\') }}" style="display:inline-block; margin-bottom: 20px; color: #7fa7ff; text-decoration: none; font-weight: bold;">← Ana Sayfa</a>'),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('partials.hata-bildir')->render(),
+            )
             ->authGuard('web')
+            ->login()
             ->colors([
                 'primary' => Color::Amber,
                 'gray' => Color::Slate,
@@ -37,12 +49,20 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
-                Dashboard::class,
+                AdminDashboard::class,
+                MailcowSettings::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->resources([
+                YetkiManagement::class,
+                \App\Filament\Resources\ActivityLogs\ActivityLogResource::class,
+                \App\Filament\Resources\Users\UserResource::class,
+                \App\Filament\Portal\Resources\Okuls\OkulResource::class,
+                \App\Filament\Resources\Sponsors\SponsorResource::class,
+                \App\Filament\Resources\HataBildirisis\HataBildirisiResource::class,
+            ])
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+                \App\Filament\Widgets\AdminStatsOverview::class,
+                \App\Filament\Widgets\RegistrationChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

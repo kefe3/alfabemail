@@ -2,27 +2,52 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sinif extends Model
 {
+    // use HasTenantScope;
+    protected $table = 'siniflar';
     protected $fillable = [
         'okul_id',
-        'ogretmen_user_id',
         'ad',
-        'brans',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($sinif) {
+            if (empty($sinif->okul_id)) {
+                $sinif->okul_id = auth()->user()?->okul?->id 
+                    ?? Okul::where('yonetici_user_id', auth()->id())->first()?->id;
+            }
+        });
+
+        static::created(function ($sinif) {
+            if (request()->has('ogretmenler') && is_array(request('ogretmenler'))) {
+                $sinif->ogretmenler()->sync(request('ogretmenler'));
+            }
+        });
+    }
+
+    public function syncOgretmenler(array $ogretmenIds): void
+    {
+        $this->ogretmenler()->sync($ogretmenIds);
+    }
 
     public function okul(): BelongsTo
     {
         return $this->belongsTo(Okul::class);
     }
 
-    public function ogretmen(): BelongsTo
+    public function ogretmenler(): BelongsToMany
     {
-        return $this->belongsTo(User::class, 'ogretmen_user_id');
+        return $this->belongsToMany(User::class, 'ogretmen_sinif', 'sinif_id', 'ogretmen_user_id')
+            ->withPivot('brans')
+            ->withTimestamps();
     }
 
     public function ogrenciler(): HasMany

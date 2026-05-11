@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Filament\Portal\Resources\Ogretmenler;
+
+use App\Filament\Portal\Resources\Ogretmenler\Pages\CreateOgretmen;
+use App\Filament\Portal\Resources\Ogretmenler\Schemas\OgretmenForm;
+use App\Models\User;
+use BackedEnum;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+
+class OgretmenlerResource extends Resource
+{
+    protected static ?string $model = User::class;
+
+    protected static ?string $slug = 'ogretmenler';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
+
+    protected static ?string $label = 'Öğretmen';
+
+    protected static ?string $pluralLabel = 'Öğretmenler';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->hasAnyRole(['admin', 'yonetici']);
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'yonetici']) ?? false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'yonetici']) ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'yonetici']) ?? false;
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return OgretmenForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->query(User::role('ogretmen'))
+            ->columns([
+                \Filament\Tables\Columns\TextColumn::make('name')
+                    ->label('Ad Soyad')
+                    ->searchable(),
+                \Filament\Tables\Columns\TextColumn::make('email')
+                    ->label('E-posta')
+                    ->searchable(),
+                \Filament\Tables\Columns\TextColumn::make('created_at')
+                    ->label('Eklenme Tarihi')
+                    ->dateTime('d.m.Y'),
+            ])
+            ->paginated([10, 25, 50]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => \App\Filament\Portal\Resources\Ogretmenler\Pages\ListOgretmenler::route('/'),
+            'create' => CreateOgretmen::route('/create'),
+        ];
+    }
+}
