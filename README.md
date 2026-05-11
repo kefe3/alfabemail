@@ -15,14 +15,6 @@
 | Portal | `/panel` | ogretmen/yonetici/veli | Öğretmen, yönetici ve veli paneli |
 | Öğrenci | `/giris` | ogrenci@alfabe.co | Karekodla giriş, mail kullanımı |
 
-### Demo Hesap Bilgileri
-| Rol | E-posta | Şifre |
-|-----|---------|-------|
-| Admin | admin@alfabe.co | Demo123! |
-| Öğretmen | ogretmen@alfabe.co | Demo123! |
-| Veli | veli@alfabe.co | Demo123! |
-| Öğrenci | ogrenci@alfabe.co | Demo123! |
-
 ---
 
 ## ✅ v1.0 Tamamlanan Özellikler
@@ -135,7 +127,7 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 ### Roller
 1. **admin** — Tüm yönetim
 2. **yonetici** — Okul yönetimi, öğretmen/sınıf yönetimi
-3. **ogretmen** — Öğrenci yönetimi, sınıf açma
+3. **ogretmen** — Öğrenci yönetimi
 4. **veli** — Akademik takip, AI raporları
 5. **ogrenci** — Mail kullanımı
 
