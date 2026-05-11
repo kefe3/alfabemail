@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Veli;
 use App\Observers\ActivityLogObserver;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        URL::forceScheme('https');
+
         Okul::observe(ActivityLogObserver::class);
         Sinif::observe(ActivityLogObserver::class);
         Ogrenci::observe(ActivityLogObserver::class);
