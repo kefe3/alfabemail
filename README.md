@@ -11,9 +11,9 @@
 ### Paneller
 | Panel | URL | Kullanıcı | Açıklama |
 |-------|-----|-----------|----------|
-| Admin | `/admin` | admin@alfabe.co | Tüm yönetim |
+| Admin | `/admin` | ...@alfabe.co | Tüm yönetim |
 | Portal | `/panel` | ogretmen/yonetici/veli | Öğretmen, yönetici ve veli paneli |
-| Öğrenci | `/giris` | ogrenci@alfabe.co | Karekodla giriş, mail kullanımı |
+| Öğrenci | `/giris` | ...@alfabe.co | Karekodla giriş, mail kullanımı |
 
 ---
 

@@ -31,7 +31,6 @@ class ListRoles extends BaseListRecords
                     ->label('Rol Adı')
                     ->searchable()
                     ->formatStateUsing(fn ($state) => match ($state) {
-                        'super_admin' => '⭐ Süper Admin',
                         'admin' => '🔧 Admin',
                         'bayi' => '🏪 Bayi',
                         'yonetici' => '🏫 Yönetici',

@@ -28,9 +28,6 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        $superAdmin = Role::firstOrCreate(['name' => 'super_admin']);
-        $superAdmin->syncPermissions(Permission::all());
-
         $admin = Role::firstOrCreate(['name' => 'admin']);
         $admin->syncPermissions([
             'bayi.view', 'bayi.create', 'bayi.edit',
