@@ -10,11 +10,6 @@ class PermissionService
     public static function getGroups(): array
     {
         return [
-            'bayi' => [
-                'label' => 'Bayi Yönetimi',
-                'icon' => 'heroicon-o-shopping-cart',
-                'permissions' => ['view', 'create', 'edit', 'delete'],
-            ],
             'okul' => [
                 'label' => 'Okul Yönetimi',
                 'icon' => 'heroicon-o-building-school',
