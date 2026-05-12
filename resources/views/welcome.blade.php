@@ -187,7 +187,7 @@
         @for ($i = 0; $i < 6; $i++)
           @foreach($sponsorItems as $sponsor)
             <a href="{{ $sponsor['website'] ?? '#' }}" target="_blank" class="sponsor-circle" title="{{ $sponsor['ad'] }}" style="padding:3px;">
-              <img src="/sponsors/{{ basename($sponsor['logo']) }}" alt="{{ $sponsor['ad'] }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+              <img src="{{ asset('storage/' . $sponsor['logo']) }}" alt="{{ $sponsor['ad'] }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
             </a>
           @endforeach
           <div class="sponsor-circle"><span class="sc-emoji">❤️</span><span class="sc-label">Sponsor ol</span></div>
