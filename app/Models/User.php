@@ -56,11 +56,6 @@ class User extends Authenticatable implements FilamentUser
         return false;
     }
 
-    public function bayi(): HasOne
-    {
-        return $this->hasOne(Bayi::class);
-    }
-
     public function okul(): HasOne
     {
         return $this->hasOne(Okul::class, 'yonetici_user_id');

@@ -196,7 +196,6 @@ class PortalTheme extends ServiceProvider
                             }
                             
                             /* Role-specific color schemes */
-                            .role-bayi { --primary: 217 70 239; }
                             .role-yonetici { --primary: 34 197 94; }
                             .role-ogretmen { --primary: 239 68 68; }
                             .role-veli { --primary: 245 158 11; }

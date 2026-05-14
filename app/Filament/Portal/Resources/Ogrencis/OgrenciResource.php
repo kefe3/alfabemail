@@ -53,10 +53,6 @@ class OgrenciResource extends Resource
         $query = parent::getEloquentQuery();
         $user = auth()->user();
 
-        if ($user?->hasRole('bayi')) {
-            return $query->whereHas('sinif.okul', fn($q) => $q->where('bayi_id', $user->bayi?->id));
-        }
-
         if ($user?->hasRole('yonetici')) {
             return $query->whereHas('sinif.okul', fn($q) => $q->where('yonetici_user_id', $user->id));
         }

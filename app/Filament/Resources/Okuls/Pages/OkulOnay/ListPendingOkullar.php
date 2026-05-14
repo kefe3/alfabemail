@@ -43,9 +43,6 @@ class ListPendingOkullar extends ListRecords implements Tables\Contracts\HasTabl
                 TextColumn::make('ad')
                     ->label('Okul Adı')
                     ->searchable(),
-                TextColumn::make('bayi.user.name')
-                    ->label('Bayi')
-                    ->searchable(),
                 TextColumn::make('yonetici_ad_soyad')
                     ->label('Yönetici')
                     ->searchable(),

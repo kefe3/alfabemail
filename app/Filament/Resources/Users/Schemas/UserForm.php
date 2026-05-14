@@ -2,34 +2,86 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Sinif;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Spatie\Permission\Models\Role;
 
 class UserForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isCreate = fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord;
+        $ogrenciRoleId = Role::where('name', 'ogrenci')->value('id');
+        $isOgrenci = fn (callable $get) => $ogrenciRoleId && in_array($ogrenciRoleId, $get('roles') ?? []);
+
         return $schema
             ->components([
+
                 TextInput::make('name')
+                    ->label('Ad Soyad')
                     ->required()
+                    ->maxLength(255)
+                    ->hidden(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get)),
+
+                TextInput::make('first_name')
+                    ->label('Ad')
+                    ->required(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get))
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get))
                     ->maxLength(255),
+
+                TextInput::make('last_name')
+                    ->label('Soyad')
+                    ->required(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get))
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get))
+                    ->maxLength(255),
+
+                TextInput::make('nickname')
+                    ->label('Rumuz (Nickname)')
+                    ->suffix('@alfabe.co')
+                    ->helperText('Boş bırakılırsa ad.soyad kullanılır')
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+
+                Select::make('sinif_id')
+                    ->label('Sınıf')
+                    ->options(fn () => Sinif::pluck('ad', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+
+                TextInput::make('anne_email')
+                    ->label('Anne E-posta')
+                    ->email()
+                    ->nullable()
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+
+                TextInput::make('baba_email')
+                    ->label('Baba E-posta')
+                    ->email()
+                    ->nullable()
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+
                 TextInput::make('email')
                     ->label('Email address')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->disabled(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                    ->disabled(fn ($livewire) => !$isCreate($livewire))
+                    ->hidden(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get))
                     ->formatStateUsing(fn ($state) => substr($state, 0, 5) . '*****'),
+
                 Select::make('roles')
                     ->relationship('roles', 'name')
                     ->multiple()
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->live(),
+
                 Toggle::make('is_active')
                     ->label('Aktif')
                     ->default(true),
+
                 TextInput::make('password')
                     ->label('Yeni Şifre (değiştirmek istemezsen boş bırak)')
                     ->password()

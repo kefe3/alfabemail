@@ -33,7 +33,7 @@
     <h2>1. Tanımlar</h2>
     <ul>
       <li><strong>Platform:</strong> Alfabe Mail tarafından sunulan, çocuklar için güvenli e-posta sistemi ve okul yönetim araçları</li>
-      <li><strong>Kullanıcı:</strong> Öğrenci, veli, öğretmen, yönetici veya bayi olarak platforma erişen herkes</li>
+      <li><strong>Kullanıcı:</strong> Öğrenci, veli, öğretmen veya yönetici olarak platforma erişen herkes</li>
       <li><strong>İçerik:</strong> Platform üzerinden gönderilen, alınan veya paylaşılan e-postalar, dosyalar ve diğer veriler</li>
     </ul>
 

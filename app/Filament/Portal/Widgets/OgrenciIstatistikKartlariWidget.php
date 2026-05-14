@@ -20,8 +20,6 @@ class OgrenciIstatistikKartlariWidget extends StatsOverviewWidget
             $query->whereHas('sinif', fn($q) => $q->where('ogretmen_user_id', $user->id));
         } elseif ($user->hasRole('yonetici')) {
             $query->whereHas('sinif.okul', fn($q) => $q->where('yonetici_user_id', $user->id));
-        } elseif ($user->hasRole('bayi')) {
-            $query->whereHas('sinif.okul', fn($q) => $q->where('bayi_id', $user->bayi?->id));
         }
 
         $toplamOgrenci = $query->count();
@@ -55,6 +53,6 @@ class OgrenciIstatistikKartlariWidget extends StatsOverviewWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin', 'bayi', 'yonetici', 'ogretmen']) ?? false;
+        return auth()->user()?->hasAnyRole(['admin', 'yonetici', 'ogretmen']) ?? false;
     }
 }

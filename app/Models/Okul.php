@@ -12,7 +12,6 @@ class Okul extends Model
     use HasTenantScope;
     protected $table = 'okullar';
     protected $fillable = [
-        'bayi_id',
         'yonetici_user_id',
         'ad',
         'adres',
@@ -28,18 +27,9 @@ class Okul extends Model
         'red_nedeni',
     ];
 
-    protected $attributes = [
-        'bayi_id' => null,
-    ];
-
     protected $casts = [
         'is_active' => 'boolean',
     ];
-
-    public function bayi(): BelongsTo
-    {
-        return $this->belongsTo(Bayi::class);
-    }
 
     public function yonetici(): BelongsTo
     {

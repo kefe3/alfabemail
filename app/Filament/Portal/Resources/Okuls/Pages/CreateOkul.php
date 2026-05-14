@@ -53,20 +53,13 @@ class CreateOkul extends CreateRecord
             }
         }
 
-        if (auth()->user()?->hasRole('bayi')) {
-            $data['bayi_id'] = auth()->user()->bayi?->id;
-        }
-
         return $data;
     }
 
     protected function afterCreate(): void
     {
-        $bayi = auth()->user()?->hasRole('bayi') ? auth()->user()?->bayi : null;
-        
         ActivityLogger::created($this->record, 
-            'Okul oluşturuldu: ' . $this->record->ad . 
-            ($bayi ? ' - Bayi: ' . $bayi->id : '')
+            'Okul oluşturuldu: ' . $this->record->ad
         );
     }
 }

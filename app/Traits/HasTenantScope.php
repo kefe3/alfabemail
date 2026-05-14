@@ -18,19 +18,9 @@ trait HasTenantScope
             return $query;
         }
 
-        // Super Admin sees everything
+        // Admin sees everything
         if ($user->hasRole('admin')) {
             return $query;
-        }
-
-        // Admin sees everything except super admin level
-        if ($user->hasRole('admin')) {
-            return $query;
-        }
-
-        // Bayi sees only their own schools
-        if ($user->hasRole('bayi')) {
-            return $this->scopeForBayi($query, $user);
         }
 
         // Yonetici sees only their own school
@@ -54,26 +44,6 @@ trait HasTenantScope
         }
 
         return $query;
-    }
-
-    /**
-     * Scope for Bayi - sees only their own schools
-     */
-    protected function scopeForBayi(Builder $query, User $user): Builder
-    {
-        $bayi = $user->bayi;
-        
-        if (!$bayi) {
-            return $query->whereRaw('1 = 0'); // No access
-        }
-
-        return match(static::class) {
-            \App\Models\Okul::class => $query->where('bayi_id', $bayi->id),
-            \App\Models\Ogrenci::class => $query->whereHas('sinif.okul', fn($q) => $q->where('bayi_id', $bayi->id)),
-            \App\Models\Ogretmen::class => $query->whereHas('siniflar.okul', fn($q) => $q->where('bayi_id', $bayi->id)),
-            \App\Models\Yonetici::class => $query->whereHas('okul', fn($q) => $q->where('bayi_id', $bayi->id)),
-            default => $query->whereRaw('1 = 0'),
-        };
     }
 
     /**
