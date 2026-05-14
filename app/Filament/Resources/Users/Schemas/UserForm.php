@@ -101,7 +101,8 @@ class UserForm
                     ->label('Email address')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->hidden(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get)),
+                    ->hidden(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get))
+                    ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) . '*****' : null),
 
                 Select::make('roles')
                     ->relationship('roles', 'name')
