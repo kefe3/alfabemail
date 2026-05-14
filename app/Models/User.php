@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -24,6 +25,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'is_active',
+        'okul_id',
     ];
 
     protected $hidden = [
@@ -59,6 +61,11 @@ class User extends Authenticatable implements FilamentUser
     public function okul(): HasOne
     {
         return $this->hasOne(Okul::class, 'yonetici_user_id');
+    }
+
+    public function bagli_okul(): BelongsTo
+    {
+        return $this->belongsTo(Okul::class, 'okul_id');
     }
 
     public function ogrenci(): HasOne

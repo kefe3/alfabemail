@@ -4,9 +4,11 @@ namespace App\Filament\Resources\Users\Schemas;
 
 use App\Models\Okul;
 use App\Models\Sinif;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Spatie\Permission\Models\Role;
 
@@ -19,6 +21,8 @@ class UserForm
         $isOgrenci = fn (callable $get) => $ogrenciRoleId && in_array($ogrenciRoleId, $get('roles') ?? []);
         $yoneticiRoleId = Role::where('name', 'yonetici')->value('id');
         $isYonetici = fn (callable $get) => $yoneticiRoleId && in_array($yoneticiRoleId, $get('roles') ?? []);
+        $ogretmenRoleId = Role::where('name', 'ogretmen')->value('id');
+        $isOgretmen = fn (callable $get) => $ogretmenRoleId && in_array($ogretmenRoleId, $get('roles') ?? []);
 
         return $schema
             ->components([
@@ -100,7 +104,28 @@ class UserForm
                         ])->id;
                     })
                     ->createOptionModalHeading('Yeni Okul Oluştur')
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isYonetici($get)),
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || (!$isYonetici($get) && !$isOgretmen($get))),
+
+                Select::make('sinif_ids')
+                    ->label('Sınıflar')
+                    ->multiple()
+                    ->options(fn (callable $get) => $get('okul_id') ? Sinif::where('okul_id', $get('okul_id'))->pluck('ad', 'id') : [])
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        TextInput::make('ad')->label('Sınıf Adı')->required()->maxLength(255),
+                        Hidden::make('okul_id')
+                            ->default(fn ($livewire) => data_get($livewire, 'data.okul_id')),
+                    ])
+                    ->createOptionUsing(function (array $data) {
+                        if (!$data['okul_id']) {
+                            Notification::make()->title('Önce okul seçin')->warning()->send();
+                            return null;
+                        }
+                        return Sinif::create(['ad' => $data['ad'], 'okul_id' => $data['okul_id']])->id;
+                    })
+                    ->createOptionModalHeading('Yeni Sınıf Oluştur')
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgretmen($get)),
 
                 Toggle::make('is_active')
                     ->label('Aktif')

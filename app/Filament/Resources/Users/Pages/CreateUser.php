@@ -24,6 +24,7 @@ class CreateUser extends CreateRecord
     protected static string $resource = UserResource::class;
 
     private ?array $ogrenciData = null;
+    private ?array $ogretmenData = null;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -42,6 +43,14 @@ class CreateUser extends CreateRecord
             $data['email'] = null;
 
             unset($data['first_name'], $data['last_name'], $data['nickname'], $data['sinif_id'], $data['anne_email'], $data['baba_email']);
+        }
+
+        $ogretmenRoleId = Role::where('name', 'ogretmen')->value('id');
+        if ($ogretmenRoleId && in_array($ogretmenRoleId, $data['roles'] ?? [])) {
+            $this->ogretmenData = [
+                'sinif_ids' => $data['sinif_ids'] ?? [],
+            ];
+            unset($data['sinif_ids']);
         }
 
         return $data;
@@ -157,6 +166,12 @@ class CreateUser extends CreateRecord
             $okulId = $this->form->getState()['okul_id'] ?? null;
             if ($okulId) {
                 Okul::where('id', $okulId)->update(['yonetici_user_id' => $this->record->id]);
+            }
+        }
+
+        if ($this->ogretmenData !== null) {
+            if (!empty($this->ogretmenData['sinif_ids'])) {
+                $this->record->ogretmen_sinifler_pivot()->sync($this->ogretmenData['sinif_ids']);
             }
         }
 
