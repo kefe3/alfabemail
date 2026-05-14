@@ -74,7 +74,7 @@ class UserForm
                         ])->id;
                     })
                     ->createOptionModalHeading('Yeni Okul Oluştur')
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+                    ->hidden(fn (callable $get) => !$isOgrenci($get)),
 
                 Select::make('sinif_id')
                     ->label('Sınıf')
@@ -83,27 +83,25 @@ class UserForm
                         : [])
                     ->searchable()
                     ->preload()
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+                    ->hidden(fn (callable $get) => !$isOgrenci($get)),
 
                 TextInput::make('anne_email')
                     ->label('Anne E-posta')
                     ->email()
                     ->nullable()
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+                    ->hidden(fn (callable $get) => !$isOgrenci($get)),
 
                 TextInput::make('baba_email')
                     ->label('Baba E-posta')
                     ->email()
                     ->nullable()
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+                    ->hidden(fn (callable $get) => !$isOgrenci($get)),
 
                 TextInput::make('email')
                     ->label('Email address')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->disabled(fn ($livewire) => !$isCreate($livewire))
-                    ->hidden(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get))
-                    ->formatStateUsing(fn ($state) => substr($state, 0, 5) . '*****'),
+                    ->hidden(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get)),
 
                 Select::make('roles')
                     ->relationship('roles', 'name')
@@ -130,13 +128,13 @@ class UserForm
                         ])->id;
                     })
                     ->createOptionModalHeading('Yeni Okul Oluştur')
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || (!$isYonetici($get) && !$isOgretmen($get))),
+                    ->hidden(fn (callable $get) => !$isYonetici($get) && !$isOgretmen($get)),
 
                 TextInput::make('phone')
                     ->label('Telefon')
                     ->tel()
                     ->maxLength(20)
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isYonetici($get)),
+                    ->hidden(fn (callable $get) => !$isYonetici($get)),
 
                 Select::make('sinif_ids')
                     ->label('Sınıflar')
@@ -157,7 +155,7 @@ class UserForm
                         return Sinif::create(['ad' => $data['ad'], 'okul_id' => $data['okul_id']])->id;
                     })
                     ->createOptionModalHeading('Yeni Sınıf Oluştur')
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgretmen($get)),
+                    ->hidden(fn (callable $get) => !$isOgretmen($get)),
 
                 Select::make('ogrenci_ids')
                     ->label('Öğrenciler')
@@ -198,7 +196,7 @@ class UserForm
                         }
                     })
                     ->createOptionModalHeading('Yeni Öğrenci Oluştur')
-                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isVeli($get)),
+                    ->hidden(fn (callable $get) => !$isVeli($get)),
 
                 Toggle::make('is_active')
                     ->label('Aktif')
