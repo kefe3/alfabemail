@@ -58,6 +58,8 @@
 - [x] Hata Bildirisi yönetimi
 - [x] Yeni Kullanıcı Onay Sistemi (kayıt → onay → kullanıcıya taşıma)
 - [x] Yetki/rol yönetimi
+- [x] Öğretmen oluştururken okul seçimi (okul yoksa yeni okul oluşturma)
+- [x] Öğretmen oluştururken sınıf seçimi (sınıf yoksa yeni sınıf oluşturma)
 
 ### Hata Bildir Sistemi
 - [x] Tüm sayfalarda floating ⚠️ butonu
@@ -173,7 +175,8 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 - `app/Http/Controllers/KayitController.php` — Kayıt işlemleri
 
 ### Modeller
-- `app/Models/User.php`, `Ogrenci.php`, `Veli.php`, `Sinif.php`, `Okul.php`
+- `app/Models/User.php` (roller, `okul()`/`bagli_okul()`/ogrenci/veli/ogretmen ilişkileri)
+- `app/Models/Ogrenci.php`, `Veli.php`, `Sinif.php`, `Okul.php`
 - `app/Models/PendingUser.php`, `HataBildirisi.php`, `VeliMesaj.php`
 - `app/Models/ActivityLog.php`, `MailAktiviteLog.php`, `Sponsor.php`
 
