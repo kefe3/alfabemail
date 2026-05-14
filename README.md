@@ -25,6 +25,7 @@
 - [x] Öğrenci normal giriş
 - [x] Aktivasyon linki ile ilk giriş
 - [x] Kayıt sistemi (e-posta doğrulama → şifre belirleme → admin onayı)
+- [x] Öğrenci oluştururken okul seçimi + okula göre sınıf seçimi
 
 ### Öğrenci Mail Sistemi
 - [x] Gelen kutusu (IMAP)

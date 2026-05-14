@@ -60,9 +60,32 @@ class UserForm
                     ->helperText('Boş bırakılırsa ad.soyad kullanılır')
                     ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
 
+                Select::make('ogrenci_okul_id')
+                    ->label('Okul')
+                    ->options(fn () => Okul::pluck('ad', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->createOptionForm([
+                        TextInput::make('ad')
+                            ->label('Okul Adı')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->createOptionUsing(function (array $data) {
+                        return Okul::create([
+                            'ad' => $data['ad'],
+                            'is_active' => true,
+                        ])->id;
+                    })
+                    ->createOptionModalHeading('Yeni Okul Oluştur')
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
+
                 Select::make('sinif_id')
                     ->label('Sınıf')
-                    ->options(fn () => Sinif::pluck('ad', 'id'))
+                    ->options(fn (callable $get) => $get('ogrenci_okul_id')
+                        ? Sinif::where('okul_id', $get('ogrenci_okul_id'))->pluck('ad', 'id')
+                        : [])
                     ->searchable()
                     ->preload()
                     ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgrenci($get)),
@@ -148,8 +171,13 @@ class UserForm
                         TextInput::make('last_name')->label('Soyad')->required()->maxLength(255),
                         TextInput::make('nickname')->label('Rumuz')->suffix('@alfabe.co')
                             ->helperText('Boş bırakılırsa ad.soyad kullanılır'),
+                        Select::make('okul_id')->label('Okul')
+                            ->options(fn () => Okul::pluck('ad', 'id'))->searchable()->live(),
                         Select::make('sinif_id')->label('Sınıf')
-                            ->options(fn () => Sinif::pluck('ad', 'id'))->searchable(),
+                            ->options(fn (callable $get) => $get('okul_id')
+                                ? Sinif::where('okul_id', $get('okul_id'))->pluck('ad', 'id')
+                                : [])
+                            ->searchable(),
                         TextInput::make('password')->label('Şifre')->password()->required()
                             ->default('Ogrenci123!'),
                         TextInput::make('anne_email')->label('Anne E-posta')->email()->nullable(),
