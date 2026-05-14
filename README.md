@@ -2,7 +2,7 @@
 
 > **v1.0** — Kapsül Serix Teknoloji Platformu
 
-Çocukların güvenli, reklamsız ve kontrollü bir ortamda e-posta kullanmasını sağlayan eğitim odaklı mail platformu.
+Çocukların güvenli, reklamsız, kötü söz içermeyen ve kontrollü bir ortamda e-posta kullanmasını sağlayan eğitim odaklı mail platformu.
 
 ---
 
