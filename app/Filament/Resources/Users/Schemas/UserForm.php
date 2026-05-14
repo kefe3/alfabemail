@@ -86,6 +86,20 @@ class UserForm
                     ->options(fn () => Okul::pluck('ad', 'id'))
                     ->searchable()
                     ->preload()
+                    ->native(false)
+                    ->createOptionForm([
+                        TextInput::make('ad')
+                            ->label('Okul Adı')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->createOptionUsing(function (array $data) {
+                        return Okul::create([
+                            'ad' => $data['ad'],
+                            'is_active' => true,
+                        ])->id;
+                    })
+                    ->createOptionModalHeading('Yeni Okul Oluştur')
                     ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isYonetici($get)),
 
                 Toggle::make('is_active')
