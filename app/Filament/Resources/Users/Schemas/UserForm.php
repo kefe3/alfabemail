@@ -132,6 +132,12 @@ class UserForm
                     ->createOptionModalHeading('Yeni Okul Oluştur')
                     ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || (!$isYonetici($get) && !$isOgretmen($get))),
 
+                TextInput::make('phone')
+                    ->label('Telefon')
+                    ->tel()
+                    ->maxLength(20)
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isYonetici($get)),
+
                 Select::make('sinif_ids')
                     ->label('Sınıflar')
                     ->multiple()
