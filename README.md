@@ -60,6 +60,7 @@
 - [x] Yetki/rol yönetimi
 - [x] Öğretmen oluştururken okul seçimi (okul yoksa yeni okul oluşturma)
 - [x] Öğretmen oluştururken sınıf seçimi (sınıf yoksa yeni sınıf oluşturma)
+- [x] Veli oluştururken öğrenci seçimi (hangi öğrencinin velisi olduğu)
 
 ### Hata Bildir Sistemi
 - [x] Tüm sayfalarda floating ⚠️ butonu

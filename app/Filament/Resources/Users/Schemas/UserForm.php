@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Ogrenci;
 use App\Models\Okul;
 use App\Models\Sinif;
 use Filament\Forms\Components\Hidden;
@@ -23,6 +24,8 @@ class UserForm
         $isYonetici = fn (callable $get) => $yoneticiRoleId && in_array($yoneticiRoleId, $get('roles') ?? []);
         $ogretmenRoleId = Role::where('name', 'ogretmen')->value('id');
         $isOgretmen = fn (callable $get) => $ogretmenRoleId && in_array($ogretmenRoleId, $get('roles') ?? []);
+        $veliRoleId = Role::where('name', 'veli')->value('id');
+        $isVeli = fn (callable $get) => $veliRoleId && in_array($veliRoleId, $get('roles') ?? []);
 
         return $schema
             ->components([
@@ -126,6 +129,15 @@ class UserForm
                     })
                     ->createOptionModalHeading('Yeni Sınıf Oluştur')
                     ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isOgretmen($get)),
+
+                Select::make('ogrenci_ids')
+                    ->label('Öğrenciler')
+                    ->multiple()
+                    ->options(fn () => Ogrenci::join('users', 'ogrenciler.user_id', '=', 'users.id')
+                        ->pluck('users.name', 'ogrenciler.id'))
+                    ->searchable()
+                    ->preload()
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isVeli($get)),
 
                 Toggle::make('is_active')
                     ->label('Aktif')

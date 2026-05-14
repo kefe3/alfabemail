@@ -25,6 +25,7 @@ class CreateUser extends CreateRecord
 
     private ?array $ogrenciData = null;
     private ?array $ogretmenData = null;
+    private ?array $veliData = null;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -51,6 +52,14 @@ class CreateUser extends CreateRecord
                 'sinif_ids' => $data['sinif_ids'] ?? [],
             ];
             unset($data['sinif_ids']);
+        }
+
+        $veliRoleId = Role::where('name', 'veli')->value('id');
+        if ($veliRoleId && in_array($veliRoleId, $data['roles'] ?? [])) {
+            $this->veliData = [
+                'ogrenci_ids' => $data['ogrenci_ids'] ?? [],
+            ];
+            unset($data['ogrenci_ids']);
         }
 
         return $data;
@@ -172,6 +181,13 @@ class CreateUser extends CreateRecord
         if ($this->ogretmenData !== null) {
             if (!empty($this->ogretmenData['sinif_ids'])) {
                 $this->record->ogretmen_sinifler_pivot()->sync($this->ogretmenData['sinif_ids']);
+            }
+        }
+
+        if ($this->veliData !== null) {
+            if (!empty($this->veliData['ogrenci_ids'])) {
+                $veli = Veli::firstOrCreate(['user_id' => $this->record->id]);
+                $veli->ogrenciler()->sync($this->veliData['ogrenci_ids']);
             }
         }
 
