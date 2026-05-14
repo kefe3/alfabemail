@@ -5,18 +5,13 @@ namespace App\Filament\Resources\Users\Schemas;
 use App\Models\Ogrenci;
 use App\Models\Okul;
 use App\Models\Sinif;
-use App\Models\User;
-use App\Models\Veli;
-use App\Services\MailcowService;
+use App\Services\StudentCreationService;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\Permission\Models\Role;
 
 class UserForm
@@ -25,13 +20,13 @@ class UserForm
     {
         $isCreate = fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord;
         $ogrenciRoleId = Role::where('name', 'ogrenci')->value('id');
-        $isOgrenci = fn (callable $get) => $ogrenciRoleId && in_array($ogrenciRoleId, $get('roles') ?? []);
+        $isOgrenci = fn (callable $get) => $ogrenciRoleId && $get('roles') == $ogrenciRoleId;
         $yoneticiRoleId = Role::where('name', 'yonetici')->value('id');
-        $isYonetici = fn (callable $get) => $yoneticiRoleId && in_array($yoneticiRoleId, $get('roles') ?? []);
+        $isYonetici = fn (callable $get) => $yoneticiRoleId && $get('roles') == $yoneticiRoleId;
         $ogretmenRoleId = Role::where('name', 'ogretmen')->value('id');
-        $isOgretmen = fn (callable $get) => $ogretmenRoleId && in_array($ogretmenRoleId, $get('roles') ?? []);
+        $isOgretmen = fn (callable $get) => $ogretmenRoleId && $get('roles') == $ogretmenRoleId;
         $veliRoleId = Role::where('name', 'veli')->value('id');
-        $isVeli = fn (callable $get) => $veliRoleId && in_array($veliRoleId, $get('roles') ?? []);
+        $isVeli = fn (callable $get) => $veliRoleId && $get('roles') == $veliRoleId;
 
         return $schema
             ->components([
@@ -112,7 +107,6 @@ class UserForm
 
                 Select::make('roles')
                     ->relationship('roles', 'name')
-                    ->multiple()
                     ->preload()
                     ->searchable()
                     ->live(),
@@ -184,67 +178,18 @@ class UserForm
                         TextInput::make('baba_email')->label('Baba E-posta')->email()->nullable(),
                     ])
                     ->createOptionUsing(function (array $data) {
-                        $mailcow = app(MailcowService::class);
-
-                        if (!$mailcow->isConfigured() || !$mailcow->testConnection()) {
-                            Notification::make()->title('Mailcow bağlantı hatası')->danger()->send();
-                            return null;
-                        }
-
                         try {
-                            $mailbox = $mailcow->createStudentMailbox(
-                                $data['first_name'], $data['last_name'],
-                                $data['nickname'] ?? null, 0, $data['password']
-                            );
-                        } catch (\Exception $e) {
-                            Notification::make()->title('Mailcow hatası')->body($e->getMessage())->danger()->send();
+                            $ogrenci = app(StudentCreationService::class)->create($data);
+
+                            Notification::make()->title('Başarılı')
+                                ->body("Öğrenci {$ogrenci->user->name} oluşturuldu.")
+                                ->success()->send();
+
+                            return $ogrenci->id;
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->title('Hata')->body($e->getMessage())->danger()->send();
                             return null;
                         }
-
-                        $email = "{$mailbox['local_part']}@" . config('mailcow.domain', 'alfabe.co');
-
-                        $user = User::create([
-                            'name' => trim($data['first_name'] . ' ' . $data['last_name']),
-                            'email' => $email,
-                            'password' => Hash::make($data['password']),
-                            'is_active' => true,
-                        ]);
-                        $user->assignRole('ogrenci');
-
-                        $qrToken = Str::random(32);
-                        $qrContent = json_encode([
-                            'email' => $email, 'password' => $data['password'], 'token' => $qrToken,
-                        ]);
-                        $qrSvg = QrCode::size(200)->generate($qrContent);
-
-                        $ogrenci = Ogrenci::create([
-                            'user_id' => $user->id,
-                            'sinif_id' => $data['sinif_id'] ?? null,
-                            'mailbox_local_part' => $mailbox['local_part'],
-                            'qr_token' => $qrContent,
-                            'qr_svg' => (string) $qrSvg,
-                            'anne_email' => $data['anne_email'] ?? null,
-                            'baba_email' => $data['baba_email'] ?? null,
-                        ]);
-
-                        $veliIds = [];
-                        foreach (array_filter([$data['anne_email'] ?? null, $data['baba_email'] ?? null]) as $veliEmail) {
-                            $veliUser = User::firstOrCreate(
-                                ['email' => $veliEmail],
-                                ['name' => 'Veli', 'password' => bcrypt('Veli123!'), 'is_active' => true]
-                            );
-                            $veliUser->assignRole('veli');
-                            $veliIds[] = Veli::firstOrCreate(['user_id' => $veliUser->id])->id;
-                        }
-                        if (!empty($veliIds)) {
-                            $ogrenci->veliler()->attach($veliIds);
-                        }
-
-                        Notification::make()->title('Başarılı')
-                            ->body("Öğrenci {$user->name} oluşturuldu. E-posta: {$email}")
-                            ->success()->send();
-
-                        return $ogrenci->id;
                     })
                     ->createOptionModalHeading('Yeni Öğrenci Oluştur')
                     ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isVeli($get)),

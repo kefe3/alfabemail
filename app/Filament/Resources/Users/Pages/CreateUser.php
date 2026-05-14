@@ -3,20 +3,14 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
-use App\Models\Ogrenci;
 use App\Models\Okul;
-use App\Models\User;
 use App\Models\Veli;
 use App\Services\ActivityLogger;
-use App\Services\MailcowService;
+use App\Services\StudentCreationService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\Permission\Models\Role;
 
 class CreateUser extends CreateRecord
@@ -30,7 +24,7 @@ class CreateUser extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $ogrenciRoleId = Role::where('name', 'ogrenci')->value('id');
-        if ($ogrenciRoleId && in_array($ogrenciRoleId, $data['roles'] ?? [])) {
+        if ($ogrenciRoleId && ($data['roles'] ?? null) == $ogrenciRoleId) {
             $this->ogrenciData = [
                 'first_name' => $data['first_name'] ?? '',
                 'last_name' => $data['last_name'] ?? '',
@@ -47,7 +41,7 @@ class CreateUser extends CreateRecord
         }
 
         $ogretmenRoleId = Role::where('name', 'ogretmen')->value('id');
-        if ($ogretmenRoleId && in_array($ogretmenRoleId, $data['roles'] ?? [])) {
+        if ($ogretmenRoleId && ($data['roles'] ?? null) == $ogretmenRoleId) {
             $this->ogretmenData = [
                 'sinif_ids' => $data['sinif_ids'] ?? [],
             ];
@@ -55,7 +49,7 @@ class CreateUser extends CreateRecord
         }
 
         $veliRoleId = Role::where('name', 'veli')->value('id');
-        if ($veliRoleId && in_array($veliRoleId, $data['roles'] ?? [])) {
+        if ($veliRoleId && ($data['roles'] ?? null) == $veliRoleId) {
             $this->veliData = [
                 'ogrenci_ids' => $data['ogrenci_ids'] ?? [],
             ];
@@ -71,97 +65,32 @@ class CreateUser extends CreateRecord
             return parent::handleRecordCreation($data);
         }
 
-        $od = $this->ogrenciData;
-        $sifre = $data['password'] ?? null;
-
-        $mailcow = app(MailcowService::class);
-
-        if (!$mailcow->isConfigured()) {
-            Notification::make()
-                ->title('Hata')
-                ->body('Mailcow API yapılandırılmamış.')
-                ->danger()
-                ->send();
-            $this->halt();
-        }
-
-        if (!$mailcow->testConnection()) {
-            Notification::make()
-                ->title('Hata')
-                ->body('Mailcow sunucusuna bağlanılamıyor.')
-                ->danger()
-                ->send();
-            $this->halt();
-        }
-
         try {
-            $mailbox = $mailcow->createStudentMailbox($od['first_name'], $od['last_name'], $od['nickname'], 0, $sifre);
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('E-posta Kutusu Oluşturma Hatası')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-            $this->halt();
-        }
-
-        $ogrenciEmail = "{$mailbox['local_part']}@" . config('mailcow.domain', 'alfabe.co');
-
-        return DB::transaction(function () use ($od, $data, $mailbox, $ogrenciEmail, $sifre) {
-            $user = User::create([
-                'name' => trim($od['first_name'] . ' ' . $od['last_name']),
-                'email' => $ogrenciEmail,
-                'password' => Hash::make($sifre),
-                'is_active' => $data['is_active'] ?? true,
-            ]);
-            $user->assignRole('ogrenci');
-
-            $veliIds = [];
-            $veliEmails = array_filter([$od['anne_email'], $od['baba_email']]);
-
-            foreach ($veliEmails as $veliEmail) {
-                $veliUser = User::firstOrCreate(
-                    ['email' => $veliEmail],
-                    ['name' => 'Veli', 'password' => bcrypt('Veli123!'), 'is_active' => true]
-                );
-                $veliUser->assignRole('veli');
-
-                $veli = Veli::firstOrCreate(['user_id' => $veliUser->id]);
-                $veliIds[] = $veli->id;
-            }
-
-            $qrToken = Str::random(32);
-            $qrContent = json_encode([
-                'email' => $user->email,
-                'password' => $sifre,
-                'token' => $qrToken,
-            ]);
-            $qrSvg = QrCode::size(200)->generate($qrContent);
-
-            $ogrenci = Ogrenci::create([
-                'user_id' => $user->id,
-                'sinif_id' => $od['sinif_id'],
-                'mailbox_local_part' => $mailbox['local_part'],
-                'qr_token' => $qrContent,
-                'qr_svg' => (string) $qrSvg,
-                'anne_email' => $od['anne_email'],
-                'baba_email' => $od['baba_email'],
+            $ogrenci = app(StudentCreationService::class)->create([
+                'first_name' => $this->ogrenciData['first_name'],
+                'last_name' => $this->ogrenciData['last_name'],
+                'nickname' => $this->ogrenciData['nickname'],
+                'sinif_id' => $this->ogrenciData['sinif_id'],
+                'password' => $data['password'],
+                'anne_email' => $this->ogrenciData['anne_email'],
+                'baba_email' => $this->ogrenciData['baba_email'],
             ]);
 
-            if (!empty($veliIds)) {
-                $ogrenci->veliler()->attach($veliIds);
-            }
+            $user = $ogrenci->user;
 
             Notification::make()
                 ->title('Başarılı')
-                ->body("Öğrenci {$user->name} başarıyla oluşturuldu. E-posta: {$ogrenciEmail}")
+                ->body("Öğrenci {$user->name} başarıyla oluşturuldu. E-posta: {$user->email}")
                 ->success()
                 ->send();
 
-            ActivityLogger::created($user, 'Öğrenci oluşturuldu (Admin): ' . $user->name . ' - E-posta: ' . $ogrenciEmail);
+            ActivityLogger::created($user, 'Öğrenci oluşturuldu (Admin): ' . $user->name . ' - E-posta: ' . $user->email);
 
             return $user->load('ogrenci');
-        });
+        } catch (\RuntimeException $e) {
+            Notification::make()->title('Hata')->body($e->getMessage())->danger()->send();
+            $this->halt();
+        }
     }
 
     protected function afterCreate(): void
