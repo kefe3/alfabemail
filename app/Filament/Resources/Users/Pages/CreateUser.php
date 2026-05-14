@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
 use App\Models\Ogrenci;
+use App\Models\Okul;
 use App\Models\User;
 use App\Models\Veli;
 use App\Services\ActivityLogger;
@@ -149,6 +150,14 @@ class CreateUser extends CreateRecord
     {
         if ($this->ogrenciData !== null) {
             return;
+        }
+
+        $yoneticiRoleId = Role::where('name', 'yonetici')->value('id');
+        if ($yoneticiRoleId && $this->record->hasRole('yonetici')) {
+            $okulId = $this->form->getState()['okul_id'] ?? null;
+            if ($okulId) {
+                Okul::where('id', $okulId)->update(['yonetici_user_id' => $this->record->id]);
+            }
         }
 
         ActivityLogger::created($this->record, 'Kullanıcı oluşturuldu: ' . $this->record->name);

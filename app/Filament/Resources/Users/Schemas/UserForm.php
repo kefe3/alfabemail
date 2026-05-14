@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Okul;
 use App\Models\Sinif;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -16,6 +17,8 @@ class UserForm
         $isCreate = fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord;
         $ogrenciRoleId = Role::where('name', 'ogrenci')->value('id');
         $isOgrenci = fn (callable $get) => $ogrenciRoleId && in_array($ogrenciRoleId, $get('roles') ?? []);
+        $yoneticiRoleId = Role::where('name', 'yonetici')->value('id');
+        $isYonetici = fn (callable $get) => $yoneticiRoleId && in_array($yoneticiRoleId, $get('roles') ?? []);
 
         return $schema
             ->components([
@@ -77,6 +80,13 @@ class UserForm
                     ->preload()
                     ->searchable()
                     ->live(),
+
+                Select::make('okul_id')
+                    ->label('Okul')
+                    ->options(fn () => Okul::pluck('ad', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->hidden(fn (callable $get, $livewire) => !$isCreate($livewire) || !$isYonetici($get)),
 
                 Toggle::make('is_active')
                     ->label('Aktif')
