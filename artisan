@@ -6,10 +6,21 @@ use Symfony\Component\Console\Input\ArgvInput;
 
 define('LARAVEL_START', microtime(true));
 
-// Register the Composer autoloader...
+$env = getenv('APP_ENV') ?: ($_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? false);
+
+if ($env === 'production') {
+    $forbidden = ['migrate:fresh', 'migrate:refresh', 'migrate:reset', 'migrate:rollback', 'db:wipe'];
+    $command = $_SERVER['argv'][1] ?? '';
+    $name = explode(' ', $command)[0];
+
+    if (in_array($name, $forbidden, true)) {
+        fwrite(STDERR, "\n  \e[31m[ERROR]\e[0m `{$name}` komutu production ortamında çalıştırılamaz!\n\n");
+        exit(1);
+    }
+}
+
 require __DIR__.'/vendor/autoload.php';
 
-// Bootstrap Laravel and handle the command...
 /** @var Application $app */
 $app = require_once __DIR__.'/bootstrap/app.php';
 
