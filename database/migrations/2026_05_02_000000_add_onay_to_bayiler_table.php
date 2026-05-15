@@ -8,10 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('bayiler', function (Blueprint $table) {
-            $table->boolean('onaylandi')->default(false)->after('okul_kotasi');
-            $table->timestamp('onay_tarihi')->nullable()->after('onaylandi');
-        });
+        if (!Schema::hasColumn('bayiler', 'onaylandi')) {
+            Schema::table('bayiler', function (Blueprint $table) {
+                $table->boolean('onaylandi')->default(false)->after('okul_kotasi');
+                $table->timestamp('onay_tarihi')->nullable()->after('onaylandi');
+            });
+        }
     }
 
     public function down(): void
