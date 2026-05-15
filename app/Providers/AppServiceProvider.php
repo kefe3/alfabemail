@@ -2,13 +2,14 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\ForbiddenCommand;
 use App\Models\Okul;
 use App\Models\Ogrenci;
 use App\Models\Sinif;
 use App\Models\User;
 use App\Models\Veli;
 use App\Observers\ActivityLogObserver;
-use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Console\Application as Artisan;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
@@ -16,32 +17,30 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    protected array $forbiddenCommands = [
-        'migrate:fresh',
-        'migrate:refresh',
-        'migrate:reset',
-        'migrate:rollback',
-        'db:wipe',
-    ];
-
     public function register(): void
     {
-        //
+        if (App::environment('production')) {
+            Artisan::starting(function (Artisan $artisan) {
+                $forbidden = [
+                    'migrate:fresh',
+                    'migrate:refresh',
+                    'migrate:reset',
+                    'migrate:rollback',
+                    'db:wipe',
+                ];
+
+                foreach ($forbidden as $name) {
+                    if ($artisan->has($name)) {
+                        $artisan->add(new ForbiddenCommand($name));
+                    }
+                }
+            });
+        }
     }
 
     public function boot(): void
     {
         URL::forceScheme('https');
-
-        if (App::environment('production')) {
-            Event::listen(CommandStarting::class, function (CommandStarting $event): void {
-                if (in_array($event->command, $this->forbiddenCommands, true)) {
-                    throw new \RuntimeException(
-                        "`{$event->command}` komutu production ortamında çalıştırılamaz!"
-                    );
-                }
-            });
-        }
 
         Okul::observe(ActivityLogObserver::class);
         Sinif::observe(ActivityLogObserver::class);
