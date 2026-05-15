@@ -4,12 +4,18 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 
 class DemoUsersSeeder extends Seeder
 {
     public function run(): void
     {
+        if (App::environment('production')) {
+            $this->command->warn('DemoUsersSeeder: Production ortamında atlanıyor.');
+            return;
+        }
+
         $users = [
             ['name' => 'Admin',        'email' => 'admin@alfabe.co',         'role' => 'admin'],
             ['name' => 'Demo Yönetici','email' => 'yonetici@alfabe.co',      'role' => 'yonetici'],

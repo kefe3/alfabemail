@@ -8,6 +8,12 @@ use App\Models\Sinif;
 use App\Models\User;
 use App\Models\Veli;
 use App\Observers\ActivityLogObserver;
+use Illuminate\Console\Application as Artisan;
+use Illuminate\Database\Console\Migrations\FreshCommand;
+use Illuminate\Database\Console\Migrations\RefreshCommand;
+use Illuminate\Database\Console\Migrations\ResetCommand;
+use Illuminate\Database\Console\Migrations\RollbackCommand;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -22,6 +28,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         URL::forceScheme('https');
+
+        if (App::environment('production')) {
+            Artisan::starting(function ($artisan) {
+                $artisan->forbid(FreshCommand::class);
+                $artisan->forbid(RefreshCommand::class);
+                $artisan->forbid(ResetCommand::class);
+                $artisan->forbid(RollbackCommand::class);
+            });
+        }
 
         Okul::observe(ActivityLogObserver::class);
         Sinif::observe(ActivityLogObserver::class);

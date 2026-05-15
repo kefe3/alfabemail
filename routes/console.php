@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('quota:check-notify')->dailyAt('09:00');
+Schedule::command('backup:database')->dailyAt('03:00');
