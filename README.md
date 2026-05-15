@@ -11,8 +11,8 @@
 ### Paneller
 | Panel | URL | Kullanıcı | Açıklama |
 |-------|-----|-----------|----------|
-| Admin | `/admin` | ...@alfabe.co | Tüm yönetim |
-| Portal | `/panel` | ogretmen/yonetici/veli | Öğretmen, yönetici ve veli paneli |
+| Admin | `/admin` | admin | Tüm yönetim |
+| Portal | `/panel` | yonetici/ogretmen/veli/ogrenci | Okul, öğretmen, sınıf, öğrenci yönetimi |
 | Öğrenci | `/giris` | ...@alfabe.co | Karekodla giriş, mail kullanımı |
 
 ---
@@ -23,7 +23,7 @@
 - [x] Admin/Portal panel girişi (Filament auth)
 - [x] Öğrenci karekod ile giriş
 - [x] Öğrenci normal giriş
-- [x] Aktivasyon linki ile ilk giriş
+- [x] Aktivasyon linki ile ilk giriş (`/aktivasyon/{token}`)
 - [x] Kayıt sistemi (e-posta doğrulama → şifre belirleme → admin onayı)
 - [x] Öğrenci oluştururken okul seçimi + okula göre sınıf seçimi
 
@@ -35,33 +35,38 @@
 - [x] UTF-8 Türkçe destek
 - [x] Çocuk dostu UI (penguen maskot 🐧)
 - [x] Yaka kartı oluşturma (karekodlu)
+- [x] Toplu yaka kartı yazdırma
+- [x] Dosya ekleme (attachment upload)
+- [x] E-posta istatistikleri
 
-### Öğretmen Paneli
-- [x] Sınıf yönetimi (CRUD)
-- [x] Öğrenci yönetimi (CSV yükleme, Mailcow mailbox oluşturma)
-- [x] Veli e-posta eşleştirme
-- [x] Yaka kartı toplu yazdırma
-- [x] Pivot tabanlı sınıf filtreleme
+### Portal Paneli (yonetici/ogretmen/veli)
+- [x] Role göre özelleşmiş dashboard
+- [x] **Öğrenci Yönetimi**: CRUD, CSV yükleme (UI), Mailcow mailbox oluşturma, toplu yaka kartı
+- [x] **Öğretmen Yönetimi**: CRUD, sınıf atama, inline sınıf oluşturma
+- [x] **Sınıf Yönetimi**: CRUD, pivot tabanlı filtreleme
+- [x] **Okul Yönetimi** (admin): CRUD
 
-### Veli Paneli (6 özellik)
+### Veli Paneli
 - [x] AI Haftalık Özet Raporu (VeliAnalizService)
 - [x] Aktivite Takvimi (son 7 gün)
 - [x] Kota/Uyarı Bildirimleri (Mailcow API)
 - [x] Veli-Öğretmen Mesajlaşma
 - [x] Öğrenci Şifre Sıfırlama
 - [x] Çoklu Öğrenci Karşılaştırma
+- [x] Öğrenci e-posta istatistik grafikleri (Chart.js)
+- [x] Dashboard widget'ları (istatistik kartları, aktivite grafiği)
 
 ### Admin Paneli
-- [x] Kullanıcı yönetimi (CRUD, rol atama)
-- [x] Okul yönetimi ve onay sistemi
+- [x] Kullanıcı yönetimi (CRUD, rol atama, telefon alanı)
+- [x] Okul yönetimi ve onay sistemi (beklemede/onaylı/red)
 - [x] Sponsor yönetimi
 - [x] Aktivite logları
 - [x] Hata Bildirisi yönetimi
 - [x] Yeni Kullanıcı Onay Sistemi (kayıt → onay → kullanıcıya taşıma)
-- [x] Yetki/rol yönetimi
-- [x] Öğretmen oluştururken okul seçimi (okul yoksa yeni okul oluşturma)
-- [x] Öğretmen oluştururken sınıf seçimi (sınıf yoksa yeni sınıf oluşturma)
-- [x] Veli oluştururken öğrenci seçimi (hangi öğrencinin velisi olduğu)
+- [x] Yetki/rol yönetimi (YetkiManagement resource)
+- [x] Mailcow Ayarları sayfası (API bağlantı yapılandırması, test bağlantı)
+- [x] Admin Dashboard widget'ları (istatistik özeti, kayıt grafiği, bildirimler)
+- [x] Kullanıcı rollerine göre panel erişim kontrolü (canAccessPanel)
 
 ### Hata Bildir Sistemi
 - [x] Tüm sayfalarda floating ⚠️ butonu
@@ -84,11 +89,15 @@
 |--------|-------|----------|
 | POST | `/ogrenci/login` | Giriş |
 | POST | `/ogrenci/qr-login` | Karekod girişi |
+| POST | `/ogrenci/logout` | Çıkış |
 | GET | `/ogrenci/inbox` | Gelen kutusu |
 | GET | `/ogrenci/sent` | Giden kutusu |
 | POST | `/ogrenci/send-mail` | Mail gönderme |
 | POST | `/ogrenci/log-read` | Okundu kaydı |
 | GET | `/ogrenci/yaka-karti/{id}` | Yaka kartı |
+| GET | `/ogrenci/yaka-karti-bulk` | Toplu yaka kartı |
+| POST | `/ogrenci/upload-attachment` | Dosya yükleme |
+| GET | `/ogrenci/stats` | E-posta istatistikleri |
 
 ### Kayıt
 | Method | Route | Açıklama |
@@ -102,11 +111,47 @@
 |--------|-------|----------|
 | POST | `/veli/mesaj-gonder` | Öğretmene mesaj |
 | POST | `/veli/sifre-sifirla` | Öğrenci şifre sıfırlama |
+| GET | `/veli/dashboard` | Veli dashboard sayfası |
+
+### Aktivasyon
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| GET | `/aktivasyon/{token}` | Aktivasyon linki ile giriş |
+
+### Mailcow Proxy API (Sanctum auth)
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| GET | `/api/mailcow/status` | Mailcow bağlantı durumu |
+| GET | `/api/mailcow/mailboxes` | Mailbox listesi |
+| GET | `/api/mailcow/quota/{email}` | Kota sorgulama |
+| POST | `/api/mailcow/mailbox` | Mailbox oluşturma |
+| DELETE | `/api/mailcow/mailbox/{email}` | Mailbox silme |
+
+### Docker IMAP Workaround
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| GET | `/api/mails/inbox` | Docker exec ile inbox çekme |
+| GET | `/api/mails/sent` | Docker exec ile sent çekme |
 
 ### Hata Bildir
 | Method | Route | Açıklama |
 |--------|-------|----------|
 | POST | `/hata-bildir` | Hata bildirisi gönder |
+
+### Debug
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| GET | `/debug/mailcow-test` | Mailcow bağlantı testi |
+| GET | `/debug/mailcow-create` | Mailbox oluşturma debug |
+| GET | `/debug/cleanup-ogrenciler` | Orphan temizlik |
+
+### Yasal Sayfalar
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| GET | `/kvkk` | KVKK Aydınlatma Metni |
+| GET | `/gizlilik` | Gizlilik Politikası |
+| GET | `/kullanim-sartlari` | Kullanım Şartları |
+| GET | `/cerez-politikasi` | Çerez Politikası |
 
 ---
 
@@ -120,12 +165,18 @@
 - **Yetki**: Spatie Laravel Permission
 - **Frontend**: Blade + Chart.js + IMAP/SMTP
 
+### Docker
+- PHP 8.3, MySQL 8.0, Redis 7
+- `alfabemail` network + `mailcowdockerized_mailcow-network` (shared Mailcow access)
+
 ### Veritabanı Hiyerarşisi
 ```
 okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
        → users → (roles: admin, yonetici, ogretmen, veli, ogrenci)
        → veliler
        → pending_users (kayıt onay bekleme)
+       → settings (key-value yapılandırma)
+       → aktivasyon_tokens (e-posta doğrulama)
 ```
 
 ### Roller
@@ -134,6 +185,13 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 3. **ogretmen** — Öğrenci yönetimi
 4. **veli** — Akademik takip, AI raporları
 5. **ogrenci** — Mail kullanımı
+
+### Multi-Tenant Veri İzolasyonu
+- `HasTenantScope` trait ile role göre veri filtreleme
+- **admin**: Tüm verileri görür
+- **yonetici**: Kendi okulunun verilerini görür
+- **ogretmen**: Kendi sınıflarının verilerini görür
+- **veli**: Kendi çocuklarının verilerini görür
 
 ---
 
@@ -164,39 +222,79 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 ## 📁 Önemli Dosyalar
 
 ### Servisler
-- `app/Services/MailcowService.php` — Mailcow API
+- `app/Services/MailcowService.php` — Mailcow API (DB'den yapılandırma okuma, quota yönetimi, şifre güncelleme)
 - `app/Services/VeliAnalizService.php` — AI haftalık özet
 - `app/Services/ActivityLogger.php` — Aktivite loglama
-- `app/Services/PermissionService.php` — İzin yönetimi
+- `app/Services/PermissionService.php` — İzin yönetimi (rol grupları: okul, ogretmen, ogrenci, mailbox, rapor, sistem)
 - `app/Services/DynamicMailer.php` — Dinamik mail gönderimi
+- `app/Services/StudentCreationService.php` — Merkezi öğrenci oluşturma (Mailcow mailbox + User + Ogrenci + QR kod + veli)
 
-### Controller
+### Controllers
 - `app/Http/Controllers/OgrenciController.php` — Öğrenci işlemleri
 - `app/Http/Controllers/VeliController.php` — Veli işlemleri
 - `app/Http/Controllers/HataBildirController.php` — Hata bildirimi
 - `app/Http/Controllers/KayitController.php` — Kayıt işlemleri
+- `app/Http/Controllers/ActivationController.php` — Aktivasyon linki yönetimi
+- `app/Http/Controllers/MailcowProxyController.php` — Mailcow API proxy (Sanctum korumalı)
 
 ### Modeller
-- `app/Models/User.php` (roller, `okul()`/`bagli_okul()`/ogrenci/veli/ogretmen ilişkileri)
+- `app/Models/User.php` (roller, `okul()`/`bagli_okul()`/ogrenci/veli/ogretmen ilişkileri, `canAccessPanel`)
 - `app/Models/Ogrenci.php`, `Veli.php`, `Sinif.php`, `Okul.php`
 - `app/Models/PendingUser.php`, `HataBildirisi.php`, `VeliMesaj.php`
 - `app/Models/ActivityLog.php`, `MailAktiviteLog.php`, `Sponsor.php`
+- `app/Models/Setting.php` — KV değer depolama (şifrelenmiş)
+- `app/Models/AktivasyonToken.php` — Aktivasyon token yönetimi
 
-### Filament Kaynakları (Admin)
+### Traits
+- `app/Traits/HasTenantScope.php` — Multi-tenant veri izolasyonu
+
+### Console Commands
+- `app/Console/Commands/FetchInboxMails.php` — `fetch:imail {type}` IMAP mail çekme
+- `app/Console/Commands/CheckQuotaAndNotify.php` — `quota:check-notify` Günlük kota kontrolü (saat 09:00)
+
+### Filament Kaynakları (Admin - `/admin`)
 - `app/Filament/Resources/PendingUserResource.php` — Yeni Kullanıcı Onayı
 - `app/Filament/Resources/HataBildirisis/` — Hata Bildirisi Yönetimi
 - `app/Filament/Resources/Users/` — Kullanıcı Yönetimi
 - `app/Filament/Resources/ActivityLogs/` — Aktivite Logları
 - `app/Filament/Resources/Sponsors/` — Sponsor Yönetimi
+- `app/Filament/Resources/Yetki/` — Yetki/Rol Yönetimi
 - `app/Filament/Resources/Okuls/Pages/OkulOnay/` — Okul Onayları
+
+### Filament Kaynakları (Portal - `/panel`)
+- `app/Filament/Portal/Resources/Ogrencis/` — Öğrenci yönetimi
+- `app/Filament/Portal/Resources/Ogretmenler/` — Öğretmen yönetimi
+- `app/Filament/Portal/Resources/Sinifs/` — Sınıf yönetimi
+- `app/Filament/Portal/Resources/Okuls/` — Okul yönetimi
+
+### Filament Widget'lar & Sayfalar
+- `app/Filament/Pages/AdminDashboard.php` — Admin dashboard
+- `app/Filament/Pages/MailcowSettings.php` — Mailcow API ayarları
+- `app/Filament/Portal/Pages/PortalDashboard.php` — Portal dashboard
+- `app/Filament/Portal/Widgets/VeliDashboardWidget.php` — Veli dashboard
+- `app/Filament/Portal/Widgets/PortalStatsOverview.php` — Portal istatistik kartları
+- `app/Filament/Portal/Widgets/OgrenciIstatistikWidget.php` — Öğrenci istatistik grafiği
+- `app/Filament/Portal/Widgets/OgrenciIstatistikKartlariWidget.php` — Öğrenci istatistik kartları
+- `app/Filament/Portal/Widgets/OgrenciAktiviteWidget.php` — Öğrenci aktivite grafiği
 
 ### Görünümler
 - `resources/views/welcome.blade.php` — Anasayfa
 - `resources/views/ogrenci/` — Öğrenci dashboard, yaka kartı
-- `resources/views/filament/portal/widgets/veli-dashboard.blade.php` — Veli dashboard
+- `resources/views/filament/portal/widgets/veli-dashboard.blade.php` — Veli dashboard (386 satır)
+- `resources/views/filament/portal/widgets/mesaj-kutusu.blade.php` — Admin mesaj widget
+- `resources/views/filament/portal/pages/toplu-ogrenci-ekle.blade.php` — Toplu öğrenci CSV yükleme (UI)
+- `resources/views/filament/portal/pages/okul-istek.blade.php` — Okul talep sayfası (UI)
+- `resources/views/filament/pages/mailcow-settings.blade.php` — Mailcow ayar formu
+- `resources/views/filament/admin/widgets/bildirim-widget.blade.php` — Admin bildirim widget
+- `resources/views/filament/admin/widgets/mesajlar-widget.blade.php` — Admin mesajlar widget
 - `resources/views/partials/hata-bildir.blade.php` — Hata bildir modalı
 - `resources/views/partials/kayit.blade.php` — Kayıt modalı
+- `resources/views/partials/kayit-link.blade.php` — Kayıt link partial
 - `resources/views/emails/verification-code.blade.php` — Doğrulama e-postası
+- `resources/views/legal/kvkk.blade.php` — KVKK sayfası
+- `resources/views/legal/gizlilik.blade.php` — Gizlilik politikası
+- `resources/views/legal/kullanim-sartlari.blade.php` — Kullanım şartları
+- `resources/views/legal/cerez-politikasi.blade.php` — Çerez politikası
 
 ---
 
@@ -205,10 +303,18 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 ### Port Kullanımı
 - Local: `8001` (`.env`'de `APP_URL=http://localhost:8000` olsa da localde 8001)
 - Docker internal: `8000`
+- MySQL Docker: `3307`
+- Redis Docker: `6380`
 - Storage symlink: `public/storage → /var/www/html/storage/app/public` (host mutlak yol değil)
 
 ### Koyu Tema Uyumluluğu
 Filament widget view'larında Tailwind kullanılmaz (purge sorunu). Tüm stiller inline olarak yazılır. Input alanlarında `color:#1a202c` ile koyu temada okunabilirlik sağlanır.
+
+### Scheduled Tasks
+```php
+// app/Console/Kernel.php
+$schedule->command('quota:check-notify')->dailyAt('09:00');
+```
 
 ### Yeni Resource Eklerken
 ```php
@@ -235,10 +341,12 @@ public static function getPages(): array
 
 - [ ] IMAP inbox okuma iyileştirmesi
 - [ ] Öğrenci mail paneli UI redesign
-- [ ] Ek dosya ekleme (resim, belge)
+- [ ] Ek dosya ekleme (resim, belge) — kısmen tamamlandı
 - [ ] Arama ve filtreleme
 - [ ] Gamification rozetleri
 - [ ] Mobil uyum
+- [ ] Toplu öğrenci CSV yükleme (backend)
+- [ ] Okul talep formu (backend)
 
 ---
 
