@@ -6,9 +6,22 @@ use Symfony\Component\Console\Input\ArgvInput;
 
 define('LARAVEL_START', microtime(true));
 
-$env = getenv('APP_ENV') ?: ($_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? false);
+// .env dosyasından APP_ENV oku (framework henüz yüklenmedi)
+$envFile = __DIR__ . '/.env';
+$appEnv = getenv('APP_ENV') ?: ($_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? false);
 
-if ($env === 'production') {
+if (!$appEnv && file_exists($envFile)) {
+    foreach (file($envFile) as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        if (str_starts_with($line, 'APP_ENV=')) {
+            $appEnv = substr($line, 8);
+            break;
+        }
+    }
+}
+
+if ($appEnv === 'production') {
     $forbidden = ['migrate:fresh', 'migrate:refresh', 'migrate:reset', 'migrate:rollback', 'db:wipe'];
     $command = $_SERVER['argv'][1] ?? '';
     $name = explode(' ', $command)[0];
