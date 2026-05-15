@@ -8,11 +8,7 @@ use App\Models\Sinif;
 use App\Models\User;
 use App\Models\Veli;
 use App\Observers\ActivityLogObserver;
-use Illuminate\Console\Application as Artisan;
-use Illuminate\Database\Console\Migrations\FreshCommand;
-use Illuminate\Database\Console\Migrations\RefreshCommand;
-use Illuminate\Database\Console\Migrations\ResetCommand;
-use Illuminate\Database\Console\Migrations\RollbackCommand;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
@@ -20,6 +16,14 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+    protected array $forbiddenCommands = [
+        'migrate:fresh',
+        'migrate:refresh',
+        'migrate:reset',
+        'migrate:rollback',
+        'db:wipe',
+    ];
+
     public function register(): void
     {
         //
@@ -30,11 +34,12 @@ class AppServiceProvider extends ServiceProvider
         URL::forceScheme('https');
 
         if (App::environment('production')) {
-            Artisan::starting(function ($artisan) {
-                $artisan->forbid(FreshCommand::class);
-                $artisan->forbid(RefreshCommand::class);
-                $artisan->forbid(ResetCommand::class);
-                $artisan->forbid(RollbackCommand::class);
+            Event::listen(CommandStarting::class, function (CommandStarting $event): void {
+                if (in_array($event->command, $this->forbiddenCommands, true)) {
+                    throw new \RuntimeException(
+                        "`{$event->command}` komutu production ortamında çalıştırılamaz!"
+                    );
+                }
             });
         }
 
