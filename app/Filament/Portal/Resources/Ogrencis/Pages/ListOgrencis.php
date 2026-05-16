@@ -29,6 +29,10 @@ class ListOgrencis extends ListRecords
                 ->icon('heroicon-o-arrow-path')
                 ->color('info')
                 ->visible(fn () => auth()->user()?->hasRole('admin') ?? false)
+                ->requiresConfirmation()
+                ->modalHeading('Mailcow Senkronizasyonu')
+                ->modalDescription('Mailcow\'da olup sistemde olmayan tüm mailbox\'lar öğrenci olarak içe aktarılır. Sistem mailbox\'ları (admin, info, vb.) atlanır.')
+                ->modalSubmitActionLabel('Senkronize Et')
                 ->action(function () {
                     try {
                         $mailcow = app(MailcowService::class);
@@ -44,6 +48,12 @@ class ListOgrencis extends ListRecords
                             ->map(fn ($v) => strtolower($v))
                             ->toArray();
 
+                        $systemLocalParts = [
+                            'admin', 'info', 'iletisim', 'noreply', 'postmaster',
+                            'ogrenci', 'ogretmen', 'yonetici', 'deneme', 'test',
+                            'dmarc', 'spam', 'abuse', 'support', 'mailer-daemon',
+                        ];
+
                         $imported = 0;
                         $errors = 0;
 
@@ -51,7 +61,9 @@ class ListOgrencis extends ListRecords
                             $localPart = is_array($mbox) ? ($mbox['local_part'] ?? '') : '';
                             if (empty($localPart)) continue;
 
-                            if (in_array(strtolower($localPart), $existingLocalParts)) continue;
+                            $localPartLower = strtolower($localPart);
+                            if (in_array($localPartLower, $existingLocalParts)) continue;
+                            if (in_array($localPartLower, $systemLocalParts)) continue;
 
                             try {
                                 $name = $mbox['name'] ?? $localPart;
@@ -97,7 +109,8 @@ class ListOgrencis extends ListRecords
                                 ->send();
                         } else {
                             Notification::make()
-                                ->title('Tüm mailbox\'lar zaten sistemde kayıtlı.')
+                                ->title('Aktarılacak yeni mailbox bulunamadı.')
+                                ->body('Sistem mailbox\'ları (admin, info, vb.) otomatik atlanır.')
                                 ->info()
                                 ->send();
                         }

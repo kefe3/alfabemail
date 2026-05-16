@@ -36,8 +36,15 @@ class SyncMailcowMailboxes extends Command
             ->map(fn ($v) => strtolower($v))
             ->toArray();
 
+        $systemLocalParts = [
+            'admin', 'info', 'iletisim', 'noreply', 'postmaster',
+            'ogrenci', 'ogretmen', 'yonetici', 'deneme', 'test',
+            'dmarc', 'spam', 'abuse', 'support', 'mailer-daemon',
+        ];
+
         $newMailboxes = [];
         $skipped = 0;
+        $skippedSystem = 0;
 
         foreach ($mailboxes as $mbox) {
             $localPart = is_array($mbox) ? ($mbox['local_part'] ?? '') : '';
@@ -50,14 +57,20 @@ class SyncMailcowMailboxes extends Command
                 continue;
             }
 
+            if (in_array($localPartLower, $systemLocalParts)) {
+                $skippedSystem++;
+                continue;
+            }
+
             $newMailboxes[] = $mbox;
         }
 
         $this->newLine();
         $this->line("Toplam mailbox: " . count($mailboxes));
         $this->line("Sistemde kayıtlı: " . count($existingLocalParts));
+        $this->line("Sistem mailbox (atlandı): {$skippedSystem}");
         $this->line("Yeni (içe aktarılacak): " . count($newMailboxes));
-        $this->line("Atlanan: {$skipped}");
+        $this->line("Zaten kayıtlı: {$skipped}");
 
         if (empty($newMailboxes)) {
             $this->info('Tüm mailbox\'lar sistemde kayıtlı.');
