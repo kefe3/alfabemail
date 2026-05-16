@@ -8,7 +8,7 @@
       <h3 style="text-align:center;margin:0 0 4px;font-size:20px;color:#1a202c;">Hesap Oluştur</h3>
       <p style="text-align:center;color:#6586a7;margin:0 0 20px;font-size:14px;">E-posta adresinle başla</p>
       <div style="display:grid;gap:12px;">
-        <input type="email" id="kayitEmail" placeholder="E-posta adresin" value="" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
+        <input type="email" id="kayitEmail" placeholder="E-posta adresin" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
         <div id="kayitEmailError" style="color:#ef4444;font-size:13px;display:none;"></div>
         <button type="button" onclick="kayitSendCode()" id="kayitBtn1" style="background:#5e8df7;color:#fff;border:none;border-radius:999px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;">Doğrulama Kodu Gönder</button>
       </div>
@@ -28,19 +28,42 @@
       </div>
     </div>
 
-    {{-- Step 3: Name + Password --}}
+    {{-- Step 3: Role Selection --}}
     <div id="kayitStep3" style="display:none;">
-      <div style="font-size:40px;text-align:center;margin-bottom:4px;">✅</div>
-      <h3 style="text-align:center;margin:0 0 4px;font-size:20px;color:#1a202c;">Son Adım</h3>
-      <p style="text-align:center;color:#6586a7;margin:0 0 20px;font-size:14px;">Adın ve şifreni belirle</p>
+      <div style="font-size:40px;text-align:center;margin-bottom:4px;">🤔</div>
+      <h3 style="text-align:center;margin:0 0 4px;font-size:20px;color:#1a202c;">Hesap Türünü Seç</h3>
+      <p style="text-align:center;color:#6586a7;margin:0 0 20px;font-size:14px;">Sana uygun olan rolü seç</p>
+      <div style="display:grid;gap:10px;">
+        <div class="kayit-role-card" data-role="yonetici" onclick="kayitSelectRole('yonetici')" style="display:flex;align-items:center;gap:14px;padding:14px;border:2px solid #e2e8f0;border-radius:14px;cursor:pointer;transition:.2s;">
+          <span style="font-size:32px;">🏫</span>
+          <div><div style="font-weight:700;color:#1a202c;">Yönetici</div><div style="font-size:13px;color:#6586a7;">Okul yönetimi, sınıf ve öğretmen organizasyonu</div></div>
+        </div>
+        <div class="kayit-role-card" data-role="ogretmen" onclick="kayitSelectRole('ogretmen')" style="display:flex;align-items:center;gap:14px;padding:14px;border:2px solid #e2e8f0;border-radius:14px;cursor:pointer;transition:.2s;">
+          <span style="font-size:32px;">🧑‍🏫</span>
+          <div><div style="font-weight:700;color:#1a202c;">Öğretmen</div><div style="font-size:13px;color:#6586a7;">Öğrenci kaydı, sınıf süreç yönetimi</div></div>
+        </div>
+        <div class="kayit-role-card" data-role="veli" onclick="kayitSelectRole('veli')" style="display:flex;align-items:center;gap:14px;padding:14px;border:2px solid #e2e8f0;border-radius:14px;cursor:pointer;transition:.2s;">
+          <span style="font-size:32px;">👨‍👩‍👧</span>
+          <div><div style="font-weight:700;color:#1a202c;">Veli</div><div style="font-size:13px;color:#6586a7;">Öğrenci gelişimi takibi ve etkinlik özet raporları</div></div>
+        </div>
+        <div id="kayitRoleError" style="color:#ef4444;font-size:13px;display:none;"></div>
+      </div>
+    </div>
+
+    {{-- Step 4: Name + Password + Role-specific --}}
+    <div id="kayitStep4" style="display:none;">
+      <div style="font-size:40px;text-align:center;margin-bottom:4px;">✍️</div>
+      <h3 style="text-align:center;margin:0 0 4px;font-size:20px;color:#1a202c;">Bilgilerini Gir</h3>
+      <p style="text-align:center;color:#6586a7;margin:0 0 20px;font-size:14px;">Kaydını tamamlamak için bilgilerini doldur</p>
       <div style="display:grid;gap:12px;">
         <input type="text" id="kayitName" placeholder="Adın Soyadın" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
         <input type="tel" id="kayitPhone" placeholder="Telefon Numaran" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
-        <input type="text" id="kayitSchool" placeholder="Öğrencinin Okulu" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
+        <input type="text" id="kayitSchool" placeholder="Bağlı Olduğun Okul" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
+        <div id="kayitRoleFields"></div>
         <input type="password" id="kayitPassword" placeholder="Şifre (en az 6 karakter)" minlength="6" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
         <input type="password" id="kayitPasswordConfirm" placeholder="Şifre Tekrar" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
         <div id="kayitCompleteError" style="color:#ef4444;font-size:13px;display:none;"></div>
-        <button type="button" onclick="kayitComplete()" id="kayitBtn3" style="background:#5e8df7;color:#fff;border:none;border-radius:999px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;">Kaydol</button>
+        <button type="button" onclick="kayitComplete()" id="kayitBtn4" style="background:#5e8df7;color:#fff;border:none;border-radius:999px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;">Kaydol</button>
       </div>
     </div>
 
@@ -55,6 +78,7 @@
 
 <script>
 let kayitEmail = '';
+let kayitRole = '';
 
 function kayitShowError(id, msg) {
   const el = document.getElementById(id);
@@ -64,6 +88,17 @@ function kayitShowError(id, msg) {
 
 function kayitClearErrors() {
   document.querySelectorAll('[id$=Error]').forEach(e => e.style.display = 'none');
+}
+
+function kayitSelectRole(role) {
+  kayitRole = role;
+  document.querySelectorAll('.kayit-role-card').forEach(c => {
+    c.style.borderColor = '#e2e8f0';
+    c.style.background = '#fff';
+  });
+  const card = document.querySelector(`.kayit-role-card[data-role="${role}"]`);
+  card.style.borderColor = '#5e8df7';
+  card.style.background = '#f0f5ff';
 }
 
 async function kayitSendCode() {
@@ -115,6 +150,28 @@ async function kayitVerifyCode() {
   finally { btn.disabled = false; btn.textContent = 'Doğrula'; }
 }
 
+function kayitGoToStep4() {
+  if (!kayitRole) { kayitShowError('kayitRoleError', 'Lütfen bir rol seç.'); return; }
+  kayitClearErrors();
+  document.getElementById('kayitStep3').style.display = 'none';
+  document.getElementById('kayitStep4').style.display = 'block';
+}
+
+setInterval(() => {
+  if (document.getElementById('kayitStep3').style.display !== 'none') {
+    const cards = document.querySelectorAll('.kayit-role-card');
+    cards.forEach(c => {
+      c.removeEventListener('click', c._listener);
+      c._listener = () => {
+        const role = c.dataset.role;
+        kayitSelectRole(role);
+        setTimeout(kayitGoToStep4, 300);
+      };
+      c.addEventListener('click', c._listener);
+    });
+  }
+}, 500);
+
 async function kayitComplete() {
   kayitClearErrors();
   const name = document.getElementById('kayitName').value.trim();
@@ -122,22 +179,23 @@ async function kayitComplete() {
   const school = document.getElementById('kayitSchool').value.trim();
   const password = document.getElementById('kayitPassword').value;
   const passwordConfirm = document.getElementById('kayitPasswordConfirm').value;
+  if (!kayitRole) { kayitShowError('kayitCompleteError', 'Lütfen önce rol seç.'); return; }
   if (!name) { kayitShowError('kayitCompleteError', 'Adını soyadını gir.'); return; }
   if (!phone) { kayitShowError('kayitCompleteError', 'Telefon numaranı gir.'); return; }
-  if (!school) { kayitShowError('kayitCompleteError', 'Öğrencinin okulunu gir.'); return; }
+  if (!school) { kayitShowError('kayitCompleteError', 'Okulunu gir.'); return; }
   if (password.length < 6) { kayitShowError('kayitCompleteError', 'Şifre en az 6 karakter olmalı.'); return; }
   if (password !== passwordConfirm) { kayitShowError('kayitCompleteError', 'Şifreler eşleşmiyor.'); return; }
-  const btn = document.getElementById('kayitBtn3');
+  const btn = document.getElementById('kayitBtn4');
   btn.disabled = true; btn.textContent = 'Kaydediliyor...';
   try {
     const res = await fetch('{{ route("kayit.complete") }}', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-      body: JSON.stringify({ email: kayitEmail, name, phone, school, password, password_confirmation: passwordConfirm })
+      body: JSON.stringify({ email: kayitEmail, name, phone, school, password, password_confirmation: passwordConfirm, role: kayitRole })
     });
     const data = await res.json();
     if (data.success) {
-      document.getElementById('kayitStep3').style.display = 'none';
+      document.getElementById('kayitStep4').style.display = 'none';
       document.getElementById('kayitSuccess').style.display = 'block';
       setTimeout(() => { location.href = '{{ request()->url() }}'; }, 3000);
     } else {

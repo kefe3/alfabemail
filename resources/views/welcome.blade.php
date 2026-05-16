@@ -92,7 +92,7 @@
     <!-- CTA text — fades in after penguin disappears -->
     <div class="cta-trail" id="ctaTrail">
       <span>Hemen bugün başlayın! Alfabe Mail'i ücretsiz deneyebilirsiniz.</span>
-      
+      <button onclick="event.preventDefault();document.getElementById('kayitModal').style.display='flex'" style="background:#5e8df7;color:#fff;border:none;border-radius:999px;padding:10px 24px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;">Kaydol 🐧</button>
     </div>
     @php
       $totalMails = \App\Models\MailAktiviteLog::count();
@@ -303,5 +303,6 @@
       }
     });
   </script>
+  @include('partials.kayit')
 </body>
 </html>

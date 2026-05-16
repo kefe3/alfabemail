@@ -101,6 +101,21 @@ class PendingUserResource extends Resource
                     ->boolean()
                     ->trueIcon('heroicon-o-check-badge')
                     ->falseIcon('heroicon-o-x-circle'),
+                TextColumn::make('assigned_role')
+                    ->label('Rol')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'yonetici' => 'Yönetici',
+                        'ogretmen' => 'Öğretmen',
+                        'veli' => 'Veli',
+                        default => '—',
+                    })
+                    ->color(fn (?string $state): string => match ($state) {
+                        'yonetici' => 'success',
+                        'ogretmen' => 'primary',
+                        'veli' => 'gray',
+                        default => 'gray',
+                    }),
                 TextColumn::make('status')
                     ->label('Durum')
                     ->badge()
@@ -143,16 +158,26 @@ class PendingUserResource extends Resource
                                 'ogretmen' => 'Öğretmen',
                                 'veli' => 'Veli',
                             ])
+                            ->default(fn ($record) => $record->assigned_role)
                             ->required(),
                     ])
                     ->action(function (PendingUser $record, array $data) {
+                        $okul = \App\Models\Okul::where('ad', $record->school)->first();
+
                         $user = User::create([
                             'name' => $record->name,
                             'email' => $record->email,
                             'password' => $record->password,
+                            'phone' => $record->phone,
+                            'okul_id' => $okul?->id,
                             'is_active' => true,
                         ]);
                         $user->assignRole($data['assigned_role']);
+
+                        if ($data['assigned_role'] === 'yonetici' && $okul) {
+                            $okul->update(['yonetici_user_id' => $user->id]);
+                        }
+
                         $record->delete();
                         Notification::make()->title('Kullanıcı onaylandı ve kullanıcılara taşındı.')->success()->send();
                     }),

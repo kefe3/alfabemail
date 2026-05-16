@@ -109,6 +109,7 @@ class KayitController extends Controller
             'phone' => 'required|string|max:20',
             'school' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
+            'role' => 'required|in:yonetici,ogretmen,veli',
         ]);
 
         $pending = PendingUser::where('email', $request->email)
@@ -128,6 +129,7 @@ class KayitController extends Controller
             'phone' => $request->phone,
             'school' => $request->school,
             'password' => $request->password,
+            'assigned_role' => $request->role,
         ]);
 
         return response()->json([
