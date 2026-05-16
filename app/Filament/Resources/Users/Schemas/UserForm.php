@@ -101,7 +101,9 @@ class UserForm
                     ->label('Email address')
                     ->required()
                     ->unique(ignoreRecord: true)
+                    ->disabled(fn ($livewire) => !$isCreate($livewire))
                     ->hidden(fn (callable $get, $livewire) => $isCreate($livewire) && $isOgrenci($get))
+                    ->dehydrated(fn ($livewire) => $isCreate($livewire))
                     ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) . '*****' : null),
 
                 Select::make('roles')
