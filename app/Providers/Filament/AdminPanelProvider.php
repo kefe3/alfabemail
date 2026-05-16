@@ -45,9 +45,6 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
                 'gray' => Color::Slate,
             ])
-            ->brandName(fn () => auth()->user()?->hasRole('admin')
-                ? 'Admin Paneli'
-                : (auth()->user()?->bagli_okul?->ad ?? 'Yönetim Paneli'))
             ->favicon(asset('favicon.svg'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

@@ -46,6 +46,10 @@ class PortalPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,
             ])
+            ->brandName(fn () => auth()->user()?->bagli_okul?->ad
+                ?? auth()->user()?->ogrenci?->sinif?->okul?->ad
+                ?? auth()->user()?->veli?->ogrenciler?->first()?->sinif?->okul?->ad
+                ?? 'ALFABE Portal')
             ->favicon(asset('favicon.svg'))
             ->discoverResources(in: app_path('Filament/Portal/Resources'), for: 'App\Filament\Portal\Resources')
             ->resources([
