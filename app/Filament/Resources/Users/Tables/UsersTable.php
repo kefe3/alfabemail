@@ -43,7 +43,7 @@ class UsersTable
             ])
             ->recordActions([
                 EditAction::make()
-                    ->visible(fn () => auth()->user()->can('ogretmen.edit')),
+                    ->visible(fn ($record) => auth()->user()->can('ogretmen.edit') && (!$record->hasRole('admin') || $record->id === auth()->id())),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

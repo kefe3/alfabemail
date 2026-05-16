@@ -31,6 +31,15 @@ class UserResource extends Resource
         return auth()->user()?->can('ogretmen.create') ?? false;
     }
 
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        $user = auth()->user();
+        if ($record->hasRole('admin') && $record->id !== $user?->id) {
+            return false;
+        }
+        return $user?->can('ogretmen.edit') ?? false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);
