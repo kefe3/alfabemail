@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -51,12 +52,36 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasRole('admin') && $this->is_active;
+            return $this->hasRole('admin') && $this->is_active && $this->isFullyApproved();
         }
         if ($panel->getId() === 'portal') {
             return $this->hasAnyRole(['yonetici', 'ogretmen', 'veli', 'ogrenci']) && $this->is_active;
         }
         return false;
+    }
+
+    public function adminApprovalsRequested(): HasMany
+    {
+        return $this->hasMany(AdminApproval::class, 'target_user_id');
+    }
+
+    public function adminApprovalsGiven(): HasMany
+    {
+        return $this->hasMany(AdminApproval::class, 'approver_user_id');
+    }
+
+    public function isFullyApproved(): bool
+    {
+        if (!$this->hasRole('admin')) {
+            return true;
+        }
+        $totalApprovals = $this->adminApprovalsRequested()->count();
+        if ($totalApprovals === 0) {
+            return true;
+        }
+        return $this->adminApprovalsRequested()
+            ->whereNotNull('approved_at')
+            ->count() === $totalApprovals;
     }
 
     public function okul(): HasOne

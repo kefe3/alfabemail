@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
+use App\Models\AdminApproval;
 use App\Models\Okul;
+use App\Models\User;
 use App\Models\Veli;
 use App\Services\ActivityLogger;
 use App\Services\StudentCreationService;
@@ -117,6 +119,29 @@ class CreateUser extends CreateRecord
             if (!empty($this->veliData['ogrenci_ids'])) {
                 $veli = Veli::firstOrCreate(['user_id' => $this->record->id]);
                 $veli->ogrenciler()->sync($this->veliData['ogrenci_ids']);
+            }
+        }
+
+        if ($this->record->hasRole('admin')) {
+            $otherAdmins = User::whereHas('roles', fn ($q) => $q->where('name', 'admin'))
+                ->where('id', '!=', $this->record->id)
+                ->get();
+
+            if ($otherAdmins->isNotEmpty()) {
+                $this->record->update(['is_active' => false]);
+
+                foreach ($otherAdmins as $admin) {
+                    AdminApproval::create([
+                        'target_user_id' => $this->record->id,
+                        'approver_user_id' => $admin->id,
+                    ]);
+                }
+
+                Notification::make()
+                    ->title('Admin onayı bekliyor')
+                    ->body("Diğer adminlerin onayından sonra {$this->record->name} giriş yapabilir.")
+                    ->warning()
+                    ->send();
             }
         }
 
