@@ -658,18 +658,11 @@
                 console.log('Sent response:', sentData);
                 console.log('Sent count:', sentData.mails?.length);
 
-                // Handle inbox - show demo data if API fails
                 if (inboxData.success && inboxData.mails && inboxData.mails.length > 0) {
                     currentMails.inbox = inboxData.mails;
                     dom.inboxList.innerHTML = '';
                 } else {
-                    console.log('Inbox error or empty, using demo data:', inboxData);
-                    // Demo data
-                    currentMails.inbox = [
-                        { from: 'ogretmen@alfabe.co', subject: 'Hoş geldin! 🐧', date: '2026-05-04' },
-                        { from: 'duyuru@alfabe.co', subject: 'Yarın etkinlik var 📅', date: '2026-05-03' },
-                        { from: 'arkadas@alfabe.co', subject: 'Ders ödevi 📚', date: '2026-05-02' }
-                    ];
+                    currentMails.inbox = [];
                 }
 
                 // Handle sent - sadece localStorage'a güven (API çalışmıyor)
@@ -682,9 +675,7 @@
                 }
                 
                 if (currentMails.sent.length === 0) {
-                    currentMails.sent = [
-                        { to: 'anne@ornek.com', subject: 'Merhaba anneciğim 👋', date: '2026-05-01' }
-                    ];
+                    currentMails.sent = [];
                 }
 
                 dom.inboxCount.textContent = currentMails.inbox.length;
@@ -1077,12 +1068,6 @@
 
         // 👫 Arkadaş Listesi
         let friends = JSON.parse(localStorage.getItem('ogrenci_friends') || '[]');
-        const defaultFriends = [
-            { name: 'Öğretmen', email: 'ogretmen@alfabe.co', icon: '👩‍🏫' },
-            { name: 'Anne', email: 'anne@ornek.com', icon: '👩' },
-            { name: 'Baba', email: 'baba@ornek.com', icon: '👨' },
-        ];
-        if (friends.length === 0) { friends = defaultFriends; localStorage.setItem('ogrenci_friends', JSON.stringify(friends)); }
         
         function renderFriends() {
             const list = document.getElementById('friendsList');

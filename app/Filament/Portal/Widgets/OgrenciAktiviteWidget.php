@@ -16,18 +16,16 @@ class OgrenciAktiviteWidget extends ChartWidget
 
     protected function getData(): array
     {
-        // Gerçek veriler Mailcow API veya yerel loglardan gelmeli
-        // Şimdilik demo verisi:
         return [
             'datasets' => [
                 [
                     'label' => 'Gönderilen Mailler',
-                    'data' => [5, 12, 8, 15, 10, 20, 14],
+                    'data' => [0, 0, 0, 0, 0, 0, 0],
                     'borderColor' => '#7fa7ff',
                 ],
                 [
                     'label' => 'Alınan Mailler',
-                    'data' => [10, 15, 12, 20, 18, 25, 22],
+                    'data' => [0, 0, 0, 0, 0, 0, 0],
                     'borderColor' => '#c4ffe7',
                 ],
             ],

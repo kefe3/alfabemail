@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ogrenci;
 use App\Models\User;
+use App\Services\ProfanityFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -216,6 +217,14 @@ class OgrenciController extends Controller
         
         if (!$password) {
             return response()->json(['message' => 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.'], 401);
+        }
+
+        $profanity = app(ProfanityFilter::class);
+        $checkText = $request->subject . ' ' . $request->body;
+        if ($profanity->containsProfanity($checkText)) {
+            return response()->json([
+                'message' => 'Mesajınız uygunsuz ifadeler içeriyor. Lütfen içeriği düzenleyin.',
+            ], 422);
         }
 
         try {
