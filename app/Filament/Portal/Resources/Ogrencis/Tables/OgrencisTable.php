@@ -12,16 +12,10 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Component;
-use App\Models\User;
 use App\Models\Ogrenci;
-use App\Models\Sinif;
 use App\Services\MailcowService;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Filament\Notifications\Notification;
@@ -44,6 +38,23 @@ class OgrencisTable
                 TextColumn::make('sinif.ad')
                     ->label('Sınıf')
                     ->sortable(),
+                TextColumn::make('sifre')
+                    ->label('Şifre')
+                    ->copyable()
+                    ->copyMessage('Şifre kopyalandı')
+                    ->formatStateUsing(function ($record) {
+                        if (!$record->qr_token) return '—';
+                        $data = json_decode($record->qr_token, true);
+                        return $data['password'] ?? '—';
+                    })
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'yonetici', 'ogretmen']) ?? false),
+                TextColumn::make('qr_svg')
+                    ->label('QR Kod')
+                    ->formatStateUsing(fn ($state) => $state
+                        ? '<div style="width:72px;height:72px;overflow:hidden">' . $state . '</div>'
+                        : '—')
+                    ->html()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'yonetici', 'ogretmen']) ?? false),
                 TextColumn::make('created_at')
                     ->label('Kayıt Tarihi')
                     ->dateTime()
@@ -157,6 +168,36 @@ class OgrencisTable
                                 ->send();
                         }
                     }),
+                Action::make('generate_qr')
+                    ->label('QR Kod Oluştur')
+                    ->icon('heroicon-o-qr-code')
+                    ->visible(fn ($record) => (auth()->user()?->hasAnyRole(['admin', 'yonetici', 'ogretmen']) ?? false) && (empty($record->qr_token) || empty($record->qr_svg)))
+                    ->action(function (Ogrenci $record) {
+                        $record->loadMissing('user');
+                        if (!$record->user) {
+                            Notification::make()->title('Hata')->body('Kullanıcı bulunamadı.')->danger()->send();
+                            return;
+                        }
+                        $email = $record->mailbox_local_part . '@' . config('mailcow.domain', 'alfabe.co');
+                        $existingToken = $record->qr_token ? json_decode($record->qr_token, true) : null;
+                        if ($existingToken && isset($existingToken['password'])) {
+                            $password = $existingToken['password'];
+                            $qrToken = $existingToken['token'] ?? Str::random(32);
+                        } else {
+                            $password = Str::random(12);
+                            $qrToken = Str::random(32);
+                            try {
+                                app(MailcowService::class)->updateMailboxPassword($email, $password);
+                            } catch (\Exception $e) {
+                                Notification::make()->title('Mailcow Hatası')->body($e->getMessage())->warning()->send();
+                            }
+                        }
+                        $qrContent = json_encode(['email' => $email, 'password' => $password, 'token' => $qrToken]);
+                        $record->qr_token = $qrContent;
+                        $record->qr_svg = (string) QrCode::size(200)->generate($qrContent);
+                        $record->save();
+                        Notification::make()->title('QR Kod Oluşturuldu')->success()->send();
+                    }),
                 Action::make('print_badge')
                     ->label('Yaka Kartı')
                     ->icon('heroicon-o-printer')
@@ -170,6 +211,36 @@ class OgrencisTable
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    BulkAction::make('generate_qr_bulk')
+                        ->label('Toplu QR Kod Oluştur')
+                        ->icon('heroicon-o-qr-code')
+                        ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'yonetici', 'ogretmen']) ?? false)
+                        ->action(function (Collection $records) {
+                            $updated = 0;
+                            foreach ($records as $record) {
+                                if (!empty($record->qr_token) && !empty($record->qr_svg)) continue;
+                                $record->loadMissing('user');
+                                if (!$record->user) continue;
+                                $email = $record->mailbox_local_part . '@' . config('mailcow.domain', 'alfabe.co');
+                                $existingToken = $record->qr_token ? json_decode($record->qr_token, true) : null;
+                                if ($existingToken && isset($existingToken['password'])) {
+                                    $password = $existingToken['password'];
+                                    $qrToken = $existingToken['token'] ?? Str::random(32);
+                                } else {
+                                    $password = Str::random(12);
+                                    $qrToken = Str::random(32);
+                                    try {
+                                        app(MailcowService::class)->updateMailboxPassword($email, $password);
+                                    } catch (\Exception $e) {}
+                                }
+                                $qrContent = json_encode(['email' => $email, 'password' => $password, 'token' => $qrToken]);
+                                $record->qr_token = $qrContent;
+                                $record->qr_svg = (string) QrCode::size(200)->generate($qrContent);
+                                $record->save();
+                                $updated++;
+                            }
+                            Notification::make()->title("{$updated} öğrenci için QR kod oluşturuldu.")->success()->send();
+                        }),
                     BulkAction::make('print_badges')
                         ->label('Toplu Yaka Kartı')
                         ->icon('heroicon-o-printer')
