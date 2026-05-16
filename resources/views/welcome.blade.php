@@ -97,10 +97,13 @@
   </section>
 
   <!-- Giriş Kartları -->
-  @php $totalMails = \App\Models\MailAktiviteLog::count(); @endphp
+  @php
+    $totalMails = \App\Models\MailAktiviteLog::count();
+    $totalMailboxes = \App\Models\Ogrenci::whereNotNull('mailbox_local_part')->count();
+  @endphp
 
   <div id="mailCounter" class="mail-counter-banner" style="display:none;">
-    <span>✉️ <strong>Toplam {{ number_format($totalMails) }} mail</strong> gönderildi!</span>
+    <span>📬 <strong>{{ number_format($totalMailboxes) }} kutu açıldı</strong> — ✉️ <strong>{{ number_format($totalMails) }} mail</strong> gönderildi!</span>
     <button onclick="dismissMailCounter()" title="Kapat">&times;</button>
   </div>
   <script>
