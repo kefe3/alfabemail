@@ -562,7 +562,7 @@ h1 { margin: 0; font-size: clamp(24px,4vw,42px); }
 
 /* ── Mail Counter Banner ──────────────────────────── */
 .mail-counter-banner {
-  position: absolute; right: 6%; top: 20px;
+  position: absolute; right: 6%; bottom: 224px;
   width: fit-content; max-width: 500px;
   background: linear-gradient(135deg,#fff3e0,#ffe0b2);
   border: 2px solid #ffcc80; border-radius: 999px;
