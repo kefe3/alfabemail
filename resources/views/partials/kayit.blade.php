@@ -6,7 +6,7 @@
     <div id="kayitStep1">
       <div style="font-size:40px;text-align:center;margin-bottom:4px;">🐧</div>
       <h3 style="text-align:center;margin:0 0 4px;font-size:20px;color:#1a202c;">Hesap Oluştur</h3>
-      <p style="text-align:center;color:#6586a7;margin:0 0 20px;font-size:14px;">E-posta adresinle başla</p>
+      <p style="text-align:center;color:#6586a7;margin:0 0 20px;font-size:14px;">Yönetici, Öğretmen veya Veli — E-posta adresinle başla!</p>
       <div style="display:grid;gap:12px;">
         <input type="email" id="kayitEmail" placeholder="E-posta adresin" style="padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;width:100%;color:#1a202c;">
         <div id="kayitEmailError" style="color:#ef4444;font-size:13px;display:none;"></div>
