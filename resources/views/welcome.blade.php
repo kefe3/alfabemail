@@ -92,25 +92,39 @@
     <!-- CTA text — fades in after penguin disappears -->
     <div class="cta-trail" id="ctaTrail">
       <span>Hemen bugün başlayın! Alfabe Mail'i ücretsiz deneyebilirsiniz.</span>
-      <button onclick="event.preventDefault();document.getElementById('kayitModal').style.display='flex'" style="background:#5e8df7;color:#fff;border:none;border-radius:999px;padding:10px 24px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;">Kaydol 🐧</button>
     </div>
     @php
-      $totalMails = \App\Models\MailAktiviteLog::count();
       $totalMailboxes = \App\Models\Ogrenci::whereNotNull('mailbox_local_part')->count();
     @endphp
     <div id="mailCounter" class="mail-counter-banner" style="display:none;">
-      <span>📬 <strong>{{ number_format($totalMailboxes) }} kutu açıldı</strong> — ✉️ <strong>{{ number_format($totalMails) }} mail</strong> gönderildi!</span>
+      <span>📬 <strong id="mailboxCountDisplay">0</strong> posta kutusu açıldı!</span>
       <button onclick="dismissMailCounter()" title="Kapat">&times;</button>
     </div>
     <script>
-      if (!localStorage.getItem('mail_counter_hidden')) {
-        document.getElementById('mailCounter').style.display = '';
-      }
-      function dismissMailCounter() {
-        document.getElementById('mailCounter').style.display = 'none';
-        localStorage.setItem('mail_counter_hidden', '1');
-      }
+      (function() {
+        var hidden = localStorage.getItem('mail_counter_hidden');
+        if (!hidden) {
+          document.getElementById('mailCounter').style.display = '';
+          var target = {{ $totalMailboxes }};
+          var el = document.getElementById('mailboxCountDisplay');
+          var start = 0, duration = 1500, step = Math.ceil(target / 30);
+          if (step < 1) step = 1;
+          var timer = setInterval(function() {
+            start += step;
+            if (start >= target) { start = target; clearInterval(timer); }
+            el.textContent = start.toLocaleString('tr-TR');
+          }, duration / 30);
+        }
+        function dismissMailCounter() {
+          document.getElementById('mailCounter').style.display = 'none';
+          localStorage.setItem('mail_counter_hidden', '1');
+        }
+        window.dismissMailCounter = dismissMailCounter;
+      })();
     </script>
+    <div style="text-align:center;margin-top:6px;">
+      <button onclick="document.getElementById('kayitModal').style.display='flex'" style="background:#5e8df7;color:#fff;border:none;border-radius:999px;padding:12px 32px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(94,141,247,.4);">Kaydol 🐧</button>
+    </div>
   </section>
 
   <!-- Giriş Kartları -->
