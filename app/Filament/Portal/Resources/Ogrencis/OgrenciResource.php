@@ -19,9 +19,17 @@ use Illuminate\Database\Eloquent\Builder;
 class OgrenciResource extends Resource
 {
     protected static ?string $model = Ogrenci::class;
-    protected static $navigationLabel = 'Öğrenciler';
-    protected static $navigationGroup = 'Öğrenci İşlemleri';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Öğrenciler';
+    }
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return 'Öğrenci İşlemleri';
+    }
 
     public static function canAccess(): bool
     {
