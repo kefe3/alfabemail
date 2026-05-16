@@ -97,6 +97,22 @@
   </section>
 
   <!-- Giriş Kartları -->
+  @php $totalMails = \App\Models\MailAktiviteLog::count(); @endphp
+
+  <div id="mailCounter" class="mail-counter-banner" style="display:none;">
+    <span>✉️ <strong>Toplam {{ number_format($totalMails) }} mail</strong> gönderildi!</span>
+    <button onclick="dismissMailCounter()" title="Kapat">&times;</button>
+  </div>
+  <script>
+    if (!localStorage.getItem('mail_counter_hidden')) {
+      document.getElementById('mailCounter').style.display = '';
+    }
+    function dismissMailCounter() {
+      document.getElementById('mailCounter').style.display = 'none';
+      localStorage.setItem('mail_counter_hidden', '1');
+    }
+  </script>
+
   <main class="entry">
     <h1>🐧 Kayıp Penguen ALFABE Portalı Buldu!</h1>
     <p class="sub">Alfabe — Çocukların güvenle kullanabilecekleri eMail okul yönetim sistemidir.</p>
