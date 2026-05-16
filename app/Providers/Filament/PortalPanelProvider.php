@@ -46,7 +46,7 @@ class PortalPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,
             ])
-            ->favicon(asset('favicon.ico'))
+            ->favicon(asset('favicon.svg'))
             ->discoverResources(in: app_path('Filament/Portal/Resources'), for: 'App\Filament\Portal\Resources')
             ->resources([
                 \App\Filament\Portal\Resources\Sinifs\SinifResource::class,
