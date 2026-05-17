@@ -26,7 +26,7 @@ class MailcowService
         $this->apiBaseUrl     = rtrim((string) $this->getSetting('mailcow_api_base_url', config('mailcow.api_base_url', '')), '/');
         $this->apiKey         = (string) $this->getSetting('mailcow_api_key', config('mailcow.api_key', ''));
         $this->mailDomain     = strtolower(trim((string) $this->getSetting('mailcow_domain', config('mailcow.domain', 'alfabe.co'))));
-        $this->defaultQuotaMb = (int) $this->getSetting('mailcow_default_quota_mb', config('mailcow.default_quota_mb', 2048));
+        $this->defaultQuotaMb = (int) $this->getSetting('mailcow_default_quota_mb', config('mailcow.default_quota_mb', 100));
     }
 
     private function getSetting(string $key, mixed $default = null): mixed
@@ -147,6 +147,7 @@ class MailcowService
             'password'   => $password,
             'password2'  => $password,
             'active'     => '1',
+            'quota'      => $quota,
         ]);
 
         \Log::info('Mailcow create response', [

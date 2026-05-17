@@ -145,9 +145,10 @@ class OgrencisTable
                             ->label('Kota (MB)')
                             ->numeric()
                             ->required()
-                            ->minValue(256)
-                            ->default(2048)
-                            ->helperText('Minimum 256 MB'),
+                            ->minValue(100)
+                            ->maxValue(1024)
+                            ->default(100)
+                            ->helperText('100 – 1024 MB arası'),
                     ])
                     ->action(function (Ogrenci $record, array $data) {
                         try {

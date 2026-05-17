@@ -30,7 +30,7 @@ class StudentCreationService
                 $data['first_name'],
                 $data['last_name'],
                 $data['nickname'] ?? null,
-                0,
+                100,
                 $data['password']
             );
         } catch (\Exception $e) {
@@ -59,6 +59,7 @@ class StudentCreationService
             'user_id' => $user->id,
             'sinif_id' => $data['sinif_id'] ?? null,
             'mailbox_local_part' => $mailbox['local_part'],
+            'mailbox_quota_mb' => 100,
             'qr_token' => $qrContent,
             'qr_svg' => (string) $qrSvg,
             'anne_email' => $data['anne_email'] ?? null,

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('sinif_id')->nullable()->constrained('siniflar')->nullOnDelete();
             $table->string('mailbox_local_part')->nullable();
-            $table->integer('mailbox_quota_mb')->default(2048);
+            $table->integer('mailbox_quota_mb')->default(100);
             $table->string('qr_token')->nullable()->unique();
             $table->text('qr_svg')->nullable();
             $table->timestamps();

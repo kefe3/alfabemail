@@ -37,6 +37,7 @@ Route::post('/ogrenci/upload-attachment', [OgrenciController::class, 'uploadAtta
 Route::get('/ogrenci/inbox', [OgrenciController::class, 'getInbox'])->name('ogrenci.inbox');
 Route::get('/ogrenci/sent', [OgrenciController::class, 'getSent'])->name('ogrenci.sent');
 Route::get('/ogrenci/stats', [OgrenciController::class, 'getStats'])->name('ogrenci.stats');
+Route::get('/ogrenci/quota', [OgrenciController::class, 'getQuota'])->name('ogrenci.quota');
 Route::post('/ogrenci/log-read', [OgrenciController::class, 'logRead'])->name('ogrenci.log-read');
 
 // Docker'dan IMAP verisi çek (tmp sorunu için workaround)

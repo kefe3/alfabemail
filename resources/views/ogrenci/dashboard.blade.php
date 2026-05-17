@@ -335,6 +335,15 @@
                 <div>
                     <h1 class="text-2xl font-extrabold text-purple-600">Alfabe Mail</h1>
                     <p class="text-sm text-gray-500" id="userEmail">{{ Auth::user()->email }}</p>
+                    <div id="quotaBar" class="mt-1 hidden">
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <span>💾</span>
+                            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div id="quotaFill" class="h-full rounded-full transition-all duration-700" style="width:0%"></div>
+                            </div>
+                            <span id="quotaText">0 / 0 MB</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <button id="badgeBtn" class="emoji-btn bg-yellow-100 hover:bg-yellow-200" title="Rozetlerim 🏆">🏆</button>
@@ -934,8 +943,31 @@
             window.location.href = '/';
         });
 
+        async function loadQuota() {
+            try {
+                const res = await fetch('/ogrenci/quota', {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const pct = Math.min(data.percent_used, 100);
+                    const usedMb = (data.quota_used / 1024).toFixed(1);
+                    const totalMb = data.quota;
+                    const bar = document.getElementById('quotaFill');
+                    const txt = document.getElementById('quotaText');
+                    const wrapper = document.getElementById('quotaBar');
+                    wrapper.classList.remove('hidden');
+                    bar.style.width = pct + '%';
+                    bar.style.background = pct >= 80 ? '#ef4444' : pct >= 50 ? '#f59e0b' : '#10b981';
+                    txt.textContent = usedMb + ' / ' + totalMb + ' MB';
+                }
+            } catch(e) { console.log('Quota load error', e); }
+        }
+
         // Initialize - login and load mails
         init();
+        setTimeout(() => loadQuota(), 1500);
         
         let userStats = { sent: 0, received: 0, replied: 0 };
         

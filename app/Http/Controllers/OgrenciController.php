@@ -600,6 +600,35 @@ class OgrenciController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function getQuota(): JsonResponse
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('ogrenci')) {
+            return response()->json(['message' => 'Yetkisiz erişim.'], 401);
+        }
+
+        $ogrenci = $user->ogrenci;
+
+        if (!$ogrenci || !$ogrenci->mailbox_local_part) {
+            return response()->json(['quota_used' => 0, 'quota' => 100, 'percent_used' => 0]);
+        }
+
+        try {
+            $mailService = new MailcowService();
+            $email = $ogrenci->mailbox_local_part . '@' . config('mailcow.domain', 'alfabe.co');
+            $info = $mailService->getMailboxQuota($email);
+
+            return response()->json([
+                'quota_used' => (int) ($info['quota_used'] ?? 0),
+                'quota' => (int) ($info['quota'] ?? $ogrenci->mailbox_quota_mb ?? 100),
+                'percent_used' => (float) ($info['percent_used'] ?? 0),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['quota_used' => 0, 'quota' => 100, 'percent_used' => 0]);
+        }
+    }
+
     private function decodeMimeHeader(string $header): string
     {
         if (empty($header)) {

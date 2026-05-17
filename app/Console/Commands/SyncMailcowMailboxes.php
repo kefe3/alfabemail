@@ -129,6 +129,7 @@ class SyncMailcowMailboxes extends Command
                 Ogrenci::create([
                     'user_id' => $user->id,
                     'mailbox_local_part' => $localPart,
+                    'mailbox_quota_mb' => 100,
                     'qr_token' => $qrContent,
                     'qr_svg' => (string) $qrSvg,
                 ]);
