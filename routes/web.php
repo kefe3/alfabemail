@@ -135,6 +135,13 @@ Route::middleware(['auth'])->prefix('veli')->group(function () {
     Route::post('/sifre-sifirla', [App\Http\Controllers\VeliController::class, 'sifreSifirla']);
 });
 
+// Admin Chat
+Route::middleware(['auth'])->prefix('admin-chat')->group(function () {
+    Route::get('/messages', [App\Http\Controllers\AdminChatController::class, 'getMessages']);
+    Route::post('/send', [App\Http\Controllers\AdminChatController::class, 'sendMessage']);
+    Route::get('/online', [App\Http\Controllers\AdminChatController::class, 'getOnlineAdmins']);
+});
+
 // Yasal sayfalar
 Route::view('/kvkk', 'legal.kvkk')->name('kvkk');
 Route::view('/gizlilik', 'legal.gizlilik')->name('gizlilik');
