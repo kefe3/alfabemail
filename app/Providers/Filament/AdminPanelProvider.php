@@ -41,6 +41,10 @@ class AdminPanelProvider extends PanelProvider
                     ? view('partials.hata-bildir')->render() . view('filament.admin.widgets.chat-widget')->render()
                     : '',
             )
+            ->renderHook(
+                PanelsRenderHook::SCRIPTS_BEFORE,
+                fn () => '<script>window.livewireScriptConfig = window.livewireScriptConfig || {uri: "' . url(app('livewire')->getUpdateUri()) . '"};</script>',
+            )
             ->authGuard('web')
             ->login()
             ->colors([
