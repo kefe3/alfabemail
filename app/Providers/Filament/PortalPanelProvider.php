@@ -50,7 +50,7 @@ class PortalPanelProvider extends PanelProvider
                 ?? auth()->user()?->ogrenci?->sinif?->okul?->ad
                 ?? auth()->user()?->veli?->ogrenciler?->first()?->sinif?->okul?->ad
                 ?? 'ALFABE Portal')
-            ->favicon(asset('favicon.svg'))
+            ->favicon(asset('favicon.png'))
             ->discoverResources(in: app_path('Filament/Portal/Resources'), for: 'App\Filament\Portal\Resources')
             ->resources([
                 \App\Filament\Portal\Resources\Sinifs\SinifResource::class,

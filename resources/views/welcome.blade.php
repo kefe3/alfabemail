@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ALFABE Portal | Mail </title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="alternate icon" href="/favicon.ico" />
   <link rel="stylesheet" href="/css/portal.css" />
 </head>

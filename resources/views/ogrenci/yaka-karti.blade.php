@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <title>Öğrenci Yaka Kartları</title>
     <style>
         :root {
