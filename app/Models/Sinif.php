@@ -54,4 +54,9 @@ class Sinif extends Model
     {
         return $this->hasMany(Ogrenci::class);
     }
+
+    public function odevler(): HasMany
+    {
+        return $this->hasMany(Odev::class);
+    }
 }

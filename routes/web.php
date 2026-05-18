@@ -116,6 +116,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/veli/dashboard', function () {
         return view('veli.dashboard');
     })->name('veli.dashboard');
+
+    Route::get('/ogrenci/odevler', [OgrenciController::class, 'getOdevler'])->name('ogrenci.odevler');
+    Route::post('/ogrenci/odev-tamamla', [OgrenciController::class, 'odevTamamla'])->name('ogrenci.odev-tamamla');
 });
 
 // Hata bildir

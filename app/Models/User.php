@@ -113,4 +113,9 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->belongsToMany(Sinif::class, 'ogretmen_sinif', 'ogretmen_user_id', 'sinif_id');
     }
+
+    public function olusturulan_odevler(): HasMany
+    {
+        return $this->hasMany(Odev::class, 'ogretmen_id');
+    }
 }

@@ -1,6 +1,6 @@
 # Alfabe Mail — Çocuklar için Güvenli E-posta Sistemi
 
-> **v1.0** — Kapsül Serix Teknoloji Platformu
+> **v1.1** — Kapsül Serix Teknoloji Platformu
 
 Çocukların güvenli, reklamsız, kötü söz içermeyen ve kontrollü bir ortamda e-posta kullanmasını sağlayan eğitim odaklı mail platformu.
 
@@ -12,12 +12,12 @@
 | Panel | URL | Kullanıcı | Açıklama |
 |-------|-----|-----------|----------|
 | Admin | `/admin` | admin | Tüm yönetim |
-| Portal | `/panel` | yonetici/ogretmen/veli/ogrenci | Okul, öğretmen, sınıf, öğrenci yönetimi |
-| Öğrenci | `/giris` | ...@alfabe.co | Karekodla giriş, mail kullanımı |
+| Portal | `/panel` | yonetici/ogretmen/veli | Okul, öğretmen, sınıf, öğrenci, ödev yönetimi |
+| Öğrenci | `/giris` | ...@alfabe.co | Karekodla giriş, mail kullanımı, ödev takibi |
 
 ---
 
-## ✅ v1.0 Tamamlanan Özellikler
+## ✅ v1.1 Tamamlanan Özellikler
 
 ### Giriş & Kimlik Doğrulama
 - [x] Admin/Portal panel girişi (Filament auth)
@@ -33,17 +33,21 @@
 - [x] Mail gönderme (SMTP)
 - [x] Mail detay modalı
 - [x] UTF-8 Türkçe destek
-- [x] Çocuk dostu UI (penguen maskot 🐧)
+- [x] Çocuk dostu UI (penguen maskot 🐧 + baykuş maskot 🦉)
 - [x] Yaka kartı oluşturma (karekodlu)
 - [x] Toplu yaka kartı yazdırma
 - [x] Dosya ekleme (attachment upload)
 - [x] E-posta istatistikleri
+- [x] Ödev/Teslim sistemi (öğretmen atar, öğrenci tamamlar)
+- [x] Haftalık ödev takvimi
+- [x] Baykuş maskot ile ödev bildirimleri
 
 ### Portal Paneli (yonetici/ogretmen/veli)
 - [x] Role göre özelleşmiş dashboard
 - [x] **Öğrenci Yönetimi**: CRUD, CSV yükleme (UI), Mailcow mailbox oluşturma, toplu yaka kartı
 - [x] **Öğretmen Yönetimi**: CRUD, sınıf atama, inline sınıf oluşturma
 - [x] **Sınıf Yönetimi**: CRUD, pivot tabanlı filtreleme
+- [x] **Ödev Yönetimi**: CRUD, sınıfa/öğrenciye ödev atama, teslim tarihi, tamamlanma takibi
 - [x] **Okul Yönetimi** (admin): CRUD
 
 ### Veli Paneli
@@ -132,6 +136,12 @@
 |--------|-------|----------|
 | GET | `/api/mails/inbox` | Docker exec ile inbox çekme |
 | GET | `/api/mails/sent` | Docker exec ile sent çekme |
+
+### Ödev Sistemi
+| Method | Route | Açıklama |
+|--------|-------|----------|
+| GET | `/ogrenci/odevler` | Öğrencinin ödev listesi (bekleyen/tamamlanan) |
+| POST | `/ogrenci/odev-tamamla` | Ödevi tamamlandı olarak işaretle |
 
 ### Hata Bildir
 | Method | Route | Açıklama |
@@ -238,7 +248,8 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 - `app/Http/Controllers/MailcowProxyController.php` — Mailcow API proxy (Sanctum korumalı)
 
 ### Modeller
-- `app/Models/User.php` (roller, `okul()`/`bagli_okul()`/ogrenci/veli/ogretmen ilişkileri, `canAccessPanel`)
+- `app/Models/User.php` (roller, `okul()`/`bagli_okul()`/ogrenci/veli/ogretmen ilişkileri, `canAccessPanel`, `olusturulan_odevler`)
+- `app/Models/Odev.php` — Ödev/takvim sistemi (ogretmen, sinif, ogrenci pivot)
 - `app/Models/Ogrenci.php`, `Veli.php`, `Sinif.php`, `Okul.php`
 - `app/Models/PendingUser.php`, `HataBildirisi.php`, `VeliMesaj.php`
 - `app/Models/ActivityLog.php`, `MailAktiviteLog.php`, `Sponsor.php`
@@ -266,6 +277,7 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 - `app/Filament/Portal/Resources/Ogretmenler/` — Öğretmen yönetimi
 - `app/Filament/Portal/Resources/Sinifs/` — Sınıf yönetimi
 - `app/Filament/Portal/Resources/Okuls/` — Okul yönetimi
+- `app/Filament/Portal/Resources/Odevler/` — Ödev yönetimi (CRUD, sınıfa atama, tamamlanma takibi)
 
 ### Filament Widget'lar & Sayfalar
 - `app/Filament/Pages/AdminDashboard.php` — Admin dashboard
@@ -341,12 +353,14 @@ public static function getPages(): array
 
 - [ ] IMAP inbox okuma iyileştirmesi
 - [ ] Öğrenci mail paneli UI redesign
-- [ ] Ek dosya ekleme (resim, belge) — kısmen tamamlandı
 - [ ] Arama ve filtreleme
-- [ ] Gamification rozetleri
+- [ ] Gamification rozetleri — kısmen tamamlandı
 - [ ] Mobil uyum
 - [ ] Toplu öğrenci CSV yükleme (backend)
 - [ ] Okul talep formu (backend)
+- [ ] Ödevlerde dosya ekleme desteği
+- [ ] Öğretmen-öğrenci mesajlaşma (baykuş üzerinden direkt)
+- [ ] Ödev hatırlatma bildirimleri
 
 ---
 

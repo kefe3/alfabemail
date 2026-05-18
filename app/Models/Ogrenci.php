@@ -70,4 +70,11 @@ class Ogrenci extends Model
     {
         return $this->belongsToMany(Veli::class, 'ogrenci_veli', 'ogrenci_id', 'veli_id');
     }
+
+    public function odevler(): BelongsToMany
+    {
+        return $this->belongsToMany(Odev::class, 'odev_ogrenci', 'ogrenci_id', 'odev_id')
+            ->withPivot('tamamlandi', 'tamamlanma_tarihi')
+            ->withTimestamps();
+    }
 }

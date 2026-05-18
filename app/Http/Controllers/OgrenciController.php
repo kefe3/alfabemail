@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Odev;
 use App\Models\Ogrenci;
 use App\Models\User;
 use App\Services\MailcowService;
@@ -628,6 +629,98 @@ class OgrenciController extends Controller
         } catch (\Exception $e) {
             return response()->json(['quota_used' => 0, 'quota' => 100, 'percent_used' => 0]);
         }
+    }
+
+    public function getOdevler(): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->hasRole('ogrenci')) {
+            return response()->json(['message' => 'Yetkisiz erişim.'], 401);
+        }
+
+        $ogrenci = $user->ogrenci;
+        if (!$ogrenci) {
+            return response()->json(['odevler' => []]);
+        }
+
+        $odevler = $ogrenci->odevler()
+            ->with('ogretmen')
+            ->wherePivotNull('tamamlanma_tarihi')
+            ->orderBy('teslim_tarihi')
+            ->get()
+            ->map(function ($odev) use ($ogrenci) {
+                $bugun = now()->startOfDay();
+                $teslim = $odev->teslim_tarihi ? \Carbon\Carbon::parse($odev->teslim_tarihi)->startOfDay() : null;
+                $gecikti = $teslim && $teslim->lt($bugun);
+
+                return [
+                    'id' => $odev->id,
+                    'baslik' => $odev->baslik,
+                    'aciklama' => $odev->aciklama,
+                    'teslim_tarihi' => $odev->teslim_tarihi?->format('d/m/Y'),
+                    'ogretmen' => $odev->ogretmen?->name ?? 'Öğretmen',
+                    'tamamlandi' => (bool) $odev->pivot->tamamlandi,
+                    'gecikti' => $gecikti,
+                    'created_at' => $odev->created_at->format('d/m/Y'),
+                ];
+            });
+
+        $tamamlanan = $ogrenci->odevler()
+            ->with('ogretmen')
+            ->wherePivot('tamamlandi', true)
+            ->orderByDesc('odev_ogrenci.tamamlanma_tarihi')
+            ->get()
+            ->map(function ($odev) {
+                return [
+                    'id' => $odev->id,
+                    'baslik' => $odev->baslik,
+                    'ogretmen' => $odev->ogretmen?->name ?? 'Öğretmen',
+                    'tamamlanma_tarihi' => $odev->pivot->tamamlanma_tarihi
+                        ? \Carbon\Carbon::parse($odev->pivot->tamamlanma_tarihi)->format('d/m/Y')
+                        : null,
+                ];
+            });
+
+        return response()->json([
+            'bekleyen' => $odevler,
+            'tamamlanan' => $tamamlanan,
+        ]);
+    }
+
+    public function odevTamamla(Request $request): JsonResponse
+    {
+        $request->validate(['odev_id' => 'required|integer|exists:odevler,id']);
+
+        $user = Auth::user();
+        if (!$user || !$user->hasRole('ogrenci')) {
+            return response()->json(['message' => 'Yetkisiz erişim.'], 401);
+        }
+
+        $ogrenci = $user->ogrenci;
+        if (!$ogrenci) {
+            return response()->json(['message' => 'Öğrenci bulunamadı.'], 404);
+        }
+
+        $odev = Odev::findOrFail($request->odev_id);
+        $exists = $odev->ogrenciler()->where('ogrenci_id', $ogrenci->id)->exists();
+
+        if (!$exists) {
+            return response()->json(['message' => 'Bu ödev size ait değil.'], 403);
+        }
+
+        $odev->ogrenciler()->updateExistingPivot($ogrenci->id, [
+            'tamamlandi' => true,
+            'tamamlanma_tarihi' => now(),
+        ]);
+
+        $toplam = $odev->ogrenciler()->count();
+        $tamamlanan = $odev->ogrenciler()->wherePivot('tamamlandi', true)->count();
+
+        return response()->json([
+            'message' => 'Ödev tamamlandı olarak işaretlendi! 🎉',
+            'toplam' => $toplam,
+            'tamamlanan' => $tamamlanan,
+        ]);
     }
 
     private function decodeMimeHeader(string $header): string

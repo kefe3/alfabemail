@@ -320,6 +320,14 @@
             border-radius: 3px;
             transition: width 0.5s;
         }
+
+        /* Ödevler stili */
+        .odev-card {
+            transition: all 0.3s ease;
+        }
+        .odev-card:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 pb-20">
@@ -365,6 +373,10 @@
             </button>
             <button class="tab-btn" data-tab="compose">
                 ✉️ Yeni Mail
+            </button>
+            <button class="tab-btn" data-tab="odevler" id="odevTabBtn">
+                🦉 Ödevler
+                <span id="odevCount" class="ml-1 bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs hidden">0</span>
             </button>
         </div>
     </div>
@@ -533,8 +545,47 @@
         </div>
     </div>
 
-    <!-- Empty State - Floating Characters -->
-    <div class="fixed bottom-8 left-8 floating text-6xl opacity-30 pointer-events-none">🦉</div>
+    <!-- Ödevler Tab -->
+    <div id="tab-odevler" class="tab-content hidden max-w-4xl mx-auto">
+        <div class="kid-card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <span>🦉</span> Öğretmenin Gönderdikleri
+                </h2>
+                <button onclick="loadOdevler()" class="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full hover:bg-purple-200">
+                    🔄 Yenile
+                </button>
+            </div>
+
+            <!-- Takvim (basit) -->
+            <div id="odevTakvim" class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">📅</span>
+                    <span class="font-bold text-amber-800">Bu Hafta</span>
+                </div>
+                <div id="haftalikOdevler" class="space-y-2"></div>
+            </div>
+
+            <!-- Bekleyen Ödevler -->
+            <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                <span>📋</span> Bekleyen Ödevler
+            </h3>
+            <div id="bekleyenOdevler" class="space-y-3">
+                <div class="text-center text-gray-400 py-8 pulse">🦉 Ödevler yükleniyor...</div>
+            </div>
+
+            <!-- Tamamlanan Ödevler -->
+            <h3 class="font-bold text-gray-700 mb-3 mt-6 flex items-center gap-2">
+                <span>✅</span> Tamamlanan Ödevler
+            </h3>
+            <div id="tamamlananOdevler" class="space-y-2">
+                <div class="text-center text-gray-400 py-4">Henüz tamamlanan ödev yok 🎯</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Baykuş Maskot (öğretmenin maskotu) - Sürekli görünür, tıklanınca ödevlere gider -->
+    <div id="owl" class="fixed bottom-8 left-8 text-6xl cursor-pointer hover:scale-110 transition-transform floating" title="Öğretmenin 🦉">🦉</div>
     <div class="fixed top-20 right-20 floating text-5xl opacity-20 pointer-events-none" style="animation-delay: 1s;">🐧</div>
 
     <script>
@@ -631,6 +682,7 @@
 
                     // Small delay to ensure session is set
                     setTimeout(() => loadMails(), 500);
+                    setTimeout(() => loadOdevler(), 1000);
                 } else {
                     console.error('Login failed:', loginData);
                     dom.inboxList.innerHTML = '<div class="text-center text-red-500 py-4">⚠️ Giriş başarısız: ' + (loginData.message || '') + '</div>';
@@ -1184,6 +1236,155 @@
             }
             previousBadges = current;
         }
+
+        // 🦉 Baykuş maskot tıklama → ödevler sekmesine git
+        document.getElementById('owl').addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelector('[data-tab="odevler"]').classList.add('active');
+            document.getElementById('tab-odevler').classList.remove('hidden');
+            loadOdevler();
+        });
+
+        // 📋 Ödevleri yükle
+        async function loadOdevler() {
+            const bekleyenEl = document.getElementById('bekleyenOdevler');
+            const tamamlananEl = document.getElementById('tamamlananOdevler');
+            const haftalikEl = document.getElementById('haftalikOdevler');
+            const odevCount = document.getElementById('odevCount');
+
+            bekleyenEl.innerHTML = '<div class="text-center text-gray-400 py-8 pulse">🦉 Baykuş ödevleri getiriyor...</div>';
+
+            try {
+                const res = await fetch('/ogrenci/odevler', {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (!res.ok) throw new Error('Yükleme hatası');
+                const data = await res.json();
+
+                const bekleyen = data.bekleyen || [];
+                const tamamlanan = data.tamamlanan || [];
+
+                // Bekleyen ödev sayısı rozeti
+                if (bekleyen.length > 0) {
+                    odevCount.textContent = bekleyen.length;
+                    odevCount.classList.remove('hidden');
+                } else {
+                    odevCount.classList.add('hidden');
+                }
+
+                // Bekleyen ödevler
+                if (bekleyen.length === 0) {
+                    bekleyenEl.innerHTML = '<div class="text-center text-gray-400 py-8">🎉 Tüm ödevler tamamlandı! Baykuş çok mutlu 🦉</div>';
+                } else {
+                    bekleyenEl.innerHTML = bekleyen.map(o => {
+                        const gecikmeClass = o.gecikti ? 'border-red-300 bg-red-50' : 'border-purple-200 bg-purple-50';
+                        const gecikmeIcon = o.gecikti ? '⚠️' : '📝';
+                        return `
+                            <div class="p-4 rounded-2xl border-2 ${gecikmeClass} flex items-start gap-3">
+                                <span class="text-2xl">${gecikmeIcon}</span>
+                                <div class="flex-1">
+                                    <div class="font-bold text-gray-800">${o.baslik}</div>
+                                    <div class="text-sm text-gray-500 mt-1">${o.aciklama || ''}</div>
+                                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                        <span>👨‍🏫 ${o.ogretmen}</span>
+                                        <span>📅 Teslim: ${o.teslim_tarihi || 'Belirsiz'}</span>
+                                        ${o.gecikti ? '<span class="text-red-500 font-bold">⏰ GECİKTİ!</span>' : ''}
+                                    </div>
+                                </div>
+                                <button onclick="odevTamamla(${o.id})" class="px-4 py-2 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-all">
+                                    ✅ Tamamla
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Tamamlanan ödevler
+                if (tamamlanan.length === 0) {
+                    tamamlananEl.innerHTML = '<div class="text-center text-gray-400 py-4">Henüz tamamlanan ödev yok 🎯</div>';
+                } else {
+                    tamamlananEl.innerHTML = tamamlanan.map(o => `
+                        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-200">
+                            <span>✅</span>
+                            <div class="flex-1">
+                                <span class="font-bold text-green-700">${o.baslik}</span>
+                                <span class="text-xs text-gray-500 ml-2">👨‍🏫 ${o.ogretmen}</span>
+                            </div>
+                            <span class="text-xs text-green-500">${o.tamamlanma_tarihi || ''}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Haftalık takvim
+                const bugun = new Date();
+                const haftaSonu = new Date(bugun);
+                haftaSonu.setDate(bugun.getDate() + 7);
+                
+                const haftalik = bekleyen.filter(o => {
+                    if (!o.teslim_tarihi) return false;
+                    const parts = o.teslim_tarihi.split('/');
+                    const tarih = new Date(parts[2], parts[1] - 1, parts[0]);
+                    return tarih >= bugun && tarih <= haftaSonu;
+                });
+
+                if (haftalik.length === 0) {
+                    haftalikEl.innerHTML = '<div class="text-center text-amber-700 text-sm">Bu hafta teslim edilecek ödev yok 🎉</div>';
+                } else {
+                    haftalikEl.innerHTML = haftalik.map(o => `
+                        <div class="flex items-center gap-2 p-2 bg-white rounded-lg border border-amber-100">
+                            <span>📌</span>
+                            <span class="flex-1 font-medium text-sm">${o.baslik}</span>
+                            <span class="text-xs text-amber-600 font-bold">${o.teslim_tarihi}</span>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (err) {
+                bekleyenEl.innerHTML = '<div class="text-center text-red-500 py-4">⚠️ Ödevler yüklenemedi. Baykuş üzgün 🥺</div>';
+                console.error('Odev yukleme hatasi:', err);
+            }
+        }
+
+        // ✅ Ödev tamamlama
+        async function odevTamamla(odevId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳';
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const res = await fetch('/ogrenci/odev-tamamla', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ odev_id: odevId })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showStatus('🎉 ' + (data.message || 'Ödev tamamlandı!'), 'green');
+                    loadOdevler(); // Yenile
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = '✅ Tamamla';
+                    showStatus('⚠️ ' + (data.message || 'Hata oluştu'), 'red');
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = '✅ Tamamla';
+                showStatus('⚠️ Bağlantı hatası', 'red');
+            }
+        }
+
+        // Ödevler sekmesine tıklayınca yükle
+        document.querySelector('[data-tab="odevler"]').addEventListener('click', function() {
+            setTimeout(() => loadOdevler(), 300);
+        });
 
         // Dosya ekleme
         let selectedFile = null;

@@ -46,9 +46,47 @@
     #qr-status { margin-top: 10px; font-size: 14px; color: #475569; text-align: center; }
     .back { display: inline-block; margin-top: 16px; color: var(--primary); text-decoration: none; font-size: 14px; }
     @media (max-width: 640px) { .container { grid-template-columns: 1fr; } }
+
+    /* Loading overlay */
+    #loadingOverlay {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #loadingOverlay.show { display: flex; }
+    .loading-box {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 48px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 5px solid #e2e8f0;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--ink); font-size: 18px; font-weight: 700; }
+    .loading-sub { color: #6586a7; font-size: 14px; margin-top: 4px; }
   </style>
 </head>
 <body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <div class="loading-text">Giriş yapılıyor...</div>
+      <div class="loading-sub">Lütfen bekleyin</div>
+    </div>
+  </div>
+
   <div>
     <a href="{{ route('home') }}" class="back">← Ana Sayfa</a>
     <div class="container" style="margin-top:12px;">
@@ -84,6 +122,17 @@
   <!-- html5-qrcode CDN -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script>
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    function showLoading(msg) {
+      document.querySelector('.loading-text').textContent = msg || 'Giriş yapılıyor...';
+      loadingOverlay.classList.add('show');
+    }
+
+    function hideLoading() {
+      loadingOverlay.classList.remove('show');
+    }
+
     // QR Kod okuyucu
     const html5QrCode = new Html5Qrcode("qr-reader");
     const qrStatus = document.getElementById('qr-status');
@@ -94,6 +143,7 @@
       (decodedText) => {
         qrStatus.textContent = 'Karekod okundu, giriş yapılıyor...';
         html5QrCode.stop();
+        showLoading('Karekod doğrulanıyor...');
         fetch('{{ route('ogrenci.qr-login') }}', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
@@ -102,9 +152,9 @@
         .then(r => r.json())
         .then(data => {
           if (data.redirect) window.location.href = data.redirect;
-          else qrStatus.textContent = 'Hata: ' + (data.message || 'Geçersiz karekod.');
+          else { hideLoading(); qrStatus.textContent = 'Hata: ' + (data.message || 'Geçersiz karekod.'); }
         })
-        .catch(() => { qrStatus.textContent = 'Bağlantı hatası, tekrar dene.'; });
+        .catch(() => { hideLoading(); qrStatus.textContent = 'Bağlantı hatası, tekrar dene.'; });
       },
       (err) => { /* scan hatası sessizce geç */ }
     ).catch(() => { qrStatus.textContent = 'Kamera erişimi reddedildi.'; });
@@ -114,16 +164,24 @@
       e.preventDefault();
       const errEl = document.getElementById('formError');
       errEl.style.display = 'none';
-      const res = await fetch('{{ route('ogrenci.login') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.redirect) {
-        window.location.href = data.redirect;
-      } else {
-        errEl.textContent = data.message || 'Hatalı e-posta veya şifre.';
+      showLoading('Giriş yapılıyor...');
+      try {
+        const res = await fetch('{{ route('ogrenci.login') }}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+          body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.redirect) {
+          window.location.href = data.redirect;
+        } else {
+          hideLoading();
+          errEl.textContent = data.message || 'Hatalı e-posta veya şifre.';
+          errEl.style.display = 'block';
+        }
+      } catch {
+        hideLoading();
+        errEl.textContent = 'Bağlantı hatası, tekrar dene.';
         errEl.style.display = 'block';
       }
     });
