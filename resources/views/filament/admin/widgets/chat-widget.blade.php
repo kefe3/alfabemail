@@ -146,7 +146,8 @@ function appendMessages(messages) {
 }
 
 function createMessageHtml(m) {
-  const isMine = m.user_id === {{ auth()->id() }};
+  const currentUserId = {{ auth()->id() ?? 'null' }};
+  const isMine = m.user_id === currentUserId;
   const align = isMine ? 'flex-end' : 'flex-start';
   const bg = isMine ? 'background:#7c3aed;color:white;border-radius:16px 16px 4px 16px;' : 'background:white;color:#1a202c;border-radius:16px 16px 16px 4px;border:1px solid #e5e7eb;';
   const nameDisplay = isMine ? '' : '<div style="font-size:11px;color:#6b7280;margin-bottom:2px;margin-left:4px;">' + m.name + '</div>';
