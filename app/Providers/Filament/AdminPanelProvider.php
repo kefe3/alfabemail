@@ -37,7 +37,9 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn () => view('partials.hata-bildir')->render() . view('filament.admin.widgets.chat-widget')->render(),
+                fn () => auth()->check()
+                    ? view('partials.hata-bildir')->render() . view('filament.admin.widgets.chat-widget')->render()
+                    : '',
             )
             ->authGuard('web')
             ->login()
