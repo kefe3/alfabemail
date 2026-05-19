@@ -7,7 +7,7 @@ use Filament\Widgets\Widget;
 
 class OnlineAdminsWidget extends Widget
 {
-    protected static string $view = 'filament.admin.widgets.online-admins';
+    protected string $view = 'filament.admin.widgets.online-admins';
 
     protected static ?int $sort = 3;
 

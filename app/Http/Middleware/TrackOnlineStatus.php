@@ -13,7 +13,8 @@ class TrackOnlineStatus
     {
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->last_active_at === null || $user->last_active_at->diffInMinutes(now()) >= 1) {
+            $lastActive = $user->last_active_at ? \Carbon\Carbon::parse($user->last_active_at) : null;
+            if ($lastActive === null || $lastActive->diffInMinutes(now()) >= 1) {
                 $user->forceFill(['last_active_at' => now()])->saveQuietly();
             }
         }

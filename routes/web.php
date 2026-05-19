@@ -161,3 +161,17 @@ Route::prefix('api/mailcow')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/mailbox',            [MailcowProxyController::class, 'createMailbox'])->middleware('permission:mailbox-olustur');
     Route::delete('/mailbox/{email}',  [MailcowProxyController::class, 'deleteMailbox'])->middleware('permission:mailbox-sil');
 });
+
+// Basit Admin Giriş (Filament atlamak için)
+Route::get('/admin-giris', function () {
+    return view('admin-giris');
+});
+
+Route::post('/admin-giris', function () {
+    $credentials = request()->only('email', 'password');
+    if (Auth::attempt($credentials)) {
+        request()->session()->regenerate();
+        return redirect('/admin');
+    }
+    return back()->with('error', 'Geçersiz giriş bilgileri');
+});
