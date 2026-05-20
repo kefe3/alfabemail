@@ -94,7 +94,13 @@
       <span>Hemen bugün başlayın! Alfabe Mail'i ücretsiz deneyebilirsiniz.</span>
     </div>
     @php
-      $totalMailboxes = \App\Models\Ogrenci::whereNotNull('mailbox_local_part')->count();
+      try {
+        $mc = app(\App\Services\MailcowService::class);
+        $mailboxes = $mc->listMailboxes();
+        $totalMailboxes = is_array($mailboxes) ? count($mailboxes) : 0;
+      } catch (\Throwable $e) {
+        $totalMailboxes = \App\Models\Ogrenci::whereNotNull('mailbox_local_part')->count();
+      }
     @endphp
     <div id="mailCounter" class="mail-counter-banner" style="display:none;">
       <span>📬 <strong id="mailboxCountDisplay">0</strong> posta kutusu açıldı!</span>

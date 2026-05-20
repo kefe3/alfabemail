@@ -1,6 +1,6 @@
 # Alfabe Mail — Çocuklar için Güvenli E-posta Sistemi
 
-> **v1.1** — Kapsül Serix Teknoloji Platformu
+> **v1.2** — Kapsül Serix Teknoloji Platformu
 
 Çocukların güvenli, reklamsız, kötü söz içermeyen ve kontrollü bir ortamda e-posta kullanmasını sağlayan eğitim odaklı mail platformu.
 
@@ -41,6 +41,7 @@
 - [x] Ödev/Teslim sistemi (öğretmen atar, öğrenci tamamlar)
 - [x] Haftalık ödev takvimi
 - [x] Baykuş maskot ile ödev bildirimleri
+- [x] Kota yönetimi: öğrenciye 100 MB başlangıç, admin 1024 MB'a kadar yükseltebilir
 
 ### Portal Paneli (yonetici/ogretmen/veli)
 - [x] Role göre özelleşmiş dashboard
@@ -68,9 +69,10 @@
 - [x] Hata Bildirisi yönetimi
 - [x] Yeni Kullanıcı Onay Sistemi (kayıt → onay → kullanıcıya taşıma)
 - [x] Yetki/rol yönetimi (YetkiManagement resource)
-- [x] Mailcow Ayarları sayfası (API bağlantı yapılandırması, test bağlantı)
+- [x] Mailcow Ayarları sayfası (API bağlantı yapılandırması, test bağlantı, şifreli depolama)
 - [x] Admin Dashboard widget'ları (istatistik özeti, kayıt grafiği, bildirimler)
 - [x] Kullanıcı rollerine göre panel erişim kontrolü (canAccessPanel)
+- [x] Öğrenci kota yönetimi: 100-1024 MB arası değiştirme (change_quota butonu)
 
 ### Hata Bildir Sistemi
 - [x] Tüm sayfalarda floating ⚠️ butonu
@@ -185,7 +187,7 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
        → users → (roles: admin, yonetici, ogretmen, veli, ogrenci)
        → veliler
        → pending_users (kayıt onay bekleme)
-       → settings (key-value yapılandırma)
+       → settings (key-value yapılandırma, value alanı AES şifreli)
        → aktivasyon_tokens (e-posta doğrulama)
 ```
 
@@ -351,16 +353,14 @@ public static function getPages(): array
 
 ## 🚧 Gelecek Planları
 
-- [ ] IMAP inbox okuma iyileştirmesi
 - [ ] Öğrenci mail paneli UI redesign
 - [ ] Arama ve filtreleme
 - [ ] Gamification rozetleri — kısmen tamamlandı
 - [ ] Mobil uyum
-- [ ] Toplu öğrenci CSV yükleme (backend)
-- [ ] Okul talep formu (backend)
 - [ ] Ödevlerde dosya ekleme desteği
 - [ ] Öğretmen-öğrenci mesajlaşma (baykuş üzerinden direkt)
 - [ ] Ödev hatırlatma bildirimleri
+- [ ] Ana sayfada Mailcow API'den anlık posta kutusu sayısı ✅
 
 ---
 
