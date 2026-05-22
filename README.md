@@ -171,15 +171,16 @@
 
 ### Stack
 - **Backend**: Laravel 13 + Filament 4
-- **Veritabanı**: MySQL (Docker)
+- **Veritabanı**: MySQL 8.4 (Docker)
 - **Mail Sunucusu**: Mailcow (Docker)
-- **Cache/Queue**: Redis
+- **Cache/Queue**: Redis Alpine
 - **Yetki**: Spatie Laravel Permission
 - **Frontend**: Blade + Chart.js + IMAP/SMTP
 
-### Docker
-- PHP 8.3, MySQL 8.0, Redis 7
-- `alfabemail` network + `mailcowdockerized_mailcow-network` (shared Mailcow access)
+### Docker (Laravel Sail)
+- PHP 8.5 (Sail runtime), MySQL 8.4, Redis Alpine
+- `compose.yaml` (Sail) ile yönetilir
+- `alfabemail_sail` network + `mailcowdockerized_mailcow-network` (shared Mailcow access)
 
 ### Veritabanı Hiyerarşisi
 ```
@@ -226,8 +227,7 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 | PTR | `45.94.4.39 → mail.alfabe.co` | ✅ |
 
 ### Development
-- Local: `http://127.0.0.1:8001`
-- Docker: `http://localhost:8000`
+- Local (Docker): `http://127.0.0.1:80`
 
 ---
 
@@ -315,10 +315,10 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 ## 🔧 Geliştirme Notları
 
 ### Port Kullanımı
-- Local: `8001` (`.env`'de `APP_URL=http://localhost:8000` olsa da localde 8001)
-- Docker internal: `8000`
-- MySQL Docker: `3307`
-- Redis Docker: `6380`
+- Web: `80` (Docker), `APP_URL=http://127.0.0.1:80`
+- Vite: `5173`
+- MySQL: `3306` (Docker)
+- Redis: `6379` (Docker)
 - Storage symlink: `public/storage → /var/www/html/storage/app/public` (host mutlak yol değil)
 
 ### Koyu Tema Uyumluluğu
