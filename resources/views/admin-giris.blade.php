@@ -31,12 +31,12 @@
             @csrf
             <div class="form-group">
                 <label for="email">E-posta</label>
-                <input type="email" id="email" name="email" value="admin@test.com" required>
+                <input type="email" id="email" name="email" required>
             </div>
             
             <div class="form-group">
                 <label for="password">Şifre</label>
-                <input type="password" id="password" name="password" value="admin123" required>
+                <input type="password" id="password" name="password" required>
             </div>
             
             <button type="submit">Giriş Yap</button>

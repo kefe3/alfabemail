@@ -40,10 +40,6 @@ class PortalPanelProvider extends PanelProvider
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn () => view('partials.kayit-link')->render(),
             )
-            ->renderHook(
-                PanelsRenderHook::SCRIPTS_BEFORE,
-                fn () => '<script>window.livewireScriptConfig = window.livewireScriptConfig || {uri: "' . url(app('livewire')->getUpdateUri()) . '"};</script>',
-            )
             ->authGuard('web')
             ->login()
             ->colors([

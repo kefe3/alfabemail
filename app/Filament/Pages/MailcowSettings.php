@@ -25,11 +25,13 @@ class MailcowSettings extends Page
 
     public function mount(): void
     {
+        $settings = Setting::where('key', 'like', 'mailcow_%')->get()->pluck('value', 'key');
+        
         $this->data = [
-            'mailcow_api_base_url' => Setting::where('key', 'mailcow_api_base_url')->first()?->value ?? config('mailcow.api_base_url'),
-            'mailcow_api_key' => '••••••••••••••••',
-            'mailcow_domain' => Setting::where('key', 'mailcow_domain')->first()?->value ?? config('mailcow.domain'),
-            'mailcow_default_quota_mb' => Setting::where('key', 'mailcow_default_quota_mb')->first()?->value ?? config('mailcow.default_quota_mb'),
+            'mailcow_api_base_url' => $settings->get('mailcow_api_base_url', config('mailcow.api_base_url', '')),
+            'mailcow_api_key' => $settings->get('mailcow_api_key', config('mailcow.api_key', '')),
+            'mailcow_domain' => $settings->get('mailcow_domain', config('mailcow.domain', '')),
+            'mailcow_default_quota_mb' => $settings->get('mailcow_default_quota_mb', config('mailcow.default_quota_mb', '100')),
         ];
     }
 
@@ -38,24 +40,25 @@ class MailcowSettings extends Page
         return $schema
             ->components([
                 Section::make('Mailcow Bağlantı Bilgileri')
-                    ->description('Bu ayarlar salt okunurdur. Değişiklik için yazılımcı ile iletişime geçin.')
                     ->schema([
                         TextInput::make('mailcow_api_base_url')
                             ->label('API Base URL')
-                            ->disabled()
-                            ->helperText('Değiştirilemez'),
+                            ->placeholder('https://mail.alfabe.co')
+                            ->helperText('Mailcow API URL (örn: https://mail.alfabe.co)'),
                         TextInput::make('mailcow_api_key')
                             ->label('API Anahtarı (X-API-Key)')
-                            ->disabled()
-                            ->helperText('Gizli - Değiştirilemez'),
+                            ->password()
+                            ->revealable()
+                            ->helperText('Mailcow admin panelinden aldığınız API key'),
                         TextInput::make('mailcow_domain')
                             ->label('E-Posta Domaini')
-                            ->disabled()
-                            ->helperText('Değiştirilemez'),
+                            ->placeholder('alfabe.co')
+                            ->helperText('Kullanılan e-posta domaini'),
                         TextInput::make('mailcow_default_quota_mb')
                             ->label('Varsayılan Kota (MB)')
-                            ->disabled()
-                            ->helperText('Değiştirilemez'),
+                            ->numeric()
+                            ->placeholder('100')
+                            ->helperText('Yeni oluşturulan mailboxlar için varsayılan kota'),
                     ])
                     ->columns(2),
             ])
@@ -65,6 +68,9 @@ class MailcowSettings extends Page
     protected function getFormActions(): array
     {
         return [
+            Action::make('save')
+                ->label('Kaydet')
+                ->submit('save'),
             Action::make('test_connection')
                 ->label('Bağlantıyı Test Et')
                 ->color('success')
@@ -74,13 +80,15 @@ class MailcowSettings extends Page
 
     public function save(): void
     {
-        $data = $this->getSchema('schema')->getState();
+        $data = $this->form->getState();
 
         foreach ($data as $key => $value) {
-            Setting::updateOrCreate(
-                ['key' => $key],
-                ['value' => $value]
-            );
+            if ($value !== null && $value !== '') {
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $value]
+                );
+            }
             Cache::forget("setting_{$key}");
         }
 

@@ -12,7 +12,9 @@ class SecurityHeaders
     {
         $response = $next($request);
 
-        $response->headers->set('Content-Security-Policy', "upgrade-insecure-requests");
+        if (app()->environment('production')) {
+            $response->headers->set('Content-Security-Policy', "upgrade-insecure-requests");
+        }
 
         return $response;
     }

@@ -23,8 +23,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        URL::forceScheme('https');
-        URL::forceRootUrl(config('app.url'));
+        if (App::environment('production')) {
+            URL::forceScheme('https');
+            URL::forceRootUrl(config('app.url'));
+        }
 
         Okul::observe(ActivityLogObserver::class);
         Sinif::observe(ActivityLogObserver::class);
