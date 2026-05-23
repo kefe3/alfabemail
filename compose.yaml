@@ -1,5 +1,6 @@
 services:
     laravel.test:
+        container_name: alfabemail
         build:
             context: './vendor/laravel/sail/runtimes/8.5'
             dockerfile: Dockerfile
@@ -23,6 +24,7 @@ services:
         networks:
             - sail
             - mailcow-network
+            - alfabe_net
         depends_on:
             - mysql
             - redis
@@ -72,6 +74,9 @@ networks:
     mailcow-network:
         external: true
         name: mailcowdockerized_mailcow-network
+    alfabe_net:
+        external: true
+        name: alfabe_net
 volumes:
     sail-mysql:
         driver: local
