@@ -441,6 +441,41 @@ okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
 
 ---
 
+## 🏗 Altyapı
+
+### Canlı Ortam (2.59.119.28)
+```
+alfabe.co ──► Cloudflare (Full strict SSL)
+                │
+                ▼
+         alfabe-proxy (nginx:alpine, port 80/443)
+                │
+         ┌──────┴──────┐
+         ▼              ▼
+   alfabemail:80    wordpress:80
+   (Laravel 13)    (WordPress + bbPress)
+```
+
+| Servis | Container | Port | Ağ |
+|--------|-----------|------|-----|
+| **Proxy (nginx)** | alfabe-proxy | `80`/`443` | `internal`, `alfabe_net` |
+| **Alfabe Mail** | alfabemail | `8001` → `80` | `sail`, `alfabe_net` |
+| **Alfabe Forum** | wordpress | `8080` → `80` | `internal` |
+| **Veritabanı (Mail)** | mysql | `3306` | `sail` |
+| **Veritabanı (Forum)** | mariadb | `3306` | `internal` |
+| **Redis** | redis | `6379` | `sail` |
+
+### Ağ Yapısı
+- Tüm servisler ortak `alfabe_net` (external Docker network) üzerinden container ismiyle birbirini görür
+- Proxy dışında hiçbir servis dışarıya port açmaz (forum wordpress hariç `8080`)
+- SSL: Let's Encrypt (DNS Cloudflare challenge) + Certbot otomatik yenileme
+- Sertifikalar: `/etc/letsencrypt/live/alfabe.co/` (alfabe.co, www.alfabe.co, forum.alfabe.co)
+
+### Yedekleme
+- Cron: `0 3 * * * /opt/alfabe-forum/scripts/renew-cert.sh`
+
+---
+
 ## 🔧 Geliştirme Notları
 
 ### Port Kullanımı
