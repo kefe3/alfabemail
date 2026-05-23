@@ -68,36 +68,11 @@ class MailcowSettings extends Page
     protected function getFormActions(): array
     {
         return [
-            Action::make('save')
-                ->label('Kaydet')
-                ->submit('save'),
             Action::make('test_connection')
                 ->label('Bağlantıyı Test Et')
                 ->color('success')
                 ->action('testConnection'),
         ];
-    }
-
-    public function save(): void
-    {
-        $data = $this->form->getState();
-
-        foreach ($data as $key => $value) {
-            if ($value !== null && $value !== '') {
-                Setting::updateOrCreate(
-                    ['key' => $key],
-                    ['value' => $value]
-                );
-            }
-            Cache::forget("setting_{$key}");
-        }
-
-        app(MailcowService::class)->refreshConfig();
-
-        Notification::make()
-            ->title('Ayarlar başarıyla kaydedildi.')
-            ->success()
-            ->send();
     }
 
     public function testConnection(): void
