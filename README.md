@@ -182,6 +182,135 @@
 - `compose.yaml` (Sail) ile yönetilir
 - `alfabemail_sail` network + `mailcowdockerized_mailcow-network` (shared Mailcow access)
 
+---
+
+## 🌐 Dağıtım Mimarisi (Sunucu)
+
+Merkezi bir **nginx proxy** tüm alt projeleri yönetir. Her proje kendi `docker-compose`'u ile ayrı ayrı çalışır, ortak bir Docker network'ü üzerinden proxy'e bağlanır.
+
+### Mimari Şeması
+
+```
+                    ┌─────────────────────┐
+                    │   alfabe-proxy      │
+                    │  (nginx + SSL)      │
+                    │  80 / 443           │
+                    └────────┬────────────┘
+                             │ alfabe_net (shared network)
+          ┌──────────────────┼──────────────────┐
+          ▼                  ▼                   ▼
+   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+   │ alfabemail   │  │ alfabe-forum │  │ alfabe-oyun  │
+   │ Laravel:8001 │  │   WP:8080    │  │  ?? :XXXX    │
+   └──────────────┘  └──────────────┘  └──────────────┘
+```
+
+### Bileşenler
+
+#### 1. `alfabe-proxy` (Merkezi Nginx)
+- Ayrı bir repo/dizin, sadece nginx + SSL içerir
+- Port 80 (HTTP) ve 443 (HTTPS) üzerinden dinler
+- `alfabe_net` adlı external Docker network'üne bağlıdır
+- Her domain için ayrı `server_name` bloğu içerir
+
+#### 2. `alfabe_net` (Paylaşımlı Docker Network)
+```bash
+docker network create alfabe_net
+```
+Tüm projeler bu network'e bağlanır. Böylece nginx, projelere container adıyla erişebilir.
+
+#### 3. Her Proje (alfabemail, alfabe-forum, ...)
+- Kendi `docker-compose.yml`'si ile bağımsız çalışır
+- Kendi portunda yayın yapar (alfabemail: 8001, forum: 8080)
+- `alfabe_net` network'üne ek olarak bağlanır
+
+### Alfabemail Sunucu Yapılandırması
+
+`.env` (sunucu):
+```env
+APP_PORT=8001
+APP_ENV=production
+APP_URL=https://alfabe.co
+NGINX_PORT=80    # alfabe-proxy için, 80'de dinler
+```
+
+`compose.yaml`'a eklenecek network:
+```yaml
+networks:
+  alfabe_net:
+    external: true
+    name: alfabe_net
+
+services:
+  laravel.test:
+    networks:
+      - sail
+      - alfabe_net
+```
+
+### Nginx Proxy Config Örneği (`alfabe-proxy/nginx/default.conf`)
+
+```nginx
+server {
+    listen 80;
+    server_name alfabe.co www.alfabe.co;
+
+    location / {
+        proxy_pass http://alfabemail-laravel.test-1:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 80;
+    server_name forum.alfabe.co;
+
+    location / {
+        proxy_pass http://wordpress:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+
+server {
+    listen 80;
+    server_name oyun.alfabe.co;
+
+    location / {
+        proxy_pass http oyun-container:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Yeni Site Ekleme (ör: oyun.alfabe.co)
+
+```
+1. Yeni proje klasörü oluştur, docker-compose.yml yaz
+2. Tüm servislerine alfabe_net network'ünü ekle
+3. alfabe-proxy/nginx/default.conf'a server block ekle
+4. docker compose restart proxy (nginx yeniden yükle)
+5. DNS'e oyun.alfabe.co → sunucu IP
+```
+
+### Avantajları
+
+| Özellik | Açıklama |
+|---------|----------|
+| **Ölçeklenebilir** | Sınırsız sayıda alt site eklenebilir |
+| **Bağımsız** | Her proje ayrı ayrı güncellenir, birbirini etkilemez |
+| **Tek giriş noktası** | Sadece nginx 80/443'ten dışarı açık, diğer portlar kapalı |
+| **SSL tek noktada** | Certbot veya Cloudflare ile SSL tek nginx'te yönetilir |
+| **Container adıyla erişim** | Nginx proxy'den direkt container ismiyle erişim (DNS) |
+
 ### Veritabanı Hiyerarşisi
 ```
 okullar → siniflar → ogrenciler → ogrenci_veli (pivot)
