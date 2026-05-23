@@ -477,7 +477,31 @@ alfabe.co ──► Cloudflare (Full strict SSL)
 | Günlük `03:00` | `/opt/alfabe-forum/scripts/backup.sh` | Her iki DB'yi `mysqldump` → gzip, 7 gün sakla |
 | Günlük `03:30` | `/opt/alfabe-forum/scripts/renew-cert.sh` | SSL sertifika yenileme |
 
----
+### Mailcow API
+- API key DB'de (`settings` tablosu) Laravel encrypted cast ile şifreli, düz metin olarak hiçbir yerde saklanmaz
+- Admin panelden sadece "Bağlantıyı Test Et" yapılabilir, kaydet butonu yok
+- Değiştirmek gerekirse: `Setting::updateOrCreate(['key' => 'mailcow_api_key'], ['value' => 'yeni-key'])` ile tinker üzerinden
+
+### ♻️ Yedekten Geri Yükleme
+```bash
+gunzip -c /backup/alfabemail_2026-05-23.sql.gz \
+  | docker compose exec -T mysql \
+    mysql -u sail -p"$DB_PASSWORD" alfabemail
+```
+
+### 🛠 Pratik Komutlar
+```bash
+# Loglar
+docker compose logs -f laravel.test
+
+# Artisan
+docker compose exec laravel.test php artisan migrate
+docker compose exec laravel.test php artisan cache:clear
+docker compose exec laravel.test php artisan tinker
+
+# Container içine gir
+docker compose exec laravel.test bash
+```
 
 ## 🔧 Geliştirme Notları
 
