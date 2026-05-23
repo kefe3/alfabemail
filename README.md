@@ -472,7 +472,10 @@ alfabe.co ──► Cloudflare (Full strict SSL)
 - Sertifikalar: `/etc/letsencrypt/live/alfabe.co/` (alfabe.co, www.alfabe.co, forum.alfabe.co)
 
 ### Yedekleme
-- Cron: `0 3 * * * /opt/alfabe-forum/scripts/renew-cert.sh`
+| Zamanlama | Script | Açıklama |
+|-----------|--------|----------|
+| Günlük `03:00` | `/opt/alfabe-forum/scripts/backup.sh` | Her iki DB'yi `mysqldump` → gzip, 7 gün sakla |
+| Günlük `03:30` | `/opt/alfabe-forum/scripts/renew-cert.sh` | SSL sertifika yenileme |
 
 ---
 
