@@ -1,6 +1,6 @@
 <x-filament-panels::page>
-    <form wire:submit="save">
-        {{ $this->getSchema('schema') }}
+    <form>
+        {{ $this->getSchema("schema") }}
 
         <div class="mt-6 flex flex-wrap gap-x-3 gap-y-2">
             @foreach ($this->getFormActions() as $action)

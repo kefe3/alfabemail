@@ -1,6 +1,6 @@
 # Alfabe Mail — Çocuklar için Güvenli E-posta Sistemi
 
-> **v1.2** — Kapsül Serix Teknoloji Platformu
+> **v1.3** — Kapsül Serix Teknoloji Platformu
 
 Çocukların güvenli, reklamsız, kötü söz içermeyen ve kontrollü bir ortamda e-posta kullanmasını sağlayan eğitim odaklı mail platformu.
 
@@ -539,6 +539,17 @@ public static function getPages(): array
     return ['index' => Pages\ListMyModel::route('/')];
 }
 ```
+
+---
+
+## 📋 Değişiklik Geçmişi
+
+### v1.3 — 2026-06-12
+- **QR kod** boyutu 200 → 400 px (daha okunabilir yaka kartları)
+- **Yaka kartı** yazdırma iyileştirmeleri (`shape-rendering: crispEdges`, print CSS)
+- **Mailcow Ayarları** sayfası salt okunur yapıldı, API key artık ön doldurulmuyor
+- **Admin onayı** ile kullanıcı ekleme sistemi
+- Mailcow API yapılandırması `.env` üzerinden yapılıyor
 
 ---
 

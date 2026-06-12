@@ -86,7 +86,7 @@ class ListOgrencis extends ListRecords
                                     'password' => $password,
                                     'token' => $qrToken,
                                 ]);
-                                $qrSvg = QrCode::size(200)->generate($qrContent);
+                                $qrSvg = QrCode::size(400)->generate($qrContent);
 
                                 Ogrenci::create([
                                     'user_id' => $user->id,

@@ -195,7 +195,7 @@ class OgrencisTable
                         }
                         $qrContent = json_encode(['email' => $email, 'password' => $password, 'token' => $qrToken]);
                         $record->qr_token = $qrContent;
-                        $record->qr_svg = (string) QrCode::size(200)->generate($qrContent);
+                        $record->qr_svg = (string) QrCode::size(400)->generate($qrContent);
                         $record->save();
                         Notification::make()->title('QR Kod Oluşturuldu')->success()->send();
                     }),
@@ -236,7 +236,7 @@ class OgrencisTable
                                 }
                                 $qrContent = json_encode(['email' => $email, 'password' => $password, 'token' => $qrToken]);
                                 $record->qr_token = $qrContent;
-                                $record->qr_svg = (string) QrCode::size(200)->generate($qrContent);
+                                $record->qr_svg = (string) QrCode::size(400)->generate($qrContent);
                                 $record->save();
                                 $updated++;
                             }

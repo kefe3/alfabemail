@@ -67,7 +67,7 @@ class FillStudentQr extends Command
                         'token' => $qrToken,
                     ]);
 
-                    $qrSvg = QrCode::size(200)->generate($qrContent);
+                    $qrSvg = QrCode::size(400)->generate($qrContent);
 
                     $ogrenci->qr_token = $qrContent;
                     $ogrenci->qr_svg = (string) $qrSvg;

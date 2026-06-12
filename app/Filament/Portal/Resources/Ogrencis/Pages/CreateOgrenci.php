@@ -184,7 +184,7 @@ class CreateOgrenci extends CreateRecord
                 'password' => $data['sifre'],
                 'token' => $qrToken
             ]);
-            $qrSvg = QrCode::size(200)->generate($qrContent);
+            $qrSvg = QrCode::size(400)->generate($qrContent);
 
             $ogrenci = Ogrenci::create([
                 'user_id' => $user->id,
@@ -264,7 +264,7 @@ class CreateOgrenci extends CreateRecord
                     'password' => $mailbox['password'],
                     'token' => $qrToken
                 ]);
-                $qrSvg = QrCode::size(200)->generate($qrContent);
+                $qrSvg = QrCode::size(400)->generate($qrContent);
 
                 $created = Ogrenci::create([
                     'user_id' => $user->id,

@@ -20,7 +20,7 @@
 
         body {
             margin: 0;
-            font-family: 'Nunito', 'Segoe UI', sans-serif;
+            font-family: "Nunito", "Segoe UI", sans-serif;
             color: var(--text);
             min-height: 100vh;
             background: linear-gradient(-45deg, var(--bg-1), var(--bg-2), #ffb347, #7ee081);
@@ -68,7 +68,7 @@
         }
 
         .badge-card::before {
-            content: '';
+            content: "";
             position: absolute;
             inset: -60% auto auto -20%;
             width: 120%;
@@ -96,6 +96,7 @@
         .qr svg {
             width: 100%;
             height: 100%;
+            shape-rendering: crispEdges;
         }
 
         .cut-line {
@@ -138,6 +139,18 @@
                 box-shadow: none;
                 border: 1px solid #ccd5eb;
                 break-inside: avoid;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                backdrop-filter: none !important;
+            }
+
+            .qr {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .qr svg {
+                shape-rendering: crispEdges;
             }
         }
     </style>
@@ -145,7 +158,7 @@
 <body>
     <main class="page">
         <section class="toolbar">
-            <h1>🎒 Yazdırılabilir Öğrenci Yaka Kartları</h1>
+            <h1>Öğrenci Yaka Kartları</h1>
             <button class="print-button" onclick="window.print()">Yazdır</button>
         </section>
 
@@ -169,7 +182,7 @@
                 
                 @php
                 $qrData = json_decode($ogrenci->qr_token, true);
-                $password = $qrData['password'] ?? 'N/A';
+                $password = $qrData["password"] ?? "N/A";
                 @endphp
                 <p class="password"><strong>Şifre:</strong> {{ $password }}</p>
             </article>
