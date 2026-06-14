@@ -872,19 +872,34 @@
                     const type = item.dataset.type;
                     const idx = parseInt(item.dataset.index);
                     const mail = type === 'inbox' ? currentMails.inbox[idx] : currentMails.sent[idx];
-                    
+
                     if (type === 'inbox') {
-                        showMail(type, mail.subject || '', mail.from || '', mail.date || '', mail.body || '');
+                        fetchMailContent(mail.id, mail.subject || '', mail.from || '', mail.date || '');
                     } else {
-                        showMail(type, mail.subject || '', mail.to || '', mail.date || '', mail.body || '');
+                        showMail(type, mail.subject || '', mail.to || '', mail.date || '', mail.body || '', []);
                     }
                 });
             });
+
+            async function fetchMailContent(id, subject, from, date) {
+                try {
+                    const res = await fetch('/ogrenci/mail/' + id + '/fetch');
+                    const data = await res.json();
+
+                    if (data.success) {
+                        showMail('inbox', data.subject || subject, data.from || from, data.date || date, data.body || '', data.attachments || []);
+                    } else {
+                        showMail('inbox', subject, from, date, 'Mail içeriği yüklenemedi.', []);
+                    }
+                } catch (err) {
+                    showMail('inbox', subject, from, date, 'Mail içeriği yüklenirken hata oluştu.', []);
+                }
+            }
         }
 
         let currentReplyTo = '';
 
-        async function showMail(type, subject, from, date, body) {
+        async function showMail(type, subject, from, date, body, attachments) {
             dom.modalSubject.textContent = subject || '(Konu yok)';
             dom.modalFrom.textContent = type === 'inbox' ? '📤 ' + from : '📥 ' + from;
             dom.modalDate.textContent = '📅 ' + formatDate(date);
@@ -896,7 +911,6 @@
                 userStats.received = (userStats.received || 0) + 1;
                 localStorage.setItem('ogrenci_stats', JSON.stringify(userStats));
                 
-                // Veritabanına kaydet
                 try {
                     const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                     await fetch('/ogrenci/log-read', {
@@ -914,35 +928,71 @@
             }
             
             const emptyIcon = document.getElementById('emptyMailIcon');
-            
-            // Ek dosya varsa ayrıştır
             let attachmentHtml = '';
             let mailBody = body || '';
-            if (body && body.includes('📎 Ek:')) {
-                const parts = body.split('📎 Ek:');
-                mailBody = parts[0].trim();
-                const attachmentUrl = parts[1].trim();
-                const isZip = attachmentUrl.toLowerCase().endsWith('.zip');
-                attachmentHtml = `<div class="mt-4 p-3 bg-yellow-50 rounded-xl border-2 border-yellow-200">
-                    <span class="font-bold text-yellow-700">📎 Ek Dosya:</span>
-                    <a href="${attachmentUrl}" target="_blank" class="text-blue-600 underline hover:text-blue-800 ml-2">${isZip ? '🗜️ ZIP\'i İndir' : 'Dosyayı aç'} 👉</a>
-                    ${isZip ? `<button onclick="extractMailZip('${attachmentUrl}')" class="ml-2 px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-bold hover:bg-purple-700">🗜️ Aç</button>` : ''}
-                </div>`;
-            } else if (body && body.match(/https?:\/\/[^\s]+\.zip/i)) {
-                const zipMatch = body.match(/https?:\/\/[^\s]+\.zip/i);
-                if (zipMatch) {
-                    const zipUrl = zipMatch[0];
-                    attachmentHtml = `<div class="mt-4 p-3 bg-purple-50 rounded-xl border-2 border-purple-200">
-                        <span class="font-bold text-purple-700">🗜️ ZIP Dosyası Algılandı:</span>
-                        <button onclick="extractMailZip('${zipUrl}')" class="ml-2 px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-bold hover:bg-purple-700">🗜️ ZIP'i Aç ve İncele</button>
+
+            // IMAP'ten gelen attachment'ları göster
+            if (attachments && attachments.length > 0) {
+                attachmentHtml = '<div class="mt-4 space-y-2">';
+                attachments.forEach(att => {
+                    const isZip = att.is_zip;
+                    const sizeStr = formatSizeLocal(att.size || 0);
+                    attachmentHtml += `<div class="p-3 rounded-xl border-2 ${isZip ? 'bg-purple-50 border-purple-200' : 'bg-yellow-50 border-yellow-200'} flex items-center gap-3">
+                        <span class="text-xl">${isZip ? '🗜️' : '📎'}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-sm truncate">${att.filename}</div>
+                            <div class="text-xs text-gray-500">${sizeStr}</div>
+                        </div>
+                        <a href="${att.url}" target="_blank" class="px-3 py-1.5 bg-blue-600 text-white rounded-full text-xs font-bold hover:bg-blue-700 flex-shrink-0">⬇ İndir</a>
+                        ${isZip ? `<button onclick="extractMailZip('${att.url}')" class="px-3 py-1.5 bg-purple-600 text-white rounded-full text-xs font-bold hover:bg-purple-700 flex-shrink-0">🗜️ Aç</button>` : ''}
+                        ${att.zip_extracted ? `<span class="px-3 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold flex-shrink-0">✅ Açıldı</span>` : ''}
                     </div>`;
+                });
+                attachmentHtml += '</div>';
+
+                // ZIP içeriğini göster (otomatik açıldıysa)
+                attachments.filter(a => a.zip_extracted).forEach(att => {
+                    const zip = att.zip_extracted;
+                    attachmentHtml += `<div class="mt-3 p-3 bg-green-50 rounded-xl border-2 border-green-200">
+                        <div class="font-bold text-green-700 mb-2">🗜️ ${att.filename} içinden çıkanlar:</div>
+                        ${zip.files.map(f => `<div class="flex items-center gap-2 text-sm py-1">
+                            <span>${f.isDir ? '📁' : '📄'}</span>
+                            <span class="flex-1">${f.path}</span>
+                            ${!f.isDir && f.url ? `<a href="${f.url}" target="_blank" class="text-blue-600 underline">⬇</a>` : ''}
+                        </div>`).join('')}
+                        <div class="text-xs text-gray-500 mt-2">${zip.file_count} dosya • ${zip.total_size_formatted}</div>
+                    </div>`;
+                });
+            }
+
+            // Body içindeki 📎 Ek: linklerini de ayrıştır (eski format)
+            if (!attachments || attachments.length === 0) {
+                if (body && body.includes('📎 Ek:')) {
+                    const parts = body.split('📎 Ek:');
+                    mailBody = parts[0].trim();
+                    const attachmentUrl = parts[1].trim();
+                    const isZip = attachmentUrl.toLowerCase().endsWith('.zip');
+                    attachmentHtml = `<div class="mt-4 p-3 bg-yellow-50 rounded-xl border-2 border-yellow-200">
+                        <span class="font-bold text-yellow-700">📎 Ek Dosya:</span>
+                        <a href="${attachmentUrl}" target="_blank" class="text-blue-600 underline hover:text-blue-800 ml-2">${isZip ? '🗜️ ZIP\'i İndir' : 'Dosyayı aç'} 👉</a>
+                        ${isZip ? `<button onclick="extractMailZip('${attachmentUrl}')" class="ml-2 px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-bold hover:bg-purple-700">🗜️ Aç</button>` : ''}
+                    </div>`;
+                } else if (body && body.match(/https?:\/\/[^\s]+\.zip/i)) {
+                    const zipMatch = body.match(/https?:\/\/[^\s]+\.zip/i);
+                    if (zipMatch) {
+                        const zipUrl = zipMatch[0];
+                        attachmentHtml = `<div class="mt-4 p-3 bg-purple-50 rounded-xl border-2 border-purple-200">
+                            <span class="font-bold text-purple-700">🗜️ ZIP Dosyası Algılandı:</span>
+                            <button onclick="extractMailZip('${zipUrl}')" class="ml-2 px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-bold hover:bg-purple-700">🗜️ ZIP'i Aç ve İncele</button>
+                        </div>`;
+                    }
                 }
             }
             
             if (!mailBody || mailBody.trim() === '' || mailBody === 'Mail içeriği yüklenemedi.') {
                 emptyIcon.style.display = 'block';
                 emptyIcon.textContent = type === 'inbox' ? '📭' : '✈️';
-                dom.modalBody.innerHTML = '<p class="text-gray-400 italic">Bu mail henüz boş veya içeriği yüklenemedi.</p>';
+                dom.modalBody.innerHTML = '<p class="text-gray-400 italic">Bu mail henüz boş veya içeriği yüklenemedi.</p>' + attachmentHtml;
             } else {
                 emptyIcon.style.display = 'none';
                 dom.modalBody.innerHTML = mailBody.replace(/\n/g, '<br>') + attachmentHtml;

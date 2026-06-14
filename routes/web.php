@@ -38,6 +38,7 @@ Route::get('/ogrenci/inbox', [OgrenciController::class, 'getInbox'])->name('ogre
 Route::get('/ogrenci/sent', [OgrenciController::class, 'getSent'])->name('ogrenci.sent');
 Route::get('/ogrenci/stats', [OgrenciController::class, 'getStats'])->name('ogrenci.stats');
 Route::get('/ogrenci/quota', [OgrenciController::class, 'getQuota'])->name('ogrenci.quota');
+Route::get('/ogrenci/mail/{id}/fetch', [OgrenciController::class, 'fetchMail'])->name('ogrenci.mail.fetch');
 Route::post('/ogrenci/log-read', [OgrenciController::class, 'logRead'])->name('ogrenci.log-read');
 Route::post('/ogrenci/zip/extract', [App\Http\Controllers\ZipController::class, 'extract'])->name('ogrenci.zip.extract');
 Route::post('/ogrenci/zip/extract-url', [App\Http\Controllers\ZipController::class, 'extractFromUrl'])->name('ogrenci.zip.extract-url');

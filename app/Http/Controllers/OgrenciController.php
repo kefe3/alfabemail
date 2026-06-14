@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class OgrenciController extends Controller
@@ -721,6 +722,257 @@ class OgrenciController extends Controller
             'toplam' => $toplam,
             'tamamlanan' => $tamamlanan,
         ]);
+    }
+
+    public function fetchMail(int $id): JsonResponse
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('ogrenci')) {
+            return response()->json(['message' => 'Yetkisiz erişim.'], 401);
+        }
+
+        $password = session('ogrenci_password');
+        if (!$password) {
+            return response()->json(['message' => 'Oturum süresi dolmuş.'], 401);
+        }
+
+        try {
+            $hostname = '{mail.alfabe.co:993/imap/ssl/novalidate-cert}INBOX';
+            $inbox = @imap_open($hostname, $user->email, $password, OP_READONLY);
+
+            if (!$inbox) {
+                return response()->json(['message' => 'IMAP bağlantı hatası.'], 500);
+            }
+
+            $totalMsgs = imap_num_msg($inbox);
+
+            if ($id < 1 || $id > $totalMsgs) {
+                imap_close($inbox);
+                return response()->json(['message' => 'Mail bulunamadı.'], 404);
+            }
+
+            $header = @imap_headerinfo($inbox, $id);
+            $structure = @imap_fetchstructure($inbox, $id);
+
+            $body = '';
+            $attachments = [];
+            $bodyType = 'text';
+
+            if ($structure) {
+                $this->parseMimeParts($inbox, $id, $structure, '', $body, $attachments, $bodyType);
+            }
+
+            if (empty($body) && $structure) {
+                $body = @imap_fetchbody($inbox, $id, 1);
+                if ($structure->encoding === 3) {
+                    $body = base64_decode($body);
+                } elseif ($structure->encoding === 4) {
+                    $body = quoted_printable_decode($body);
+                }
+            }
+
+            $from = '';
+            if (isset($header->fromaddress)) {
+                $from = $this->decodeMimeHeader($header->fromaddress);
+            } elseif (isset($header->from[0])) {
+                $from = $header->from[0]->mailbox . '@' . $header->from[0]->host;
+            }
+
+            $subject = '(Konu yok)';
+            if (isset($header->subject)) {
+                $subject = $this->decodeMimeHeader($header->subject);
+            }
+
+            if ($bodyType === 'html' && !str_contains($body, '<html')) {
+                $bodyType = 'text';
+            }
+
+            $body = $this->cleanMailBody($body);
+
+            imap_close($inbox);
+
+            return response()->json([
+                'success' => true,
+                'id' => $id,
+                'from' => $from,
+                'subject' => $subject,
+                'date' => $header->date ?? '',
+                'body' => $body,
+                'body_type' => $bodyType,
+                'attachments' => $attachments,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('FetchMail Error: ' . $e->getMessage());
+            return response()->json(['message' => 'Mail alınamadı.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function parseMimeParts($inbox, int $msgno, object $structure, string $partPrefix, string &$body, array &$attachments, string &$bodyType): void
+    {
+        if (isset($structure->parts) && count($structure->parts) > 0) {
+            foreach ($structure->parts as $partNum => $part) {
+                $prefix = $partPrefix ? $partPrefix . '.' . ($partNum + 1) : (string)($partNum + 1);
+
+                if (isset($part->parts) && count($part->parts) > 0) {
+                    $this->parseMimeParts($inbox, $msgno, $part, $prefix, $body, $attachments, $bodyType);
+                    continue;
+                }
+
+                $filename = '';
+                if (isset($part->dparameters) && is_array($part->dparameters)) {
+                    foreach ($part->dparameters as $dp) {
+                        if (strtolower($dp->attribute) === 'filename') {
+                            $filename = $this->decodeMimeHeader($dp->value);
+                        }
+                    }
+                }
+                if (empty($filename) && isset($part->parameters) && is_array($part->parameters)) {
+                    foreach ($part->parameters as $p) {
+                        if (strtolower($p->attribute) === 'name') {
+                            $filename = $this->decodeMimeHeader($p->value);
+                        }
+                    }
+                }
+
+                $isAttachment = !empty($filename);
+                $subtype = strtolower($part->subtype ?? '');
+                $type = $part->type ?? 0;
+
+                // TEXT part (body)
+                if (!$isAttachment && ($type === 0 || $type === 1)) {
+                    $content = @imap_fetchbody($inbox, $msgno, $prefix);
+
+                    if (($part->encoding ?? 0) === 3) {
+                        $content = base64_decode($content);
+                    } elseif (($part->encoding ?? 0) === 4) {
+                        $content = quoted_printable_decode($content);
+                    }
+
+                    $charset = 'UTF-8';
+                    if (isset($part->parameters) && is_array($part->parameters)) {
+                        foreach ($part->parameters as $p) {
+                            if (strtolower($p->attribute) === 'charset') {
+                                $charset = $p->value;
+                            }
+                        }
+                    }
+
+                    if (strtoupper($charset) !== 'UTF-8') {
+                        $content = mb_convert_encoding($content, 'UTF-8', $charset);
+                    }
+
+                    if ($subtype === 'html') {
+                        $bodyType = 'html';
+                        $body .= $content;
+                    } elseif ($subtype === 'plain' && $bodyType !== 'html') {
+                        $body .= $content;
+                    }
+                    continue;
+                }
+
+                // Attachment
+                if ($isAttachment || ($type === 3 && $subtype === 'octet-stream')) {
+                    $content = @imap_fetchbody($inbox, $msgno, $prefix);
+                    if (($part->encoding ?? 0) === 3) {
+                        $content = base64_decode($content);
+                    } elseif (($part->encoding ?? 0) === 4) {
+                        $content = quoted_printable_decode($content);
+                    }
+
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                    $safeName = time() . '_' . preg_replace('/[^a-zA-Z0-9._\-]/', '_', $filename);
+                    $filePath = 'attachments/' . $safeName;
+                    Storage::disk('public')->put($filePath, $content);
+
+                    $isZip = $ext === 'zip';
+                    $zipExtracted = null;
+
+                    if ($isZip) {
+                        $localPath = storage_path('app/public/' . $filePath);
+                        $zipExtracted = $this->extractZipFile($localPath);
+                    }
+
+                    $attachments[] = [
+                        'filename' => $filename,
+                        'size' => strlen($content),
+                        'url' => asset('storage/' . $filePath),
+                        'is_zip' => $isZip,
+                        'zip_extracted' => $zipExtracted,
+                    ];
+                }
+            }
+        }
+    }
+
+    private function extractZipFile(string $zipPath): ?array
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath) !== true) {
+            return null;
+        }
+
+        $sessionId = bin2hex(random_bytes(8)) . '_' . time();
+        $extractDir = 'zip-extracted/' . $sessionId . '/';
+        $fullDir = storage_path('app/public/' . $extractDir);
+
+        $zip->extractTo($fullDir);
+        $zip->close();
+
+        $files = [];
+        $fileCount = 0;
+        $totalSize = 0;
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($fullDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $f) {
+            $relativePath = ltrim(str_replace($fullDir, '', $f->getPathname()), '\\/');
+            $isDir = $f->isDir();
+            $size = $f->isFile() ? $f->getSize() : 0;
+
+            $files[] = [
+                'path' => $relativePath,
+                'size' => $size,
+                'isDir' => $isDir,
+                'url' => $isDir ? null : asset('storage/' . $extractDir . str_replace('\\', '/', $relativePath)),
+            ];
+
+            if (!$isDir) {
+                $fileCount++;
+                $totalSize += $size;
+            }
+        }
+
+        return [
+            'session_id' => $sessionId,
+            'files' => $files,
+            'file_count' => $fileCount,
+            'total_size' => $totalSize,
+            'total_size_formatted' => $this->formatBytes($totalSize),
+        ];
+    }
+
+    private function cleanMailBody(string $body): string
+    {
+        $body = trim($body);
+        if (empty($body)) {
+            return '';
+        }
+
+        if (str_starts_with($body, '<')) {
+            return $body;
+        }
+
+        return nl2br(e($body));
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1048576) return round($bytes / 1048576, 2) . ' MB';
+        if ($bytes >= 1024) return round($bytes / 1024, 2) . ' KB';
+        return $bytes . ' B';
     }
 
     private function decodeMimeHeader(string $header): string
