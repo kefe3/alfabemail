@@ -329,6 +329,32 @@
         .odev-card:hover {
             transform: translateY(-2px);
         }
+
+        /* ZIP Açıcı */
+        .progress-bar {
+            width: 100%; height: 6px; background: #eee;
+            border-radius: 3px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%; animation: indeterminate 1.2s infinite;
+        }
+        @keyframes indeterminate {
+            0%   { transform: translateX(-100%); width: 50%; }
+            100% { transform: translateX(250%);  width: 50%; }
+        }
+        .file-item {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+        .file-item:last-child { border-bottom: none; }
+        .file-item .fi-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .file-item .fi-path { flex: 1; color: #333; word-break: break-all; }
+        .file-item .fi-size { color: #999; font-size: 0.82rem; flex-shrink: 0; }
+        .file-item a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .file-item a:hover { text-decoration: underline; }
     </style>
 </head>
 <body class="p-4 md:p-8 pb-20">
@@ -378,6 +404,9 @@
             <button class="tab-btn" data-tab="odevler" id="odevTabBtn">
                 🦉 Ödevler
                 <span id="odevCount" class="ml-1 bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs hidden">0</span>
+            </button>
+            <button class="tab-btn" data-tab="zip">
+                🗜️ ZIP Açıcı
             </button>
         </div>
     </div>
@@ -581,6 +610,54 @@
             </h3>
             <div id="tamamlananOdevler" class="space-y-2">
                 <div class="text-center text-gray-400 py-4">Henüz tamamlanan ödev yok 🎯</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZIP Açıcı Tab -->
+    <div id="tab-zip" class="tab-content hidden max-w-4xl mx-auto">
+        <div class="kid-card p-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span>🗜️</span> ZIP Açıcı
+            </h2>
+            <p class="text-sm text-gray-500 mb-4">ZIP dosyanı yükle, içindeki dosyaları gör ve indir!</p>
+
+            <div id="zipDropZone" class="border-2 border-dashed border-purple-300 rounded-2xl p-8 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all bg-purple-50/50 relative">
+                <input type="file" id="zipFileInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".zip">
+                <div class="text-5xl mb-3">🗜️</div>
+                <div class="font-bold text-purple-700">ZIP dosyasını buraya sürükle</div>
+                <div class="text-sm text-gray-400 mt-1">veya tıklayarak seç — Maks. 50 MB</div>
+                <div id="zipFileName" class="mt-3 hidden text-sm bg-purple-100 text-purple-700 px-4 py-1.5 rounded-full inline-block font-semibold"></div>
+            </div>
+
+            <div class="progress-bar mt-4" id="zipProgress" style="display:none"><div class="progress-fill"></div></div>
+
+            <button id="zipExtractBtn" class="btn-kid btn-purple w-full mt-4" disabled>
+                🗜️ ZIP Dosyasını Aç
+            </button>
+
+            <div id="zipStatus" class="mt-4 p-4 rounded-xl text-center text-sm font-bold hidden"></div>
+
+            <div id="zipResult" class="mt-4 hidden">
+                <div class="stats grid grid-cols-2 gap-3 mb-4">
+                    <div class="stat-box bg-purple-50 rounded-xl p-3 text-center">
+                        <div class="stat-val text-2xl font-bold text-purple-600" id="zipFileCount">0</div>
+                        <div class="stat-lbl text-xs text-gray-500">Dosya Çıkarıldı</div>
+                    </div>
+                    <div class="stat-box bg-cyan-50 rounded-xl p-3 text-center">
+                        <div class="stat-val text-2xl font-bold text-cyan-600" id="zipTotalSize">0 B</div>
+                        <div class="stat-lbl text-xs text-gray-500">Toplam Boyut</div>
+                    </div>
+                </div>
+                <div class="file-list">
+                    <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>📄</span> Çıkarılan Dosyalar
+                    </h3>
+                    <div id="zipFileList" class="space-y-1 max-h-80 overflow-y-auto"></div>
+                </div>
+                <button id="zipClearBtn" class="btn-kid w-full mt-4 bg-gray-100 text-gray-600 hover:bg-gray-200">
+                    🗑️ Temizle
+                </button>
             </div>
         </div>
     </div>
@@ -845,10 +922,21 @@
                 const parts = body.split('📎 Ek:');
                 mailBody = parts[0].trim();
                 const attachmentUrl = parts[1].trim();
+                const isZip = attachmentUrl.toLowerCase().endsWith('.zip');
                 attachmentHtml = `<div class="mt-4 p-3 bg-yellow-50 rounded-xl border-2 border-yellow-200">
                     <span class="font-bold text-yellow-700">📎 Ek Dosya:</span>
-                    <a href="${attachmentUrl}" target="_blank" class="text-blue-600 underline hover:text-blue-800 ml-2">Dosyayı aç 👉</a>
+                    <a href="${attachmentUrl}" target="_blank" class="text-blue-600 underline hover:text-blue-800 ml-2">${isZip ? '🗜️ ZIP\'i İndir' : 'Dosyayı aç'} 👉</a>
+                    ${isZip ? `<button onclick="extractMailZip('${attachmentUrl}')" class="ml-2 px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-bold hover:bg-purple-700">🗜️ Aç</button>` : ''}
                 </div>`;
+            } else if (body && body.match(/https?:\/\/[^\s]+\.zip/i)) {
+                const zipMatch = body.match(/https?:\/\/[^\s]+\.zip/i);
+                if (zipMatch) {
+                    const zipUrl = zipMatch[0];
+                    attachmentHtml = `<div class="mt-4 p-3 bg-purple-50 rounded-xl border-2 border-purple-200">
+                        <span class="font-bold text-purple-700">🗜️ ZIP Dosyası Algılandı:</span>
+                        <button onclick="extractMailZip('${zipUrl}')" class="ml-2 px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-bold hover:bg-purple-700">🗜️ ZIP'i Aç ve İncele</button>
+                    </div>`;
+                }
             }
             
             if (!mailBody || mailBody.trim() === '' || mailBody === 'Mail içeriği yüklenemedi.') {
@@ -1429,6 +1517,189 @@
                 .catch(reject);
             });
         }
+
+        async function extractMailZip(zipUrl) {
+            closeModal();
+            document.querySelector('[data-tab="zip"]').click();
+            
+            const zipStatus = document.getElementById('zipStatus');
+            const zipResult = document.getElementById('zipResult');
+            const zipFileList = document.getElementById('zipFileList');
+            const zipFileCount = document.getElementById('zipFileCount');
+            const zipTotalSize = document.getElementById('zipTotalSize');
+
+            zipResult.classList.add('hidden');
+            zipStatus.className = 'mt-4 p-4 rounded-xl text-center text-sm font-bold bg-purple-100 text-purple-700';
+            zipStatus.textContent = '🗜️ Mail\'deki ZIP açılıyor...';
+            zipStatus.classList.remove('hidden');
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const res = await fetch('/ogrenci/zip/extract-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({ url: zipUrl })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    zipFileCount.textContent = data.file_count;
+                    zipTotalSize.textContent = data.total_size_formatted;
+
+                    zipFileList.innerHTML = data.files.map(f => `
+                        <div class="file-item">
+                            <span class="fi-icon">${f.isDir ? '📁' : '📄'}</span>
+                            <span class="fi-path">${f.path}</span>
+                            ${!f.isDir && f.url ? `<a href="${f.url}" target="_blank" class="text-sm">⬇ İndir</a>` : ''}
+                            ${!f.isDir ? `<span class="fi-size">${formatSizeLocal(f.size)}</span>` : ''}
+                        </div>
+                    `).join('');
+
+                    zipResult.classList.remove('hidden');
+                    zipStatus.className = 'mt-4 p-4 rounded-xl text-center text-sm font-bold bg-green-100 text-green-700';
+                    zipStatus.textContent = '✅ ' + data.file_count + ' dosya çıkarıldı!';
+                } else {
+                    zipStatus.className = 'mt-4 p-4 rounded-xl text-center text-sm font-bold bg-red-100 text-red-700';
+                    zipStatus.textContent = '❌ ' + (data.message || 'ZIP açılamadı');
+                }
+            } catch (err) {
+                zipStatus.className = 'mt-4 p-4 rounded-xl text-center text-sm font-bold bg-red-100 text-red-700';
+                zipStatus.textContent = '❌ Hata: ' + err.message;
+            }
+        }
+
+        function formatSizeLocal(bytes) {
+            if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
+            if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return bytes + ' B';
+        }
+
+        // ZIP Açıcı
+        (function() {
+            const zipInput = document.getElementById('zipFileInput');
+            const zipDropZone = document.getElementById('zipDropZone');
+            const zipFileName = document.getElementById('zipFileName');
+            const zipExtractBtn = document.getElementById('zipExtractBtn');
+            const zipProgress = document.getElementById('zipProgress');
+            const zipStatus = document.getElementById('zipStatus');
+            const zipResult = document.getElementById('zipResult');
+            const zipFileList = document.getElementById('zipFileList');
+            const zipFileCount = document.getElementById('zipFileCount');
+            const zipTotalSize = document.getElementById('zipTotalSize');
+            const zipClearBtn = document.getElementById('zipClearBtn');
+
+            let selectedZip = null;
+
+            function zipShowStatus(msg, type) {
+                zipStatus.textContent = msg;
+                zipStatus.className = 'mt-4 p-4 rounded-xl text-center text-sm font-bold ';
+                if (type === 'success') zipStatus.className += 'bg-green-100 text-green-700';
+                else if (type === 'error') zipStatus.className += 'bg-red-100 text-red-700';
+                else if (type === 'loading') zipStatus.className += 'bg-purple-100 text-purple-700';
+                else zipStatus.className += 'hidden';
+                zipStatus.classList.remove('hidden');
+            }
+
+            zipInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    selectedZip = this.files[0];
+                    zipFileName.textContent = '📦 ' + selectedZip.name;
+                    zipFileName.style.display = 'inline-block';
+                    zipExtractBtn.disabled = false;
+                    zipResult.classList.add('hidden');
+                    zipStatus.classList.add('hidden');
+                }
+            });
+
+            ['dragover', 'dragenter'].forEach(ev => {
+                zipDropZone.addEventListener(ev, e => { e.preventDefault(); zipDropZone.classList.add('border-purple-500', 'bg-purple-100'); });
+            });
+            ['dragleave', 'drop'].forEach(ev => {
+                zipDropZone.addEventListener(ev, e => { e.preventDefault(); zipDropZone.classList.remove('border-purple-500', 'bg-purple-100'); });
+            });
+            zipDropZone.addEventListener('drop', function(e) {
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    zipInput.files = files;
+                    selectedZip = files[0];
+                    zipFileName.textContent = '📦 ' + selectedZip.name;
+                    zipFileName.style.display = 'inline-block';
+                    zipExtractBtn.disabled = false;
+                    zipResult.classList.add('hidden');
+                    zipStatus.classList.add('hidden');
+                }
+            });
+
+            zipExtractBtn.addEventListener('click', async function() {
+                if (!selectedZip) return;
+
+                zipExtractBtn.disabled = true;
+                zipExtractBtn.textContent = '⏳ Açılıyor...';
+                zipProgress.style.display = 'block';
+                zipShowStatus('🗜️ ZIP dosyası açılıyor...', 'loading');
+
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const formData = new FormData();
+                formData.append('zipfile', selectedZip);
+
+                try {
+                    const res = await fetch('/ogrenci/zip/extract', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrf },
+                        body: formData
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        zipFileCount.textContent = data.file_count;
+                        zipTotalSize.textContent = data.total_size_formatted;
+
+                        if (data.files.length === 0) {
+                            zipFileList.innerHTML = '<div class="text-center text-gray-400 py-4">📂 ZIP boş</div>';
+                        } else {
+                            zipFileList.innerHTML = data.files.map(f => `
+                                <div class="file-item">
+                                    <span class="fi-icon">${f.isDir ? '📁' : '📄'}</span>
+                                    <span class="fi-path">${f.path}</span>
+                                    ${!f.isDir && f.url ? `<a href="${f.url}" target="_blank" class="text-sm">⬇ İndir</a>` : ''}
+                                    ${!f.isDir ? `<span class="fi-size">${formatSize(f.size)}</span>` : ''}
+                                </div>
+                            `).join('');
+                        }
+
+                        zipResult.classList.remove('hidden');
+                        zipShowStatus('✅ ' + data.file_count + ' dosya başarıyla çıkarıldı!', 'success');
+                    } else {
+                        zipShowStatus('❌ ' + (data.message || 'ZIP açılamadı'), 'error');
+                    }
+                } catch (err) {
+                    zipShowStatus('❌ Bağlantı hatası: ' + err.message, 'error');
+                }
+
+                zipExtractBtn.disabled = false;
+                zipExtractBtn.textContent = '🗜️ ZIP Dosyasını Aç';
+                zipProgress.style.display = 'none';
+            });
+
+            zipClearBtn.addEventListener('click', function() {
+                selectedZip = null;
+                zipInput.value = '';
+                zipFileName.style.display = 'none';
+                zipFileName.textContent = '';
+                zipExtractBtn.disabled = true;
+                zipResult.classList.add('hidden');
+                zipStatus.classList.add('hidden');
+                zipFileList.innerHTML = '';
+            });
+
+            function formatSize(bytes) {
+                if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
+                if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                return bytes + ' B';
+            }
+        })();
     </script>
 </body>
 </html>
